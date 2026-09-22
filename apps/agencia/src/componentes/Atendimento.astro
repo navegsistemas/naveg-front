@@ -1,0 +1,247 @@
+---
+/**
+ * **A seção de atendimento.**
+ *
+ * Duas colunas: o argumento à esquerda, quem o cumpre à direita. A divisão é o que faz a seção funcionar com
+ * **um** atendente — que é o caso de hoje. Uma grade de três colunas com um cartão só pareceria quebrada; aqui
+ * o cartão tem um lado inteiro para ele, e a coluna vira grade sozinha quando o segundo chegar.
+ *
+ * O que ainda não foi informado — nome, foto, número — aparece como **wireframe**, na mesma linguagem da
+ * vitrine das embarcações. Preencher com nome inventado seria a forma mais fácil de isso ir a produção.
+ */
+import { ATENDENTES, ATENDIMENTO, NOME_PROVISORIO } from '../conteudo/atendimento'
+import { linkDeWhatsApp } from '../conteudo/whatsapp'
+import Icone from './Icone.astro'
+---
+
+<div class="atendimento">
+  <ul class="pontos">
+    {
+      ATENDIMENTO.pontos.map((ponto) => (
+        <li class="ponto">
+          <span class="ponto__icone">
+            <Icone slug={ponto.icone} tamanho={22} />
+          </span>
+          <div>
+            <h3 class="ponto__titulo">{ponto.titulo}</h3>
+            <p class="ponto__texto">{ponto.texto}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+
+  <ul class="equipe">
+    {
+      ATENDENTES.map((atendente) => (
+        <li class="cartao">
+          <div class="cartao__retrato">
+            {atendente.foto === null ? (
+              <span class="cartao__retrato-vazio">
+                <Icone slug="pessoa" tamanho={32} />
+              </span>
+            ) : (
+              <img
+                src={`/atendentes/${atendente.foto}`}
+                alt={atendente.alt ?? ''}
+                width="320"
+                height="320"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+          </div>
+
+          <p class="cartao__funcao">{atendente.funcao}</p>
+          <p class="cartao__nome" data-provisorio={atendente.nome === null ? 'sim' : null}>
+            {atendente.nome ?? NOME_PROVISORIO}
+          </p>
+
+          <p class="cartao__horario">
+            <Icone slug="relogio" tamanho={16} />
+            {atendente.horario}
+          </p>
+
+          {
+            atendente.whatsapp === null ? (
+              /* O botão só existe quando há para onde ir. Um botão que não abre conversa nenhuma é pior
+                 que a ausência dele — ele promete e falha na frente de quem precisava. */
+              <p class="cartao__pendente">
+                Número pendente
+                <code>conteudo/atendimento.ts</code>
+              </p>
+            ) : (
+              <a
+                class="acao cartao__acao"
+                href={linkDeWhatsApp(atendente.whatsapp, ATENDIMENTO.mensagemInicial)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icone slug="whatsapp" tamanho={20} />
+                Falar no WhatsApp
+                <span class="apenas-leitor">(abre em nova aba)</span>
+              </a>
+            )
+          }
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .atendimento {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--espaco-6);
+    align-items: start;
+  }
+
+  /* ── O argumento ─────────────────────────────────────────────────────────────────────────────── */
+  .pontos {
+    display: grid;
+    gap: var(--espaco-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ponto {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espaco-3);
+  }
+
+  .ponto__icone {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-superficie);
+    color: var(--accent-contraste);
+  }
+
+  .ponto__titulo {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: var(--espaco-1) 0 var(--espaco-2);
+  }
+
+  .ponto__texto {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+
+  /* ── Quem atende ─────────────────────────────────────────────────────────────────────────────── */
+  .equipe {
+    display: grid;
+    /* Com um cartão ele ocupa a coluna; com dois ou mais, a grade se reparte sozinha. */
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: var(--espaco-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cartao {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--espaco-2);
+    padding: var(--espaco-5) var(--espaco-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-cartao);
+    background: var(--surface);
+    box-shadow: var(--sombra);
+  }
+
+  .cartao__retrato {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+
+  .cartao__retrato img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cartao__retrato-vazio {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border: 2px dashed var(--border-forte);
+    border-radius: 50%;
+    color: var(--text-secondary);
+  }
+
+  .cartao__funcao {
+    margin: var(--espaco-2) 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .cartao__nome {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--text);
+  }
+
+  /* Enquanto o nome é provisório, ele se anuncia como tal — e some quando o de verdade chegar. */
+  .cartao__nome[data-provisorio='sim'] {
+    color: var(--text-secondary);
+    border-bottom: 2px dashed var(--border-forte);
+  }
+
+  .cartao__horario {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-1);
+    margin: 0 0 var(--espaco-2);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .cartao__acao {
+    width: 100%;
+  }
+
+  .cartao__pendente {
+    width: 100%;
+    margin: 0;
+    padding: var(--espaco-3);
+    border: 2px dashed var(--border-forte);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .cartao__pendente code {
+    display: block;
+    margin-block-start: var(--espaco-1);
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 56rem) {
+    .atendimento {
+      grid-template-columns: 1fr;
+      gap: var(--espaco-5);
+    }
+  }
+</style>

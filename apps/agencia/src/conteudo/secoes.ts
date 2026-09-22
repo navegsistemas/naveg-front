@@ -49,9 +49,11 @@ export const SECOES: readonly SecaoDaPagina[] = [
   {
     id: 'atendentes',
     titulo: 'Quem atende você',
-    subtitulo: 'A equipe das agências, com o horário e o canal de cada uma.',
+    subtitulo:
+      'Do outro lado não tem robô. Quem responde conhece a travessia, os horários das saídas e o que ' +
+      'cabe em cada embarcação.',
     rotuloNoMenu: 'Atendentes',
-    pendenteDoPasso: 4,
+    pendenteDoPasso: null,
   },
   {
     id: 'depoimentos',

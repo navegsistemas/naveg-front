@@ -14,7 +14,8 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 1 | `@naveg/design-system` — tokens, base, marca, ícones | ✅ |
 | 2 | `apps/agencia` — casca Astro da single page | ✅ |
 | 3 | Seção Capa — proposta, credenciais e a vitrine da flotilha | ✅ |
-| 4–6 | Seções de exibição: atendentes, feedback, rodapé | — |
+| 4 | Seção Atendimento — o argumento e quem atende | ✅ |
+| 5–6 | Seções de exibição: feedback e redes, rodapé | — |
 | 7–8 | Domínio da reserva e a ilha do totem | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
 
@@ -87,10 +88,24 @@ mede. Trocar o rótulo do botão primário para branco derruba o build.
 - [ADR-0001 — A reserva é um tipo próprio, não um estado da passagem](docs/adr/ADR-0001-a-reserva-como-tipo-proprio.md)
 - [ADR-0002 — A escrita client-side, e o que de fato a protege](docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md)
 
+## O que falta preencher
+
+Três lugares esperam dado, e cada um **se anuncia na própria página** com um wireframe — nenhum foi preenchido
+com valor inventado, que é como conteúdo de mentira chega a produção parecendo pronto:
+
+| onde | o que falta | instruções |
+|---|---|---|
+| vitrine da capa | as fotos dos três ferry boats | [`public/embarcacoes/`](apps/agencia/public/embarcacoes/LEIA-ME.md) |
+| cartão do atendente | nome, foto e o número do WhatsApp | [`public/atendentes/`](apps/agencia/public/atendentes/LEIA-ME.md) |
+| rodapé | razão social, CNPJ, endereço, links legais e as redes | passo 6 |
+
+O número do WhatsApp é **validado no build**: `(91) 98888-7777`, `+55 91 98888-7777` ou `91988887777` dão no
+mesmo, mas o que não resultar em `55` + DDD + 9 dígitos quebra o build. Número errado não dá erro em lugar
+nenhum — dá um link que abre e não acha ninguém.
+
 ## Pendências conhecidas
 
 - **Razão social e CNPJ** da NAVEG, para o rodapé e o JSON-LD (passo 6).
-- **Número de WhatsApp** do atendimento, em E.164 (passo 10).
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.

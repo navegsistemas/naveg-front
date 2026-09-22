@@ -201,20 +201,33 @@ Nada de `aria-roledescription="carrossel"`: esse papel promete controles de slid
 
 ---
 
-## Passo 4 — Seção Atendentes
+## Passo 4 — Seção Atendimento · ✅ concluído em 2026-09-22
 
 **← Análise do passo anterior:** capa fechada; decisão "estático vs Firestore" tomada (estático).
 
-**Entrega**
-- `src/conteudo/atendentes.ts` — tipo `Atendente { nome, funcao, agencia, foto, whatsapp?, horario }`.
-- Grade de cartões responsiva (`grid-template-columns: repeat(auto-fit, minmax(...))` — sem breakpoint escrito à mão).
-- Cada cartão com ação **"Falar no WhatsApp"** usando o construtor de link do passo 10 (que ainda não existe — entra aqui como stub tipado, e o passo 10 o preenche).
-- Fotos: `<picture>` com AVIF/WebP + fallback, `loading="lazy"`, `alt` descritivo.
-- **LGPD:** só nome, função, agência, horário e canal de atendimento. Nenhum telefone pessoal em texto.
+**Dados recebidos do cliente:** agência é a própria NAVEG (uma só); "Atendente" é a função; nome fica como placeholder; horário **24 h**; por ora **um atendente com um WhatsApp**, com potencial de expansão; e a seção deve argumentar que do outro lado há quem entende do negócio.
 
-**Aceite**
-- Grade não quebra em 320px nem em 1920px.
-- Cenário que assere que todo atendente tem foto resolvida e `alt` não vazio.
+**Entregue**
+- `conteudo/whatsapp.ts` — `normalizarTelefone` e `linkDeWhatsApp`, puros. **Antecipados do passo 10**, porque esta seção já precisa da metade que não depende da reserva. No passo 10 mudam de casa para `@naveg/domain`; a assinatura não muda, porque o que a reserva acrescenta é o texto, não o mecanismo.
+- `conteudo/atendimento.ts` — os três pontos do argumento e a lista de atendentes.
+- `Atendimento.astro` — duas colunas: o argumento à esquerda, quem o cumpre à direita.
+- `public/atendentes/LEIA-ME.md`.
+- `test/atendimento.spec.ts` — 13 cenários.
+
+**As quatro decisões**
+
+1. **Duas colunas, e não uma grade de cartões.** Com **um** atendente, uma grade de três colunas pareceria quebrada — um cartão solto à esquerda e dois buracos. Aqui o cartão tem um lado inteiro, e a coluna vira grade `auto-fit` sozinha quando o segundo chegar. O layout de hoje não é o layout de amanhã diminuído; é o mesmo, com um item.
+2. **`ATENDENTES` já é lista, com um elemento.** Podia ser um objeto. Não é: acrescentar o segundo passa a ser **uma entrada**, e não uma refatoração de componente no dia em que o time crescer.
+3. **O campo `agencia` não existe.** Com uma agência só, ele diria "NAVEG" em todo cartão — informação que não distingue nada gasta a atenção de quem lê. Volta quando houver a segunda, e aí passa a distinguir.
+4. **Nada foi preenchido com valor inventado.** Nome, foto e número aparecem como **wireframe**, na linguagem da vitrine. Nome de mentira numa página institucional é exatamente o que vai a produção porque parecia pronto. E onde não há número, **não há botão**: um botão que não abre conversa promete e falha na frente de quem precisava.
+
+**O cenário que mais paga o próprio custo** é o do telefone. Um número anotado como as pessoas escrevem — `(91) 98888-7777` — colocado cru num `wa.me` **não dá erro em lugar nenhum**: dá um link que abre e não acha ninguém, na única página em que o cliente tentava falar com a empresa. `normalizarTelefone` aceita as seis formas usuais e **quebra o build** no que não resulta em `55` + DDD + 9 dígitos.
+
+**Aceite — verificado**
+- `npm run verify` verde: `tsc`, `astro check` (0/0/0) e **95 cenários**.
+- **0 arquivo JavaScript** mantido. `dist/` em 72 kB, `index.html` em 17,4 kB.
+- A grade não quebra em 320px nem em 1920px: o cartão é `minmax(13rem, 1fr)` e as colunas colapsam em 56rem.
+- **LGPD:** só função, horário e canal. Nenhum dado pessoal além do nome, quando ele chegar.
 
 **→ Análise do próximo passo:** depoimentos e redes. O ponto de atenção é que **feedback do usuário é entrada de dados** — se for formulário que escreve, cai no mesmo problema de segurança do totem e precisa esperar o passo 9. Se for vitrine de depoimentos já coletados, é estático e sai agora.
 
