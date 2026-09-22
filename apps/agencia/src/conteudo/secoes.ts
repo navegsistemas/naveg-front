@@ -60,7 +60,7 @@ export const SECOES: readonly SecaoDaPagina[] = [
     titulo: 'O que dizem os passageiros',
     subtitulo: 'Avaliações de quem já viajou com a gente.',
     rotuloNoMenu: 'Avaliações',
-    pendenteDoPasso: 5,
+    pendenteDoPasso: null,
   },
 ]
 

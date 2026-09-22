@@ -15,7 +15,8 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 2 | `apps/agencia` — casca Astro da single page | ✅ |
 | 3 | Seção Capa — proposta, credenciais e a vitrine da flotilha | ✅ |
 | 4 | Seção Atendimento — o argumento e quem atende | ✅ |
-| 5–6 | Seções de exibição: feedback e redes, rodapé | — |
+| 5 | Seção Avaliações — a vitrine e as redes da Meta | ✅ |
+| 6 | Rodapé — razão social, contatos e links legais | — |
 | 7–8 | Domínio da reserva e a ilha do totem | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
 
@@ -97,7 +98,17 @@ com valor inventado, que é como conteúdo de mentira chega a produção parecen
 |---|---|---|
 | vitrine da capa | as fotos dos três ferry boats | [`public/embarcacoes/`](apps/agencia/public/embarcacoes/LEIA-ME.md) |
 | cartão do atendente | nome, foto e o número do WhatsApp | [`public/atendentes/`](apps/agencia/public/atendentes/LEIA-ME.md) |
-| rodapé | razão social, CNPJ, endereço, links legais e as redes | passo 6 |
+| vitrine de avaliações | os depoimentos | `src/conteudo/depoimentos.ts` |
+| redes | as URLs do Instagram e do Facebook | `src/conteudo/depoimentos.ts` |
+| rodapé | razão social, CNPJ, endereço e links legais | passo 6 |
+
+`DEPOIMENTOS` é uma lista **vazia**, e isso é deliberado: depoimento inventado é a peça de conteúdo falso mais
+fácil de deixar passar — tem nome de gente, cidade de verdade, e ninguém no code review pergunta se aquela
+pessoa existe. Com a lista vazia, a página desenha moldes em branco e o texto falso **não existe no
+repositório**.
+
+Toda URL de rede declarada é conferida no build: precisa ser `https` e pertencer ao domínio daquela rede. É o
+que impede o link do Instagram de levar ao perfil de outra pessoa por um erro de copiar e colar.
 
 O número do WhatsApp é **validado no build**: `(91) 98888-7777`, `+55 91 98888-7777` ou `91988887777` dão no
 mesmo, mas o que não resultar em `55` + DDD + 9 dígitos quebra o build. Número errado não dá erro em lugar

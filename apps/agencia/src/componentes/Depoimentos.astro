@@ -1,0 +1,302 @@
+---
+/**
+ * **A vitrine de avaliações, e as redes.**
+ *
+ * Enquanto não há depoimento, a seção desenha moldes em branco: a forma do cartão — aspas, texto, nota, autor —
+ * fica visível e revisável, e **nenhum texto falso existe no repositório** para acidentalmente ir ao ar.
+ *
+ * O molde é `aria-hidden` e não entra na contagem da lista: para quem usa leitor de tela, uma seção com três
+ * cartões vazios é ruído, e o que importa ali é a frase que diz que ainda não há avaliações.
+ */
+import {
+  CHAMADA_DAS_REDES,
+  DEPOIMENTOS,
+  MOLDES_DA_VITRINE,
+  NOTA_MAXIMA,
+  REDES,
+} from '../conteudo/depoimentos'
+import Icone from './Icone.astro'
+
+const moldes = DEPOIMENTOS.length === 0 ? Array.from({ length: MOLDES_DA_VITRINE }) : []
+const estrelas = Array.from({ length: NOTA_MAXIMA }, (_, indice) => indice + 1)
+---
+
+<div class="avaliacoes">
+  {
+    DEPOIMENTOS.length === 0 ? (
+      <p class="avaliacoes__vazio">
+        Ainda não publicamos avaliações. As primeiras entram assim que os passageiros começarem a mandar.
+      </p>
+    ) : null
+  }
+
+  <ul class="vitrine-avaliacoes">
+    {
+      DEPOIMENTOS.map((depoimento) => (
+        <li class="avaliacao">
+          <p class="avaliacao__nota" role="img" aria-label={`Nota ${depoimento.nota} de ${NOTA_MAXIMA}`}>
+            {estrelas.map((estrela) => (
+              <span class:list={['avaliacao__estrela', { 'avaliacao__estrela--apagada': estrela > depoimento.nota }]}>
+                <Icone slug="estrela" tamanho={18} />
+              </span>
+            ))}
+          </p>
+
+          <blockquote class="avaliacao__texto">
+            <p>{depoimento.texto}</p>
+          </blockquote>
+
+          <footer class="avaliacao__autor">
+            <span class="avaliacao__nome">{depoimento.autor}</span>
+            <span class="avaliacao__origem">
+              {depoimento.cidade} · {depoimento.travessia}
+            </span>
+          </footer>
+        </li>
+      ))
+    }
+
+    {
+      moldes.map(() => (
+        <li class="avaliacao avaliacao--molde" aria-hidden="true">
+          <p class="avaliacao__nota">
+            {estrelas.map(() => (
+              <span class="avaliacao__estrela avaliacao__estrela--apagada">
+                <Icone slug="estrela" tamanho={18} />
+              </span>
+            ))}
+          </p>
+
+          <div class="avaliacao__linhas">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <footer class="avaliacao__autor">
+            <span class="avaliacao__molde-rotulo">Avaliação pendente</span>
+            <code>conteudo/depoimentos.ts</code>
+          </footer>
+        </li>
+      ))
+    }
+  </ul>
+
+  <aside class="redes" aria-labelledby="redes-titulo">
+    <h3 id="redes-titulo" class="redes__titulo">Nas redes</h3>
+    <p class="redes__chamada">{CHAMADA_DAS_REDES}</p>
+
+    <ul class="redes__lista">
+      {
+        REDES.map((rede) => (
+          <li>
+            {rede.url === null ? (
+              /* Sem endereço não há link. Um ícone de rede que não leva a lugar nenhum é a mesma
+                 promessa quebrada do botão de WhatsApp sem número. */
+              <p class="rede rede--pendente">
+                <Icone slug={rede.icone} tamanho={22} />
+                <span>
+                  {rede.nome}
+                  <small>endereço pendente</small>
+                </span>
+              </p>
+            ) : (
+              <a
+                class="rede"
+                href={rede.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`NAVEG no ${rede.nome}, abre em nova aba`}
+              >
+                <Icone slug={rede.icone} tamanho={22} />
+                <span>
+                  {rede.nome}
+                  {rede.perfil !== null && <small>{rede.perfil}</small>}
+                </span>
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </aside>
+</div>
+
+<style>
+  .avaliacoes__vazio {
+    max-width: var(--largura-texto);
+    margin-block-end: var(--espaco-4);
+    color: var(--text-secondary);
+  }
+
+  .vitrine-avaliacoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--espaco-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .avaliacao {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-3);
+    padding: var(--espaco-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-cartao);
+    background: var(--surface);
+  }
+
+  .avaliacao--molde {
+    border-style: dashed;
+    border-color: var(--border-forte);
+    background: none;
+  }
+
+  .avaliacao__nota {
+    display: flex;
+    gap: var(--espaco-1);
+    margin: 0;
+    color: var(--accent-superficie);
+  }
+
+  .avaliacao__estrela--apagada {
+    color: var(--border);
+  }
+
+  .avaliacao__texto {
+    margin: 0;
+    flex: 1;
+  }
+
+  .avaliacao__texto p {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .avaliacao__texto p::before {
+    content: '“';
+  }
+
+  .avaliacao__texto p::after {
+    content: '”';
+  }
+
+  /* As três barras que sugerem o texto que ainda não existe. */
+  .avaliacao__linhas {
+    display: grid;
+    gap: var(--espaco-2);
+    flex: 1;
+  }
+
+  .avaliacao__linhas span {
+    display: block;
+    height: 10px;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+
+  .avaliacao__linhas span:last-child {
+    width: 60%;
+  }
+
+  .avaliacao__autor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-1);
+    font-size: 0.875rem;
+  }
+
+  .avaliacao__nome {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .avaliacao__origem {
+    color: var(--text-secondary);
+  }
+
+  .avaliacao__molde-rotulo {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .avaliacao__autor code {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── As redes ───────────────────────────────────────────────────────────────────────────────── */
+  .redes {
+    margin-block-start: var(--espaco-5);
+    padding-block-start: var(--espaco-4);
+    border-block-start: 1px solid var(--border);
+  }
+
+  .redes__titulo {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 var(--espaco-2);
+  }
+
+  .redes__chamada {
+    margin: 0 0 var(--espaco-3);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+
+  .redes__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .rede {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2);
+    min-height: 48px;
+    margin: 0;
+    padding: var(--espaco-2) var(--espaco-4) var(--espaco-2) var(--espaco-3);
+    border: 1px solid var(--border-forte);
+    border-radius: var(--radius);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .rede:hover {
+    background: var(--surface-2);
+  }
+
+  .rede span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .rede small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .rede--pendente {
+    border-style: dashed;
+    color: var(--text-secondary);
+  }
+
+  .rede--pendente:hover {
+    background: none;
+  }
+</style>

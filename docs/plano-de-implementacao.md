@@ -233,18 +233,34 @@ Nada de `aria-roledescription="carrossel"`: esse papel promete controles de slid
 
 ---
 
-## Passo 5 — Seção Feedback + redes (Meta)
+## Passo 5 — Seção Avaliações + redes (Meta) · ✅ concluído em 2026-09-22
 
-**← Análise do passo anterior:** padrão de cartão e de grade estabilizado no passo 4 — depoimento reusa, não reinventa.
+**← Análise do passo anterior:** padrão de cartão e de grade estabilizado no passo 4 — a avaliação reusa, não reinventa.
 
-**Entrega**
-- **Vitrine de depoimentos** (estática, `conteudo/depoimentos.ts`): autor, cidade, travessia, nota, texto. Carrossel **opcional e acessível**: se houver, com botões reais, `aria-live` e operação por teclado; sem JS, vira lista rolável. Não é ilha React — é CSS scroll-snap.
-- **Formulário de feedback**: fica **atrás do passo 9** (mesma fronteira Firestore do totem). Nesta etapa entram a marcação e a validação client-side; o envio é stub.
-- **Links das redes Meta** — Facebook, Instagram e WhatsApp como canal: ícones do design system, `rel="noopener noreferrer"`, `aria-label` explícito ("NAVEG no Instagram, abre em nova aba"). **Sem embed oficial do Facebook/Instagram**: o SDK deles carrega rastreamento de terceiros e derruba o LCP. Link, não widget.
+**Decisão do cliente:** **só a vitrine, com wireframe.** O formulário de avaliação sai do escopo da Fase 1.
 
-**Aceite**
-- `axe` sem violação na seção; carrossel operável só com teclado.
-- Nenhuma requisição a domínio de terceiro no build (cenário que varre o `dist/`).
+**Entregue**
+- `conteudo/depoimentos.ts` — o modelo de depoimento, a lista (**vazia**), os moldes e as redes.
+- `Depoimentos.astro` — a vitrine, com molde em branco enquanto não há avaliação, e o bloco de redes.
+- `test/depoimentos.spec.ts` — 8 cenários.
+
+**As quatro decisões**
+
+1. **A lista está vazia, e isso é o conteúdo.** Não há entrada de exemplo no arquivo, de propósito: depoimento inventado é a peça de conteúdo falso **mais fácil de deixar passar** — tem nome de gente, cidade de verdade, e ninguém no code review pergunta se aquela pessoa existe. Com a lista vazia, a página desenha três moldes em branco: a forma fica demonstrável e o texto falso **não existe no repositório**, então não tem como ir a produção.
+2. **O molde é `aria-hidden`.** Para quem usa leitor de tela, três cartões vazios são ruído; o que importa ali é a frase que diz que ainda não há avaliações, e ela está no HTML.
+3. **Sem formulário, e a razão é de segurança, não de escopo.** Coletar avaliação é **escrever dado**, e escrita pública cai na mesma fronteira do totem — Rules, App Check, revisão do passo 9 (ADR-0002). Deixá-lo para depois do totem faz o formulário **reaproveitar** a fronteira já montada e revisada, em vez de abrir uma segunda.
+4. **Link, não widget.** Nada de embed oficial do Facebook/Instagram: o SDK deles carrega rastreamento de terceiros e derrubaria o orçamento de 0 kB. E o **WhatsApp não entra entre as redes** — ele é canal de atendimento, já tem botão e mensagem pronta na seção anterior; repeti-lo aqui daria dois caminhos para a mesma conversa, e o daqui iria sem contexto nenhum.
+
+**Os dois cenários que protegem contra conteúdo que parece certo**
+
+- **Nota fora da escala.** Nota 7 numa escala de 5 desenha sete estrelas sem erro nenhum, e a página passa a afirmar uma avaliação que a escala não comporta.
+- **URL de rede no domínio errado.** Um link colado errado leva a página institucional da empresa para o perfil de outra pessoa, e ninguém confere clicando. O build confere: `https` obrigatório e o *hostname* tem de pertencer ao domínio daquela rede.
+
+**Aceite — verificado**
+- `npm run verify` verde: `tsc`, `astro check` (0/0/0) e **103 cenários**.
+- **0 arquivo JavaScript** mantido. `dist/` em 84 kB, `index.html` em 25,7 kB.
+- No HTML gerado: a frase de vitrine vazia, 3 moldes, 15 estrelas apagadas e 2 redes pendentes.
+- Nenhuma requisição a domínio de terceiro no build.
 
 **→ Análise do próximo passo:** o rodapé fecha a exibição. Depois dele o trabalho muda de natureza — sai de conteúdo e entra em domínio. É o ponto certo para uma revisão com o PO antes de gastar o esforço da reserva.
 
