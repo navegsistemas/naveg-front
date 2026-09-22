@@ -35,7 +35,7 @@ export const SECOES: readonly SecaoDaPagina[] = [
     subtitulo: null,
     /* A capa não entra no menu: o logo já leva ao topo, e um item "Início" numa página só é ruído. */
     rotuloNoMenu: null,
-    pendenteDoPasso: 3,
+    pendenteDoPasso: null,
   },
   {
     id: 'totem',

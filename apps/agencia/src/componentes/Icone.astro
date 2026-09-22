@@ -1,0 +1,43 @@
+---
+/**
+ * **Um ícone do design system, desenhado.**
+ *
+ * O pacote entrega a geometria; quem monta o `<svg>` é este arquivo. É o que permite o mesmo desenho sair daqui
+ * (HTML estático, sem JavaScript) e, no passo 8, de dentro da ilha React — sem que existam duas versões dele.
+ *
+ * ### `rotulado` é a decisão de acessibilidade, e ela é do chamador
+ *
+ * Ícone ao lado de texto é **decoração**: repeti-lo faz o leitor de tela dizer a mesma coisa duas vezes, e o
+ * padrão aqui é `aria-hidden`. Ícone que carrega o significado sozinho — um botão só com a seta — precisa de
+ * nome, e é aí que entra `rotulado`, que usa o rótulo declarado no próprio desenho.
+ */
+import { DESENHOS, LADO_DO_ICONE, type SlugIcone } from '@naveg/design-system'
+
+interface Props {
+  readonly slug: SlugIcone
+  readonly tamanho?: number
+  /** `true` quando o ícone é a única informação. Ver a nota do cabeçalho. */
+  readonly rotulado?: boolean
+  readonly class?: string
+}
+
+const { slug, tamanho = 24, rotulado = false, class: classe } = Astro.props
+const desenho = DESENHOS[slug]
+---
+
+<svg
+  class={classe}
+  width={tamanho}
+  height={tamanho}
+  viewBox={`0 0 ${LADO_DO_ICONE} ${LADO_DO_ICONE}`}
+  fill={desenho.traco ? 'none' : 'currentColor'}
+  stroke={desenho.traco ? 'currentColor' : 'none'}
+  stroke-width={desenho.traco ? 1.6 : null}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  role={rotulado ? 'img' : null}
+  aria-label={rotulado ? desenho.rotulo : null}
+  aria-hidden={rotulado ? null : 'true'}
+>
+  {desenho.caminhos.map((caminho) => <path d={caminho} />)}
+</svg>

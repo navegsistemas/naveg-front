@@ -168,19 +168,34 @@ Ordem geral: **fundação → seções de exibição → domínio da reserva →
 
 # BLOCO B — As seções de exibição
 
-## Passo 3 — Seção Capa (hero)
+## Passo 3 — Seção Capa (hero) · ✅ concluído em 2026-09-22
 
 **← Análise do passo anterior:** `<Secao>` existe e a alternância de fundo é derivada, não escrita à mão.
 
-**Entrega**
-- Capa com proposta de valor, a travessia principal e **dois botões**: primário "Reservar passagem" (laranja, rótulo marrom — regra do passo 1) → `#totem`; secundário "Falar com atendente" → WhatsApp institucional.
-- Marca NAVEG (wordmark SVG inline: escala sem borrar e aparece sem JS).
-- Faixa de credibilidade: rotas atendidas, anos de operação, embarcações.
-- Imagem do hero com `loading="eager"` + `fetchpriority="high"`; `width`/`height` declarados (sem layout shift).
+**Dados recebidos do cliente:** travessia **Belém ⇄ Macapá** (nos dois sentidos), **15 anos** de operação, **3 ferry boats** — F/B Regional, F/B Maria Ivanir e F/B Maria Eduarda. Pedido adicional: **carrossel automático** na capa, exibindo as embarcações, com wireframe pronto para receber as fotos.
 
-**Aceite**
-- LCP é o texto ou a imagem do hero, não um elemento tardio; CLS 0.
-- Contraste do par botão/rótulo conferido pelo cenário do passo 1.
+**Entregue**
+- `conteudo/capa.ts` — título, lead, as duas ações e as credenciais. A **rota vem primeiro** porque é o filtro: quem não vai a Macapá não tem o que fazer no resto da página, e descobrir isso no terceiro item seria ler três vezes mais para chegar a um "não".
+- `Capa.astro` — `<h1>`, lead, botão primário (laranja, rótulo marrom) → `#totem` e secundário → `#atendentes`. O secundário **não** aponta para o WhatsApp: o número é pendência do passo 10, e botão que leva a lugar nenhum é pior que botão que leva a menos.
+- `Icone.astro` — desenha a geometria do design system. `rotulado` é decisão do chamador: ícone ao lado de texto é decoração (`aria-hidden`), ícone sozinho precisa de nome.
+- `conteudo/embarcacoes.ts` — a flotilha **e** `quadrosDaVitrine`, que gera os `@keyframes` a partir da quantidade.
+- `VitrineDeEmbarcacoes.astro` — o carrossel.
+- `public/embarcacoes/LEIA-ME.md` — o que colocar, em que formato, e como ligar.
+- `test/vitrine.spec.ts` — 10 cenários sobre a flotilha e os quadros.
+
+**O carrossel, e as três decisões que ele exigiu**
+
+1. **É CSS, não JavaScript.** Carrossel costuma ser a primeira coisa a furar o orçamento de 0 kB. Aqui o desfile é uma `@keyframes` sobre o trilho, e o laço sem emenda vem de uma **cópia do primeiro item no fim da fila**: o último quadro leva o trilho até ela, o ciclo reinicia em `0%` mostrando o original, e o salto é invisível porque os dois são idênticos. É o truque que dispensa o script que normalmente reposiciona o trilho. A cópia é `aria-hidden`.
+2. **Os quadros são derivados.** Três itens têm percentuais `0%`, `33,33%`, `66,67%`. Escritos à mão, seguiriam iguais no dia do quarto barco — e o defeito não seria erro de build, seria o quarto slide **nunca aparecer**, numa página que continua bonita. `quadrosDaVitrine` os calcula, e tem cenário que cobre 1, 3, 4, 7 e 12 itens.
+3. **A WCAG 2.2.2 pede um jeito de parar** qualquer movimento automático acima de 5s. É uma caixa de seleção nativa, fora da tela mas dentro da tabulação, com o rótulo como face — operável por teclado, anunciada por leitor de tela, sem uma linha de script. Pausar no `:hover` também acontece, mas **hover não é o mecanismo**: quem usa toque não tem hover. E `prefers-reduced-motion` troca o desfile por uma grade com as três à vista — congelar no primeiro slide esconderia duas.
+
+Nada de `aria-roledescription="carrossel"`: esse papel promete controles de slide que aqui não existem. O que existe é uma **lista de três itens, inteira no HTML**, que quem usa leitor de tela recebe sempre, sem depender da animação.
+
+**Aceite — verificado**
+- `npm run verify` verde: `tsc`, `astro check` (0 erro / 0 aviso / 0 dica) e **82 cenários**.
+- **O orçamento se manteve: 0 arquivo JavaScript**, com o carrossel funcionando. `dist/` em 60 kB, `index.html` em 13,9 kB.
+- LCP é o `<h1>`, que é texto — não há o que baixar antes de a primeira coisa aparecer. As fotos ficam abaixo da dobra e são `lazy`.
+- Dois defeitos meus, pegos aqui: o gerador emitia `translateX(-0%)` (válido, feio, e `-0 !== 0` no cenário), e o `define:vars` do Astro carimbava `--vitrine-duracao` em **todo** elemento do componente — a variável foi para o atributo do único elemento que a consome.
 
 **→ Análise do próximo passo:** atendentes é a primeira lista de dados. Decidir **agora** se a lista é conteúdo estático em `conteudo/atendentes.ts` ou vem do Firestore. **Recomendação: estática na Fase 1** — são poucos, mudam devagar, e ler `funcionarios` publicamente exportaria a equipe inteira, o que é decisão de LGPD que ninguém pediu.
 

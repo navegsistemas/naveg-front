@@ -1,0 +1,342 @@
+---
+/**
+ * **A vitrine da flotilha** — o carrossel automático da capa.
+ *
+ * ### Ele é CSS, e não JavaScript
+ *
+ * A página institucional entrega 0 kB de JavaScript (passo 2), e um carrossel costuma ser a primeira coisa a
+ * furar esse orçamento. Aqui o desfile é uma `@keyframes` sobre o trilho: automático, contínuo, e **nada desce
+ * para o navegador**.
+ *
+ * O laço sem emenda vem de uma cópia do primeiro item no fim da fila. O último quadro leva o trilho até ela; o
+ * ciclo então reinicia em `0%`, que mostra o original — idêntico, logo invisível. É o truque que dispensa o
+ * script que normalmente reposiciona o trilho.
+ *
+ * ### Os quadros são derivados, não escritos
+ *
+ * Os percentuais de três itens são `0%`, `33,33%`, `66,67%`. Escritos à mão, seguiriam iguais no dia do quarto
+ * barco — e o defeito seria o quarto slide **nunca aparecer**, em silêncio. `quadrosDaVitrine` os calcula a
+ * partir da lista, e tem cenário próprio.
+ *
+ * ### O que a acessibilidade exigiu
+ *
+ * - **Um jeito de parar** (WCAG 2.2.2: qualquer movimento automático acima de 5s precisa dele). É a caixa de
+ *   seleção — controle nativo, operável por teclado e anunciado por leitor de tela, sem uma linha de script.
+ *   Ela também pausa no `:hover` e no `:focus-within`, que é o que a APG recomenda, mas **hover não é o
+ *   mecanismo**: quem usa toque não tem hover, e a norma pede um controle de verdade;
+ * - **`prefers-reduced-motion`**: o desfile some e a vitrine vira uma grade com as três embarcações à vista. É
+ *   melhor que congelar no primeiro slide, que esconderia duas;
+ * - **Nada de `aria-roledescription="carrossel"`.** Esse papel promete controles de slide que aqui não existem.
+ *   O que existe é uma **lista de três itens**, inteira no HTML, na ordem certa: quem lê por leitor de tela
+ *   recebe as três sempre, e não depende da animação para nada. A cópia é `aria-hidden`.
+ */
+import { EMBARCACOES, duracaoDaVitrine, quadrosDaVitrine } from '../conteudo/embarcacoes'
+import Icone from './Icone.astro'
+
+const itens = EMBARCACOES
+const primeira = itens[0]
+
+/* Nome global — `@keyframes` não tem escopo em CSS, e fingir que tem seria mentira de comentário. */
+const ANIMACAO = 'naveg-vitrine-desfile'
+
+const folhaDeQuadros = `@keyframes ${ANIMACAO} {\n${quadrosDaVitrine(itens.length)}\n}`
+const duracao = `${duracaoDaVitrine(itens.length)}s`
+---
+
+<section class="vitrine" aria-labelledby="vitrine-titulo">
+  <h2 id="vitrine-titulo" class="vitrine__titulo">
+    <Icone slug="barco" tamanho={20} />
+    Nossa flotilha
+  </h2>
+
+  {/* Primeiro elemento do bloco: é dele que partem os seletores de irmão que pausam o desfile. */}
+  <input class="vitrine__interruptor" type="checkbox" id="vitrine-pausa" />
+
+  <div class="vitrine__janela">
+    {/* A duração vai como atributo **neste** elemento, e não por `define:vars`: aquele carimba a variável
+        em todo elemento do componente, e só o trilho a consome. */}
+    <ul class="vitrine__trilho" style={`--vitrine-duracao: ${duracao}`}>
+      {
+        itens.map((embarcacao) => (
+          <li class="vitrine__item">
+            <figure class="barco">
+              <div class="barco__moldura">
+                {embarcacao.imagem === null ? (
+                  <div class="barco__wireframe">
+                    <Icone slug="barco" tamanho={40} />
+                    <p class="barco__wireframe-texto">
+                      Foto pendente
+                      <code>public/embarcacoes/{embarcacao.id}.webp</code>
+                    </p>
+                  </div>
+                ) : (
+                  <img
+                    src={`/embarcacoes/${embarcacao.imagem}`}
+                    alt={embarcacao.alt ?? ''}
+                    width="1280"
+                    height="720"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+              </div>
+
+              <figcaption class="barco__legenda">
+                <p class="barco__tipo">{embarcacao.tipo}</p>
+                {/* Não é `<h3>`: entre o `<h2>` acima e este nome não há nível a pular, e um título
+                    aqui criaria três entradas no esboço do documento para o que é uma legenda. */}
+                <p class="barco__nome">{embarcacao.nome}</p>
+                <p class="barco__descricao">{embarcacao.descricao}</p>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+
+      {
+        primeira !== undefined && (
+          <li class="vitrine__item vitrine__clone" aria-hidden="true">
+            <figure class="barco">
+              <div class="barco__moldura">
+                <div class="barco__wireframe">
+                  <Icone slug="barco" tamanho={40} />
+                  <p class="barco__wireframe-texto">
+                    Foto pendente
+                    <code>public/embarcacoes/{primeira.id}.webp</code>
+                  </p>
+                </div>
+              </div>
+              <figcaption class="barco__legenda">
+                <p class="barco__tipo">{primeira.tipo}</p>
+                <p class="barco__nome">{primeira.nome}</p>
+                <p class="barco__descricao">{primeira.descricao}</p>
+              </figcaption>
+            </figure>
+          </li>
+        )
+      }
+    </ul>
+  </div>
+
+  <p class="vitrine__controles">
+    <label class="vitrine__pausa" for="vitrine-pausa">
+      <span class="vitrine__quando-rodando">Pausar apresentação</span>
+      <span class="vitrine__quando-pausado">Retomar apresentação</span>
+    </label>
+  </p>
+</section>
+
+<style is:global set:html={folhaDeQuadros}></style>
+
+<style>
+  .vitrine {
+    /* Contém o interruptor, que é posicionado em absoluto para sair da tela sem sair da tabulação. */
+    position: relative;
+    margin-block-start: var(--espaco-5);
+  }
+
+  .vitrine__titulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-block-end: var(--espaco-3);
+  }
+
+  /* Fora da tela, dentro da ordem de tabulação: é o controle de pausa de verdade, e o rótulo é a face dele. */
+  .vitrine__interruptor {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .vitrine__janela {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-cartao);
+    background: var(--surface);
+  }
+
+  .vitrine__trilho {
+    display: flex;
+    /* O trilho tem a largura da janela, e os itens transbordam. É o que faz `translateX(-100%)` valer
+       exatamente **uma janela** — com o trilho do tamanho do conteúdo, o mesmo -100% pularia a fila toda. */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: naveg-vitrine-desfile var(--vitrine-duracao) ease-in-out infinite;
+  }
+
+  .vitrine__item {
+    flex: 0 0 100%;
+  }
+
+  /* O controle e o ponteiro param o desfile. O `:focus-within` hoje não dispara — não há nada focável
+     dentro da janela —, e está aqui para o dia em que um slide ganhar um link: ler um cartão que desliza
+     embaixo do cursor é o defeito que ele previne. */
+  .vitrine__interruptor:checked ~ .vitrine__janela .vitrine__trilho,
+  .vitrine__janela:hover .vitrine__trilho,
+  .vitrine__janela:focus-within .vitrine__trilho {
+    animation-play-state: paused;
+  }
+
+  .vitrine__controles {
+    margin: var(--espaco-2) 0 0;
+    text-align: end;
+  }
+
+  .vitrine__pausa {
+    display: inline-block;
+    padding: var(--espaco-2) var(--espaco-3);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .vitrine__pausa:hover {
+    background: var(--surface-2);
+  }
+
+  /* O anel de foco tem de aparecer no rótulo: o controle real está fora da tela. */
+  .vitrine__interruptor:focus-visible ~ .vitrine__controles .vitrine__pausa {
+    outline: 3px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  .vitrine__quando-pausado {
+    display: none;
+  }
+
+  .vitrine__interruptor:checked ~ .vitrine__controles .vitrine__quando-rodando {
+    display: none;
+  }
+
+  .vitrine__interruptor:checked ~ .vitrine__controles .vitrine__quando-pausado {
+    display: inline;
+  }
+
+  /* ── A embarcação ────────────────────────────────────────────────────────────────────────────── */
+  .barco {
+    margin: 0;
+    display: grid;
+    gap: var(--espaco-4);
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: center;
+    padding: var(--espaco-4);
+  }
+
+  .barco__moldura {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+
+  .barco__moldura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .barco__wireframe {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espaco-2);
+    border: 2px dashed var(--border-forte);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+  }
+
+  .barco__wireframe-texto {
+    margin: 0;
+    text-align: center;
+    font-size: 0.8125rem;
+  }
+
+  .barco__wireframe-texto code {
+    display: block;
+    margin-block-start: var(--espaco-1);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .barco__legenda {
+    min-width: 0;
+  }
+
+  .barco__tipo {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .barco__nome {
+    margin: var(--espaco-1) 0 var(--espaco-2);
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+    line-height: 1.15;
+    color: var(--text);
+  }
+
+  .barco__descricao {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+
+  @media (max-width: 48rem) {
+    .barco {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── Quem pediu menos movimento vê a flotilha inteira, parada ───────────────────────────────────
+     Congelar no primeiro slide esconderia dois barcos. A grade mostra os três e dispensa o controle
+     de pausa — que some da tela **e** da ordem de tabulação. */
+  @media (prefers-reduced-motion: reduce) {
+    .vitrine__interruptor,
+    .vitrine__controles,
+    .vitrine__clone {
+      display: none;
+    }
+
+    .vitrine__janela {
+      overflow: visible;
+      border: 0;
+      background: none;
+    }
+
+    .vitrine__trilho {
+      animation: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      gap: var(--espaco-3);
+    }
+
+    .barco {
+      grid-template-columns: 1fr;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-cartao);
+      background: var(--surface);
+    }
+  }
+</style>

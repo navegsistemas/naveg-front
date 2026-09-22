@@ -11,15 +11,14 @@
 import Pagina from '../layouts/Pagina.astro'
 import Topo from '../componentes/Topo.astro'
 import Secao from '../componentes/Secao.astro'
+import Capa from '../componentes/Capa.astro'
 import Rodape from '../componentes/Rodape.astro'
 import Pendente from '../componentes/Pendente.astro'
 
-import { SITE } from '../conteudo/site'
 import { SECOES } from '../conteudo/secoes'
 
-/** O que cada seção ainda espera. Some do mapa quando o passo dela fecha. */
+/** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
 const PENDENCIAS: Readonly<Record<string, string>> = {
-  capa: 'Proposta de valor, travessia principal, os dois botões e a faixa de credibilidade.',
   totem: 'A ilha React do totem: o roteiro da reserva, passo a passo, e o handoff para o WhatsApp.',
   atendentes: 'A grade de atendentes, com foto, função, agência, horário e canal.',
   depoimentos: 'A vitrine de avaliações e os links das redes da Meta.',
@@ -33,7 +32,7 @@ const PENDENCIAS: Readonly<Record<string, string>> = {
     {
       SECOES.map((secao, indice) => (
         <Secao secao={secao} indice={indice}>
-          {secao.id === 'capa' && <h1>{SITE.nomeCompleto}</h1>}
+          {secao.id === 'capa' && <Capa />}
           {secao.pendenteDoPasso !== null && (
             <Pendente passo={secao.pendenteDoPasso} descricao={PENDENCIAS[secao.id] ?? ''} />
           )}

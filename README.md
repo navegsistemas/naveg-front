@@ -13,7 +13,8 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 0 | Esqueleto do monorepo e ADRs | ✅ |
 | 1 | `@naveg/design-system` — tokens, base, marca, ícones | ✅ |
 | 2 | `apps/agencia` — casca Astro da single page | ✅ |
-| 3–6 | Seções de exibição: capa, atendentes, feedback, rodapé | — |
+| 3 | Seção Capa — proposta, credenciais e a vitrine da flotilha | ✅ |
+| 4–6 | Seções de exibição: atendentes, feedback, rodapé | — |
 | 7–8 | Domínio da reserva e a ilha do totem | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
 
@@ -35,6 +36,15 @@ A página institucional entrega **0 kB de JavaScript** — hoje o `dist/` tem s�
 SVG do logo. O único `<script>` do documento é o JSON-LD, que não executa. A integração do React entra no
 passo 8, junto com a ilha do totem que a justifica, e o orçamento passa a ser "0 kB até alguém rolar até o
 totem".
+
+**Inclusive o carrossel.** A vitrine da flotilha, na capa, gira sozinha em CSS: uma `@keyframes` sobre o trilho,
+com uma cópia do primeiro item no fim da fila para o laço não ter emenda. Os percentuais são **derivados da
+quantidade de embarcações** (`quadrosDaVitrine`), não escritos — acrescentar um barco acerta a animação sozinho.
+O controle de pausa que a WCAG 2.2.2 exige é uma caixa de seleção nativa, e `prefers-reduced-motion` troca o
+desfile por uma grade com as três à vista.
+
+As fotos entram em [`apps/agencia/public/embarcacoes/`](apps/agencia/public/embarcacoes/LEIA-ME.md) — até lá, a
+vitrine desenha um wireframe que mostra o nome do arquivo que espera.
 
 ## Arquitetura
 
