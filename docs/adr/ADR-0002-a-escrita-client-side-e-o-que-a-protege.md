@@ -33,7 +33,7 @@
 > anônimo no console é, sozinho, a abertura — antes de qualquer linha deste repositório ir a produção.
 >
 > **O que decidir, e quem decide** — é mudança do lado do fluviapp, e por isso fica registrada aqui como
-> bloqueio do passo 9, não resolvida:
+> bloqueio do passo 10 (a escrita), não resolvida:
 >
 > 1. **`autenticado()` passa a excluir anônimos** — `request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous'` —
 >    e a regra de `reservas` usa uma função própria que os admite. É a menor mudança, mas toca em todas as
@@ -47,6 +47,16 @@
 > mesmo motivo. A alternativa que o plano já listava — o catálogo **gerado no build** a partir do fluviapp —
 > passa a ser a recomendada: `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, e roda igual
 > num script de build.
+>
+> **Dois fatos a mais, achados na mesma revisão, que mudam onde as camadas 2 e 3 vivem:**
+>
+> - **As Rules são um arquivo só por projeto**, e o do fluviapp tem suíte de emulador e deploy com gate
+>   (`.github/workflows/regras.yml`). A regra de `reservas` é uma **contribuição ao `firestore.rules` do
+>   fluviapp**, testada lá — publicar Rules a partir deste repositório sobrescreveria as dele. O mesmo vale para
+>   `firestore.indexes.json`.
+> - **O aplicativo não usa App Check.** O *enforcement* no Firestore vale para o banco inteiro: ligado para o
+>   totem, recusaria as requisições do aplicativo dos atendentes. A ordem obrigatória é o aplicativo enviar
+>   tokens (Play Integrity) primeiro, e só depois ligar o enforcement.
 
 ---
 

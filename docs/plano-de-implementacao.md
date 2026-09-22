@@ -11,8 +11,9 @@ e são pendência do passo 6 (rodapé e JSON-LD).
 
 | projeto | o que é | o que este plano herda dele |
 |---|---|---|
-| `AndroidStudioProjects/fluviapp-kmp` | Kotlin Multiplatform — domínio, dados (Firestore), UI Compose | O modelo real: `Passagem` selada, FSM `StatusPassagem`, `OcorrenciaViagem`, `Acomodacao`, cota de gratuidade, nomes das coleções |
-| `VSCodeProjects/fluviapp` | monorepo web npm workspaces: `@fluviapp/domain`, `@fluviapp/design-system`, `@fluviapp/ui`, `apps/apresentacao` (Astro + ilhas React) | A arquitetura: domínio puro em TS, design system sem domínio, telas controladas sem estado, Astro estático + ilhas. E o `roteiroDaEmissao` — **o totem já é máquina de domínio lá** |
+| **`Documents/AndroidStudioProjects/fluviapp`** | **o aplicativo Android — a gestão comercial em produção**, e a fonte da verdade (revisão de 2026-09-22) | O domínio **atual**: 17 classes de veículo por natureza, o `roteiroDe` da emissão, o `Cliente` e a chave natural, `ViagemSemana` e a disponibilidade, a concessão por atuação, as Rules e os índices do projeto. É contra ele que o contrato confere |
+| `AndroidStudioProjects/fluviapp-kmp` | Kotlin Multiplatform — **atrás do aplicativo** (sem `ClasseVeiculo`, `NaturezaVeiculo`, `TipoDocumento`) | O modelo real: `Passagem` selada, FSM `StatusPassagem`, `OcorrenciaViagem`, `Acomodacao`, cota de gratuidade, nomes das coleções |
+| `VSCodeProjects/fluviapp` | monorepo web — **atrás do aplicativo** no domínio; referência de arquitetura: `@fluviapp/domain`, `@fluviapp/design-system`, `@fluviapp/ui`, `apps/apresentacao` (Astro + ilhas React) | A arquitetura: domínio puro em TS, design system sem domínio, telas controladas sem estado, Astro estático + ilhas. E o `roteiroDaEmissao` — **o totem já é máquina de domínio lá** |
 
 ---
 
@@ -302,7 +303,7 @@ CNPJ com um dígito trocado, sequência repetida (que **passa** na conta dos ver
 
 # BLOCO C — O totem
 
-## Passo 7 — `packages/domain`: o domínio da reserva (sem tela, sem Firebase)
+## Passo 7 — `packages/domain`: o domínio da reserva (sem tela, sem Firebase) · ✅ concluído em 2026-09-22, revisado contra o aplicativo
 
 **← Análise do passo anterior:** exibição fechada. Revalidar que nenhuma seção precisou de React — se precisou, a decisão do passo 2 merece revisão antes de seguir.
 
@@ -356,145 +357,160 @@ viagem/hora-do-dia           formatarHora
 
 ## Passo 8 — Seção Totem (a ilha React)
 
-**← Análise do passo anterior:** roteiro coberto por cenários; nenhum `opcoes` montado fora do domínio.
+**← Análise do passo anterior:** o domínio foi revisado contra o aplicativo (2026-09-22). As opções chegam **dentro do nó**; `travessiasOfertadas` entrega cada saída com o `ContextoDaReserva` pronto; `montarReserva` fecha o pedido e tira a validade da partida. A ilha não tem regra nenhuma a escrever — se aparecer um `if` sobre acomodação, natureza ou casco num componente, a regra está faltando no domínio.
 
 **Entrega**
-- `packages/ui` — componentes **controlados**, sem estado de aplicação: `PassoDaReserva`, `EscolhaEmCartoes`, `FormularioDePassageiro`, `FormularioDeVeiculo`, `FormularioDeContato`, `Conferencia`, `IndicadorDePasso` ("passo 3 de 7", que **cresce** conforme o caminho), `ReservaConcluida`.
-- `apps/agencia/src/ilhas/Totem.tsx` — o único `client:visible` da página. Guarda `RespostasDaReserva` em `useState`, chama `roteiroDaReserva`, desenha o nó em foco. **Voltar apaga a resposta do nó anterior**, derivado do roteiro e sem pilha paralela — dois registros da mesma coisa divergem.
-- **Escolha da travessia** antes do primeiro passo: origem → destino → data → horário. A fonte entra no passo 9; aqui o totem depende de uma interface `CatalogoDeViagens`, com implementação de exemplo.
-- Ergonomia de totem, que é o que diferencia esta seção do resto da página: alvos de toque ≥56px, um passo por vez, sem scroll dentro do passo, `inputmode` correto em campo numérico, e **timeout de inatividade que zera o formulário** — é um terminal público, e o dado do próximo cliente não pode nascer preenchido com o do anterior.
-- Aviso permanente no topo da seção: **reserva, não venda**.
-- Modo quiosque: a seção tem `id="totem"` e também responde em `/totem` como página cheia, para rodar num terminal físico sem o resto da página.
+- `packages/ui` — componentes **controlados**, sem estado de aplicação:
+  - `ListaDeTravessias` — as saídas de `travessiasOfertadas`, com os rótulos que vêm prontos. Filtrar por origem, destino ou dia é recorte **sobre opções que o domínio entregou**, não montagem de opção;
+  - `EscolhaEmCartoes` — serve a categoria, a acomodação, o tipo, o subtipo de gratuidade, a quantidade, **a natureza e a classe** do veículo;
+  - `FormularioDePessoa` — o passageiro **e** o responsável pela retirada; no responsável, "ninguém além de mim" é um botão que responde `SEM_RESPONSAVEL`;
+  - `FormularioDeVeiculo` — mostra `no.campos`, trava só em `no.exigidos` (placa; cilindrada na moto);
+  - `FormularioDeContato`, `Conferencia` (documento por `TipoDocumento.mascarar`, WhatsApp por `formatarWhatsapp` — o terminal fica num saguão), `IndicadorDePasso` ("passo 3 de 7", que **cresce**), `ReservaConcluida`.
+- `apps/agencia/src/ilhas/Totem.tsx` — o único `client:visible` da página. Guarda a travessia escolhida e as `RespostasDaReserva` em `useState`; desenha `roteiroDaReserva(...).atual`; **voltar é `voltar()`**, sem pilha paralela.
+- **A porta de escrita já nasce aqui**: `ReservaRepositorio` (em `packages/dados`, sem Firebase ainda) com uma implementação em memória. Confirmar = `gerarCodigoDaReserva` → `montarReserva` → `repositorio.criar`, com nova tentativa se o código colidir. O passo 10 só troca o adaptador.
+- **A fonte do catálogo** é uma interface que devolve `CatalogoDoFluviapp`. Aqui, uma implementação de **molde declarado** (em `test/` ou num arquivo que se anuncie como tal), pela régua dos depoimentos: nome de porto real com horário inventado é conteúdo falso com cara de pronto.
+- **O relógio é o do rio**: `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO)`. O fuso é constante de conteúdo, **pendente de decisão** (`America/Belem`? há portos em `America/Manaus`?).
+- **A oferta é recalculada** ao abrir o totem, ao voltar à lista e a cada minuto parado nela: uma saída pode partir com a tela aberta. Se partir durante o preenchimento, `montarReserva` devolve `VALIDADE`, e a conclusão diz "esta saída já partiu" e volta à lista — sem perder o que foi digitado das pessoas.
+- Ergonomia de totem: alvos ≥56px, um passo por vez, sem scroll dentro do passo, `inputmode` correto, e **timeout de inatividade que zera respostas e travessia** — o dado do próximo cliente não nasce com o do anterior.
+- Aviso permanente no topo da seção: **reserva, não venda** — e que ela vale até a partida.
+- Modo quiosque: `id="totem"` na seção e `/totem` como página cheia.
+- `apps/agencia` passa a depender de `@naveg/domain`: consolidar `conteudo/cnpj.ts` em `TipoDocumento.validar('CNPJ', …)` e `conteudo/telefone.ts` em `normalizarWhatsapp` (que decide pelo comprimento e não erra o DDD 55).
 
 **Aceite**
-- Fluxo completo navegável só por teclado; `aria-live` anuncia a troca de passo.
-- Cenários `@testing-library/react`: gratuidade acrescenta o passo do subtipo; suíte para 3 acrescenta dois passos; casco lancha faz "Veículo" **não existir** como opção (não desabilitada); voltar apaga a resposta certa; timeout limpa tudo.
-- Bundle da ilha medido e registrado no README (referência: o totem do fluviapp custa 15 kB / 5,4 kB comprimido).
+- Fluxo completo só por teclado; `aria-live` anuncia a troca de passo.
+- Cenários `@testing-library/react`: gratuidade acrescenta o subtipo; suíte para 3 acrescenta dois passos; lancha faz "Veículo" **não existir**; navio **não pergunta a classe**; responsável pulável; voltar apaga a resposta certa; timeout limpa tudo; saída que parte com a tela aberta é recusada com a mensagem certa.
+- Bundle da ilha medido e registrado no README (referência: o totem do fluviapp web custa 15 kB / 5,4 kB comprimido).
 
-**→ Análise do próximo passo:** até aqui nada saiu do navegador. O passo 9 abre a primeira porta de escrita pública do sistema — é o passo de maior risco do plano e o único que exige revisão de segurança antes do deploy.
+**→ Análise do próximo passo:** até aqui nada sai do navegador. O passo 9 publica o catálogo e o 10 abre a escrita — e o 10 **depende de uma decisão do lado do fluviapp** (emenda do ADR-0002). Não começá-lo sem ela.
 
 ---
 
 # BLOCO D — Fronteira e handoff
 
-## Passo 9 — Fronteira Firestore: Rules, App Check e escrita
+> **Revisão de 2026-09-22.** Este bloco foi reescrito depois da revisão contra o aplicativo. Três fatos do
+> fluviapp mudaram o desenho:
+>
+> 1. **`autenticado()` é `request.auth != null`**, e libera `passagens`, `users`, `funcionarios` e o catálogo. A
+>    autenticação anônima do plano original satisfaz isso — ver a emenda do ADR-0002;
+> 2. **as Rules e os índices são um arquivo só por projeto**, e moram no repositório do fluviapp, com suíte de
+>    emulador e deploy com gate (`regras.yml`). Este repositório **não publica Rules**: a regra de `reservas` é
+>    uma contribuição ao fluviapp;
+> 3. **o aplicativo não usa App Check.** Ligar o *enforcement* do App Check no Firestore vale para o banco
+>    inteiro — ligado para proteger o totem, derrubaria o aplicativo dos atendentes.
 
-**← Análise do passo anterior:** o totem fecha o fluxo inteiro em memória e produz uma `Reserva` coerente.
+## Passo 9 — O catálogo publicado no build
 
-> **⚠ Revisão de 2026-09-22 — bloqueio antes deste passo.** A auth anônima abaixo **não pode ser ligada** no
-> projeto do fluviapp como ele está: `autenticado()` é `request.auth != null`, e isso libera `passagens`,
-> `users`, `funcionarios` e o catálogo a qualquer anônimo. As opções estão na
-> [emenda do ADR-0002](adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md); a decisão é do lado do
-> fluviapp. Pelo mesmo motivo, o catálogo público passa a ser **gerado no build** (`@naveg/domain/catalogo`
-> já lê os documentos como o aplicativo lê), e não lido do Firestore pelo navegador.
+**← Análise do passo anterior:** o totem funciona inteiro contra um catálogo de molde e uma porta em memória.
+
+**Por quê no build.** O público não pode ler o catálogo do Firestore sem autenticação, e a autenticação anônima é justamente o que abre o resto. O catálogo gerado no build não precisa de credencial nenhuma no navegador — e `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, então o script é pequeno.
 
 **Entrega**
-- `packages/dados` — `ReservaRepositorio` (porta) + `ReservaFirestoreRepositorio` (adaptador, Firebase Web SDK modular, importando só o que usa). O totem depende da **porta**; os cenários usam uma implementação em memória.
-- **Auth anônima** ao carregar a ilha: dá um `request.auth.uid` para as Rules amarrarem e para carimbar `criadoPor`.
-- **App Check com reCAPTCHA Enterprise**, obrigatório para `reservas` — é a resposta atual para escrita pública sem login. Sem ele, a coleção é um formulário aberto na internet.
-- **Firestore Rules**, o núcleo da proteção:
-  ```
-  match /reservas/{codigo} {
-    allow create: if request.auth != null
-                  && request.resource.data.status == 'RESERVADA'
-                  && request.resource.data.origem == 'TOTEM_WEB'
-                  && request.resource.data.criadoPor == request.auth.uid
-                  && request.resource.data.keys().hasOnly([ ...campos previstos... ])
-                  && request.resource.data.data.matches('^\\d{4}-\\d{2}-\\d{2}$')
-                  && request.resource.data.passageiros.size() <= 3;
-    allow read, update, delete: if false;   // o público nunca lê, nunca altera
-  }
-  ```
-  Leitura e transição (`CONVERTIDA`, gravar `passagemId`) ficam em regra separada, exigindo funcionário autenticado — é o app mobile que as usa.
-- **Catálogo público** (`rotas`, `portos`, `viagens`, `embarcacoes` com `ativo == true`): `allow read: if true`, porque horário de travessia é informação pública. **Decisão a ratificar com o analista** — é a única ampliação de leitura que este plano propõe. Alternativa: JSON gerado no build, que não fica obsoleto se o deploy for frequente.
-- **Índices compostos** declarados em `firestore.indexes.json` para `(status, data)` e `(agenciaId, data)`.
+- `scripts/catalogo` (Node, roda no build): lê `viagens`, `rotas`, `portos`, `localidades`, `embarcacoes` e `empresas/{id}/atuacoes/AGENCIAMENTO` com o Admin SDK, por uma **conta de serviço só de leitura**, guardada como segredo do CI — nunca no repositório, nunca no bundle.
+- Decodifica com `catalogo/documentos.ts` e grava um `catalogo.json` com o `CatalogoDoFluviapp` **bruto** — e não as travessias. A disponibilidade continua sendo calculada no navegador, com o relógio do rio: assim o JSON não envelhece com o passar das horas, só quando o cadastro muda.
+- **Minimização:** o JSON leva só o que a concessão cobre. As viagens e embarcações de outras empresas do pool não são publicadas.
+- **Fail-closed no build:** sem o documento de concessão, o build falha — em vez de publicar um totem vazio que parece funcionar.
+- Frequência de rebuild — **decisão pendente**: diário agendado, mais disparo manual quando o cadastro mudar. O risco residual é uma viagem inativada continuar ofertada até o próximo build; a Rule do passo 10 o fecha.
 
 **Aceite**
-- **Cenários de Rules com `@firebase/rules-unit-testing` no emulador** — os mais importantes do plano inteiro: público não lê; público não atualiza; `create` com status diferente de `RESERVADA` é negado; campo extra é negado; `criadoPor` forjado é negado; código já existente é negado (a colisão).
-- Escrita real ponta a ponta contra o emulador.
-- **Revisão de segurança antes do deploy.** Este passo não vai a produção sem ela.
+- Cenários do script sobre documentos de exemplo: o que a concessão não cobre não sai no JSON; concessão ausente derruba o build.
+- `dist/` sem credencial nenhuma (varredura no CI).
 
-**→ Análise do próximo passo:** com a reserva gravada e o código na mão, falta entregá-la a um humano. O passo 10 é curto e é o que o cliente percebe como o produto.
+**→ Análise do próximo passo:** com o catálogo publicado, a única coisa que falta sair do navegador é a reserva.
 
 ---
 
-## Passo 10 — Handoff para o WhatsApp
+## Passo 10 — A escrita da reserva
+
+**← Análise do passo anterior:** o totem oferece saídas reais e monta reservas coerentes.
+
+**Pré-requisito:** a decisão da emenda do ADR-0002 — `autenticado()` passa a excluir anônimos, ou o totem não autentica, ou projeto separado. Sem ela, este passo não começa.
+
+**Entrega — no fluviapp** (as Rules são um arquivo só, e é lá que elas têm suíte e gate)
+- `match /reservas/{codigo}` com `create` e nada mais para o público:
+  - `codigo` casando `^NVG-[0-9A-HJKMNP-TV-Z]{6}$` — o alfabeto de Crockford;
+  - `status == 'RESERVADA'`, `origem == 'TOTEM_WEB'`;
+  - `keys().hasOnly(CAMPOS_DO_DOCUMENTO)` (mais `criadoPor`, se houver autenticação) — a lista sai de `@naveg/domain`;
+  - `data` no formato ISO, `passageiros.size()` entre 1 e 3;
+  - **`get(/databases/$(database)/documents/viagens/$(request.resource.data.viagemId)).data.ativo == true`** — a regra lê com privilégio próprio, então confere que a viagem existe e está ativa. É o que cobre o catálogo desatualizado do passo 9.
+- Leitura e transição (`CONVERTIDA`, `passagemId`) só para funcionário autenticado — **não anônimo**.
+- Os casos novos em `firestore-tests/` do fluviapp: público não lê; não atualiza; status diferente de `RESERVADA` negado; campo extra negado; código fora do alfabeto negado; viagem inativa negada; código existente negado (a colisão).
+- Índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.json` **do fluviapp**.
+- **App Check, em duas etapas, nesta ordem:** primeiro o aplicativo passa a enviar tokens (Play Integrity) e roda assim por um ciclo de distribuição; só depois o *enforcement* do Firestore é ligado, junto com o reCAPTCHA Enterprise no site. Invertida, a ordem derruba os atendentes.
+
+**Entrega — aqui**
+- `packages/dados` — `ReservaFirestoreRepositorio`, Web SDK modular importando só `firestore` e `app-check` (e `auth`, conforme a decisão). `create` que colide → novo código → `montarReserva` de novo.
+
+**Aceite**
+- Suíte de Rules verde no CI do fluviapp; escrita ponta a ponta contra o emulador.
+- **Revisão de segurança antes do deploy.** Este passo não vai a produção sem ela.
+
+**→ Análise do próximo passo:** a reserva está gravada e o código na mão; falta entregá-la a um humano.
+
+---
+
+## Passo 11 — Handoff para o WhatsApp
 
 **← Análise do passo anterior:** gravação confirmada; o código devolvido é o id real do documento.
 
 **Entrega**
-- `packages/domain/reserva/link-de-atendimento.ts` — **função pura**, testável sem navegador:
-  ```
-  https://wa.me/55DDDNNNNNNNNN?text=<encodeURIComponent(mensagem)>
-  ```
-  `wa.me` é a forma atual e oficial; `api.whatsapp.com/send` é legada. Número em E.164 sem `+`, sem espaço, sem traço.
-- A mensagem, montada a partir do domínio, curta e com o código na primeira linha:
+- `packages/domain/reserva/link-de-atendimento.ts` — função pura: `https://wa.me/<E.164 sem +>?text=<encodeURIComponent(mensagem)>`. O número da NAVEG passa por `normalizarWhatsapp`, e `apps/agencia/src/conteudo/whatsapp.ts` deixa de existir.
+- A mensagem, montada do domínio e dos rótulos da travessia, com o código na primeira linha:
   ```
   Reserva NVG-7K3QP2
-  Manaus -> Parintins · ter, 14/10 · 18:00
+  Terminal Hidroviário → Porto de Camará · Qua, 14/10 · 21:30
   Rede · 1 pessoa · Maria Souza
-  Abrir no app: https://agencia.naveg.com.br/r/NVG-7K3QP2
+  Vale até a partida.
+  Abrir no app: https://<domínio>/r/NVG-7K3QP2
   ```
-- Tela de conclusão com: código **em destaque e copiável**, botão "Enviar ao atendimento" (`target="_blank"`, `rel="noopener"`), **e o código em texto** — o redirecionamento pode falhar (bloqueador de pop-up, desktop sem WhatsApp) e o cliente não pode sair de mãos vazias.
-- Quiosque: no totem físico o redirecionamento não faz sentido. Ali a conclusão mostra o **QR do link** — a pessoa aponta o celular e cai na conversa já preenchida.
+  Reserva de veículo leva a classe e a placa no lugar da acomodação ("Carro · ABC1D23").
+- Tela de conclusão com o código **em destaque e copiável**, o botão "Enviar ao atendimento" e o código em texto — o redirecionamento pode falhar e o cliente não sai de mãos vazias. No quiosque, o **QR do link**.
 
 **Aceite**
-- Cenários sobre o construtor: acentos e caracteres especiais escapados; quebra de linha preservada; número normalizado; a mensagem sempre contém o código.
-- E2E Playwright **assere o `href`**, sem navegar para fora.
+- Cenários sobre o construtor: acentos e `&` escapados; quebra de linha preservada; número normalizado; a mensagem sempre contém o código.
+- E2E assere o `href`, sem navegar para fora.
 
-**→ Análise do próximo passo:** o link `/r/{codigo}` da mensagem precisa abrir o app. Isso é trabalho no KMP, e é o único passo fora deste repositório.
+**→ Análise do próximo passo:** o link `/r/{codigo}` precisa abrir o aplicativo — e a reserva precisa virar passagem lá.
 
 ---
 
-## Passo 11 — Deeplink: o atendente cai direto na reserva
+## Passo 12 — No aplicativo: a reserva vira passagem
 
 **← Análise do passo anterior:** a mensagem carrega uma URL estável e única por reserva.
 
-**Levantamento feito no KMP:** `androidApp/src/main/AndroidManifest.xml` tem **apenas** o `intent-filter` de `MAIN/LAUNCHER`. **Não existe deeplink hoje, em nenhuma forma** — nem esquema próprio, nem App Link. Tudo abaixo é construção nova.
+Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a página `/r/[codigo]`.
 
-**Recomendação — a forma atual é Android App Links, não esquema customizado.** Esquema próprio (`fluviapp://`) não é verificado, qualquer app pode registrar o mesmo e — decisivo aqui — o navegador interno do WhatsApp frequentemente o ignora. App Links são `https://` verificados pelo domínio: abrem o app sem diálogo de escolha e, sem o app instalado, abrem a página web. O mesmo link serve aos dois casos, que é exatamente o que o atendimento precisa.
+**Entrega — no fluviapp**
+- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@naveg/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, veículo com e sem responsável), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
+- **Tela "Reservas"**: as `RESERVADA` por viagem e data. A expiração é **derivada na leitura** — `expiraEm ≤ agora` aparece como expirada sem que ninguém grave nada. Enquanto a validade for a partida, a lista do dia se limpa sozinha, e gravar `EXPIRADA` fica para uma rotina, se um dia for preciso.
+- **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** — acomodação, tipo, subtipo, pessoas, veículo. Cada pessoa vai a `clientes/{chaveNatural}` (criar ou assinar, como o balcão já faz); o veículo a `veiculos/{placa}`. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.
+- **Deeplink (Android App Links)**: o `applicationId` é **`br.com.fluviapp`** (o plano original dizia `br.com.fluviapp.android`, que é outro app). O manifest hoje só tem o `intent-filter` do launcher. Acrescentar o de `https://<domínio>/r/`, com `autoVerify`, `singleTask`, e o tratamento em `onCreate` **e** `onNewIntent`.
 
-**Entrega — no `naveg-front`**
-- `public/.well-known/assetlinks.json` com `package_name` e o SHA-256 do certificado de assinatura — o de **release** *e* o de **upload**, se houver Play App Signing. Esquecer o de upload é o erro clássico que faz a verificação passar em teste e falhar em produção. Servido em `https`, `content-type: application/json`, **sem redirecionamento**.
-- Página de fallback `/r/[codigo]` — mostra o código e instrui o atendente. É o que abre no desktop.
-- iOS (o módulo `iosApp` já existe no KMP): `public/.well-known/apple-app-site-association` para Universal Links, no mesmo caminho `/r/*`.
-
-**Entrega — no `fluviapp-kmp`**
-- No manifest, `android:launchMode="singleTask"` na `AtividadePrincipal` e:
-  ```xml
-  <intent-filter android:autoVerify="true">
-      <action android:name="android.intent.action.VIEW" />
-      <category android:name="android.intent.category.DEFAULT" />
-      <category android:name="android.intent.category.BROWSABLE" />
-      <data android:scheme="https" android:host="agencia.naveg.com.br" android:pathPrefix="/r/" />
-  </intent-filter>
-  ```
-- Tratamento do intent em `AtividadePrincipal` — `intent.data` na criação **e** `onNewIntent`; sem o segundo, o app já aberto ignora o link. Dali para um novo `Destino` em `ui/navegacao/Destino.kt` → tela que carrega a reserva pelo código e oferece **"Emitir passagem a partir desta reserva"**, que é onde a `Reserva` vira `Passagem` e nasce em `A_EMITIR`.
-- Hedge para o navegador interno do WhatsApp, caso a verificação não resolva: link `intent://` com `S.browser_fallback_url`, servido pela página `/r/`.
+**Entrega — aqui**
+- `public/.well-known/assetlinks.json` com o SHA-256 de release **e** de upload; `apple-app-site-association` se o iOS entrar.
+- Página `/r/[codigo]` — mostra o código e instrui o atendente. É o que abre no desktop.
 
 **Aceite**
-- `adb shell pm get-app-links br.com.fluviapp.android` → `verified` para o domínio.
-- `adb shell am start -a android.intent.action.VIEW -d "https://agencia.naveg.com.br/r/NVG-7K3QP2"` abre a reserva, com o app fechado **e** com o app já aberto.
-- Sem o app instalado, o mesmo link abre a página web.
-
-**→ Análise do próximo passo:** o circuito está fechado. O que resta é provar que ele se sustenta.
+- `adb shell pm get-app-links br.com.fluviapp` → `verified`.
+- O link abre a reserva com o app fechado e com o app aberto; sem o app, abre a página.
+- Emitir a partir de uma reserva produz uma passagem `A_EMITIR` com os clientes do pool e deixa a reserva `CONVERTIDA`.
 
 ---
 
-## Passo 12 — Endurecimento: acessibilidade, performance e E2E
+## Passo 13 — Endurecimento: acessibilidade, performance e E2E
 
-**← Análise do passo anterior:** fluxo completo — reserva → Firestore → WhatsApp → app — funcionando ponta a ponta.
+**← Análise do passo anterior:** o circuito está fechado — reserva → Firestore → WhatsApp → aplicativo → passagem.
 
 **Entrega**
-- **Playwright**: jornada completa em Chromium e WebKit, mobile e desktop; navegação só por teclado; a página institucional **sem JavaScript** continua legível e com todos os contatos alcançáveis.
-- **`@axe-core/playwright`** por seção, no CI.
-- Orçamento de performance no CI: JS total da página institucional = 0; ilha do totem com teto declarado.
-- CSP, `Permissions-Policy`, `Referrer-Policy`; `preconnect` só para o domínio do Firestore.
+- Playwright: jornada completa em Chromium e WebKit, mobile e desktop; só teclado; a página institucional **sem JavaScript** continua legível.
+- `@axe-core/playwright` por seção, no CI.
+- Orçamento de performance no CI: JS da página institucional = 0; ilha do totem com teto declarado.
+- CSP, `Permissions-Policy`, `Referrer-Policy`; `preconnect` só para o Firestore.
+- **O CI clona o fluviapp** para rodar a camada 2 do contrato — sem isso, os 21 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
-- `docs/RUNBOOK.md`: o que fazer quando o App Check bloquear reservas legítimas, como girar o certificado sem quebrar App Links, como expirar reservas antigas.
+- `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
 
 **Aceite**
-- CI verde: `typecheck`, `test`, `test:rules`, `e2e`, `axe`, orçamento de bundle.
+- CI verde: `typecheck`, `test` (com o contrato **executado**, não pulado), `e2e`, `axe`, orçamento de bundle.
 - Lighthouse mobile ≥90 nas quatro categorias.
 
 ---
@@ -504,19 +520,27 @@ viagem/hora-do-dia           formatarHora
 ```
 A · Fundação     0 monorepo+ADRs -> 1 design system -> 2 casca Astro
 B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     <- publicável aqui
-C · Totem        7 domínio da reserva -> 8 ilha do totem
-D · Fronteira    9 Rules+App Check -> 10 WhatsApp -> 11 deeplink -> 12 endurecimento
+C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
+D · Fronteira    9 catálogo no build -> 10 escrita [decisão do ADR-0002; Rules no fluviapp]
+                 -> 11 WhatsApp -> 12 no aplicativo: reserva vira passagem + deeplink -> 13 endurecimento
 ```
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
+
+**Caminho crítico:** a decisão do ADR-0002 (lado do fluviapp) e o App Check no aplicativo. Os passos 8 e 9 andam sem elas; o 10 não.
 
 ## Riscos registrados
 
 | risco | onde aparece | mitigação |
 |---|---|---|
-| Domínio portado divergir do KMP | passo 7 | Cenário de contrato sobre os valores canônicos dos enums — divergência vira build vermelho |
-| Escrita pública abusada | passo 9 | App Check + auth anônima + Rules `create`-only com forma fechada + revisão de segurança obrigatória |
-| App Links não verificarem | passo 11 | SHA-256 de release **e** de upload no assetlinks; fallback `intent://`; página web sempre funcional |
+| Domínio portado divergir do aplicativo | passo 7 | Contrato contra o Kotlin do **aplicativo** sobre valores **e significados** (natureza, carga, ocupação) e chaves dos documentos; o CI clona o fluviapp (passo 13) |
+| Auth anônima abrir as Rules do fluviapp | passos 9–10 | Catálogo no build; escrita só depois da decisão da emenda do ADR-0002 |
+| Enforcement do App Check derrubar o aplicativo | passo 10 | O aplicativo passa a enviar tokens **antes**; só então o enforcement |
+| Catálogo publicado desatualizado | passos 9–10 | Rebuild agendado; a Rule confere `viagens/{id}.ativo` na escrita |
+| Horário errado por fuso do visitante | passos 8, 10 | `InstanteLocal.emFuso` com o fuso da operação; nunca o relógio do navegador |
+| Escrita pública abusada | passo 10 | App Check + Rules `create`-only com forma fechada + revisão de segurança obrigatória |
+| Reserva e aplicativo lerem chaves diferentes | passo 12 | Documentos-exemplo gerados aqui e lidos por teste Kotlin lá |
+| App Links não verificarem | passo 12 | `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
 | Laranja reprovando contraste | passo 1 | Cenário de contraste sobre os tokens; laranja é superfície, nunca tinta de texto pequeno |
-| Reserva virar expectativa de venda | passos 6, 8, 10 | A frase "reserva, não venda" nos três pontos: rodapé, topo do totem, mensagem do WhatsApp |
-| Dado do cliente anterior vazar no totem físico | passo 8 | Timeout de inatividade que zera o formulário |
+| Reserva virar expectativa de venda | passos 6, 8, 11 | "Reserva, não venda" no rodapé, no topo do totem e na mensagem do WhatsApp |
+| Dado do cliente anterior vazar no totem físico | passo 8 | Timeout de inatividade que zera respostas e travessia |

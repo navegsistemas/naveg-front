@@ -19,8 +19,10 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 6 | Rodapé — identificação, contatos, endereços e o que a lei exige | ✅ |
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
 | 7 | `@naveg/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
-| 8 | Seção Totem — a ilha React | — |
-| 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
+| 8 | Seção Totem — a ilha React, com catálogo de molde e porta em memória | — |
+| 9 | Catálogo do fluviapp publicado no build | — |
+| 10 | Escrita da reserva — **bloqueada** pela decisão do ADR-0002; Rules no fluviapp | — |
+| 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
@@ -35,13 +37,13 @@ Os 229 incluem 21 que **leem o Kotlin do aplicativo** (ou o que estiver em `FLUV
 checkout eles aparecem como **pulados**, não como verdes — em outra máquina, `348 passed` vira
 `327 passed | 21 skipped`, e isso é o esperado.
 
-**Antes do passo 9 há um bloqueio de segurança, e ele é do fluviapp, não daqui** — ver
+**Antes do passo 10 (a escrita) há um bloqueio de segurança, e ele é do fluviapp, não daqui** — ver
 [ADR-0002, emenda de 2026-09-22](docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md). Em resumo: as
 Rules do fluviapp liberam `passagens`, `users`, `funcionarios` e o catálogo inteiro para qualquer
 `request.auth != null`, e a autenticação anônima que o plano previa **satisfaz isso**. Ligá-la no projeto
 abriria esses dados a qualquer visitante do site.
 
-**O próximo é o passo 8: a ilha React do totem.** Ele não depende do bloqueio — até o passo 9 nada sai do
+**O próximo é o passo 8: a ilha React do totem.** Ele não depende do bloqueio — até o passo 10 nada sai do
 navegador. Antes de abrir o primeiro `.tsx`:
 
 1. **A ilha não monta nada.** `travessiasOfertadas` dá as saídas disponíveis com os rótulos e o contexto
@@ -102,7 +104,7 @@ responde** — na prática, só o totem.
 packages/design-system/   tokens, base.css, marca, ícones.   Sem React, sem domínio.
 packages/domain/          o domínio da reserva.              Sem React, sem Firebase.
 packages/ui/              as telas do totem, controladas.                                (passo 8)
-packages/dados/           a porta e o adaptador Firestore.                               (passo 9)
+packages/dados/           a porta (passo 8) e o adaptador Firestore (passo 10).
 apps/agencia/             a single page em Astro.
 ```
 
@@ -220,9 +222,12 @@ nenhum — dá um link que abre e não acha ninguém.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
-- **Ratificação do analista** para tornar `rotas`, `portos`, `viagens` e `embarcacoes` ativos legíveis
-  publicamente — é a única ampliação de leitura que o projeto propõe (passo 9).
-- **Bloqueio do passo 9 — autenticação anônima e as Rules do fluviapp.** Ver a emenda do ADR-0002. Precisa de
+- **Frequência de rebuild do catálogo** (passo 9): diário agendado mais disparo manual? E a **conta de serviço
+  só de leitura** para o build, guardada como segredo do CI. O catálogo no build substitui a ampliação de leitura
+  pública que o plano original propunha.
+- **App Check no aplicativo** (Play Integrity) **antes** do enforcement no Firestore — sem isso, ligar o App
+  Check para o totem derruba os atendentes (passo 10).
+- **Bloqueio do passo 10 — autenticação anônima e as Rules do fluviapp.** Ver a emenda do ADR-0002. Precisa de
   decisão do lado do fluviapp antes de qualquer escrita pública.
 - **O fuso da operação** — `America/Belem`, ou há portos no fuso de Manaus? O aplicativo usa o relógio do
   aparelho no porto e não precisa dizer; a web precisa.
