@@ -20,8 +20,8 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
 | 7 | `@naveg/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
 | 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
-| 9 | Catálogo do fluviapp publicado no build | — |
-| 10 | Escrita da reserva — **bloqueada** pela decisão do ADR-0002; Rules no fluviapp | — |
+| 9 | `GET /api/catalogo` — o catálogo do fluviapp, lido pelo servidor | — |
+| 10 | `POST /api/reservas` — a escrita, com conta de serviço | — |
 | 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
@@ -49,15 +49,36 @@ outra máquina, `335 passed` vira `314 passed | 21 skipped`, e isso é o esperad
   fuso passa a ser do porto.
 - **O catálogo é reconstruído diariamente**, com disparo manual quando o cadastro mudar.
 
-**O próximo é o passo 9: o catálogo do fluviapp gerado no build.** Um script lê `viagens`, `rotas`, `portos`,
-`localidades`, `embarcacoes` e a concessão `empresas/{id}/atuacoes/AGENCIAMENTO` com o Admin SDK, decodifica
-com `@naveg/domain/catalogo` (que já lê como o aplicativo lê) e grava o JSON que a ilha carrega. O único
-arquivo da ilha que muda é `ilhas/TotemDaAgencia.tsx`: a fonte de demonstração vira a do JSON. Antes de
-começar, é preciso:
+**A agência tem servidor próprio, em repositório separado** (decisão de 2026-09-22, [segunda emenda do
+ADR-0002](docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md)): a
+[`naveg-api-vercel`](../naveg-api-vercel), Hono na Vercel. O navegador não fala mais com o Firestore.
 
-1. **uma conta de serviço só de leitura** no projeto do fluviapp, guardada como segredo do CI;
-2. **o id da empresa NAVEG** no fluviapp, para achar a concessão;
-3. decidir **onde o build roda** — o rebuild diário precisa de um agendador (Actions, ou o do host).
+```
+navegador → GET  /catalogo   → naveg-api-vercel → Firestore (conta de serviço, leitura)
+navegador → POST /reservas   → naveg-api-vercel → Firestore (conta de serviço, escrita)
+```
+
+Isso apaga do plano a autenticação anônima, o App Check, a regra pública de `create` no `firestore.rules` do
+fluviapp, o catálogo gerado no build e o rebuild diário — e tira o SDK do Firebase do bundle. A página
+institucional continua **inteiramente estática**; em compensação, aparece **CORS**, que não existiria se a API
+fosse do mesmo domínio.
+
+**O esqueleto da API já existe** (Hono, configuração que falha na partida, CORS, forma do erro, `GET /saude`,
+6 cenários verdes), e o `@naveg/domain` já está preparado para o GitHub Packages — ver "Publicando o
+`@naveg/domain`" abaixo.
+
+**O próximo é o passo 9: `GET /catalogo`, na `naveg-api-vercel`.** Ele está bloqueado por coisas que não são
+código:
+
+1. **mover os dois repositórios para a org `naveg`.** O GitHub Packages só aceita `@naveg/…` de repositório da
+   org de mesmo nome; hoje o remoto é `github.com/kurtmatheus/naveg-front`;
+2. **um PAT clássico com `read:packages`** como `NPM_TOKEN`, na Vercel e na máquina de quem desenvolve;
+3. **publicar o `@naveg/domain` 0.1.0** (tag `domain-v0.1.0`, o workflow faz o resto);
+4. **a conta de serviço** do projeto do fluviapp (uma de leitura, uma de escrita) e o **`NAVEG_EMPRESA_ID`**,
+   para achar a concessão `empresas/{id}/atuacoes/AGENCIAMENTO`.
+
+Nada disso bloqueia a tela: o totem continua rodando contra o catálogo de demonstração, e `npm run dev` sem
+variável de ambiente nenhuma usa ele, com a faixa de demonstração à mostra.
 
 O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimentos, URLs das redes, identificação
 da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo
@@ -77,7 +98,43 @@ npm run dev         # a página em http://localhost:4321
 npm run build       # gera apps/agencia/dist
 npm run verify      # typecheck + astro check + cenários
 npm test            # só os cenários
+
+npm run publicar:domain -- --ensaio   # monta o pacote publicável, sem publicar
+npm run publicar:domain               # publica o @naveg/domain no GitHub Packages
 ```
+
+### Publicando o `@naveg/domain`
+
+O domínio é consumido de dois jeitos, e eles pedem coisas diferentes:
+
+- **aqui dentro**, por symlink de workspace, como **TypeScript-fonte** — é o que faz o Astro e o Vite
+  compilarem o domínio junto com o app, sem passo de build no meio;
+- **de fora** (a [`naveg-api-vercel`](../naveg-api-vercel)), como **JavaScript compilado com tipos**, porque Node não
+  executa `.ts`.
+
+O `publishConfig` do npm promete resolver isso sozinho, sobrescrevendo o `exports` na publicação — e **não
+resolve**: conferido, o manifesto do tarball sai com o `exports` de desenvolvimento, e o pacote quebra na
+primeira importação, só no servidor. Por isso existe o `scripts/publicar-domain.mjs`, que monta o manifesto de
+publicação explicitamente e publica de um diretório de preparo. O ensaio (`--ensaio`) empacota sem publicar,
+para conferir o que vai.
+
+**Para publicar uma versão:**
+
+```bash
+npm version --workspace @naveg/domain patch --no-git-tag-version   # ou minor/major
+git commit -am "domain 0.1.1"
+git tag domain-v0.1.1
+git push && git push --tags
+```
+
+A tag dispara [`.github/workflows/publicar-domain.yml`](.github/workflows/publicar-domain.yml), que roda o
+`verify`, confere que a tag e a versão dizem a mesma coisa, e publica com o `GITHUB_TOKEN` do próprio
+workflow. Publicar da máquina também funciona (`npm run publicar:domain`), desde que o `~/.npmrc` tenha um
+token com `write:packages`.
+
+> **O escopo precisa ser o dono do repositório.** O GitHub Packages publica `@naveg/domain` **se** o
+> `naveg-front` pertencer à organização `naveg`. Enquanto o remoto for `github.com/kurtmatheus/naveg-front`, o
+> publish é recusado — e o conserto é mover o repositório para a org, não renomear o pacote.
 
 ### O orçamento
 
@@ -240,12 +297,13 @@ nenhum — dá um link que abre e não acha ninguém.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
-- **A conta de serviço só de leitura** para o build do catálogo (passo 9), guardada como segredo do CI. O
-  rebuild é diário, com disparo manual.
-- **App Check no aplicativo** (Play Integrity) **antes** do enforcement no Firestore — sem isso, ligar o App
-  Check para o totem derruba os atendentes (passo 10).
-- **A regra de `reservas` no `firestore.rules` do fluviapp** (passo 10) — `create` sem autenticação, com a
-  forma fechada. É contribuição ao repositório do fluviapp, com os casos de emulador de lá.
+- **A conta de serviço só de leitura**, o `NAVEG_EMPRESA_ID` e o projeto na Vercel (passos 9 e 10). Segredos
+  de runtime, nunca com prefixo `PUBLIC_`.
+- **Cloudflare Turnstile** (chave pública e secreta) e um Upstash Redis para o limite por IP (passo 10) — é o
+  que substitui o App Check agora que não há cliente público no Firestore.
+- **A regra de `reservas` no `firestore.rules` do fluviapp** — agora **menor**: leitura para funcionário
+  autenticado e `update` só para a conversão. `create` e `delete` negados, porque quem cria é a API com conta
+  de serviço. É contribuição ao repositório deles, com os casos de emulador de lá (passos 10 e 12).
 - **Manaus**: quando entrar, o fuso deixa de ser constante e passa a ser do porto de origem.
 - **Dois padrões do fluviapp que o site herda por paridade**: viagem sem `horaMin` vira saída à meia-noite, e
   documento sem `ativo` é tratado como ativo. No balcão há quem perceba; no site, a saída das 00:00 aparece

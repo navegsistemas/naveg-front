@@ -22,7 +22,7 @@ e são pendência do passo 6 (rodapé e JSON-LD).
 | # | Decisão | Consequência |
 |---|---|---|
 | **DP1** | **Monorepo próprio**, com domínio **portado** (não importado) do fluviapp | Independência de release e de marca. Custo aceito: o subconjunto portado é mantido em sincronia manual — e por isso o porte é **mínimo** e tem teste de contrato |
-| **DP2** | **Escrita real no Firestore, client-side**, protegida por Rules restritivas + App Check | A Fase 1 entrega clientela de verdade. O que protege o dado são as Rules, não o segredo da chave |
+| **DP2** | ~~Escrita real no Firestore, **client-side**~~ → **invertida em 2026-09-22**: a agência tem servidor próprio (duas rotas na Vercel), e o navegador não fala com o Firestore | A Fase 1 entrega clientela de verdade. O que protege o dado é a conta de serviço ficar no servidor e o domínio validar lá — ver a **segunda emenda** do ADR-0002 |
 | **DP3** | **`RESERVADA` não entra na FSM da passagem.** Existe a coleção `reservas`, com tipo e ciclo próprios | Não toca `StatusPassagem` no KMP nem no TS, não toca as Rules de `passagens`. É a nota lateral do ADR-0026 do fluviapp aplicada: *o atendimento incompleto tem de ser outro tipo* |
 
 **Por que DP3 é a decisão mais importante do plano.** `Passagem` é selada e coerente por construção: não existe `PassagemDePassageiro` sem titular, sem acomodação, sem status legível. Uma reserva feita por quem chega ao site é, por definição, **incompleta** — sem documento conferido, sem pagamento, sem funcionário emissor, sem agência atribuída. Admitir `RESERVADA` dentro da FSM obrigaria a tornar opcional tudo o que hoje é obrigatório, e isso desfaz por dentro a garantia que o app inteiro usa. A reserva é um **pedido**; a passagem é um **fato**. São dois tipos.
@@ -83,7 +83,7 @@ Ordem geral: **fundação → seções de exibição → domínio da reserva →
 - `tsconfig.base.json` com `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax` — o mesmo rigor que faz o domínio do fluviapp ser confiável.
 - `vitest.config.ts` na raiz.
 - `docs/adr/ADR-0001-a-reserva-como-tipo-proprio.md` — registra DP3 com o trade-off escrito.
-- `docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md` — registra DP2: Rules + App Check + auth anônima, e por que a chave pública não é segredo.
+- `docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md` — registra DP2: Rules + App Check + auth anônima, e por que a chave pública não é segredo. **Duas emendas em 2026-09-22**: a auth anônima abre as Rules do fluviapp, e a escrita deixa de ser client-side.
 - `.gitignore`, `README.md`.
 
 **Aceite**
@@ -400,64 +400,97 @@ viagem/hora-do-dia           formatarHora
 
 ---
 
-# BLOCO D — Fronteira e handoff
+# BLOCO D — A API da agência e o handoff
 
-> **Revisão de 2026-09-22.** Este bloco foi reescrito depois da revisão contra o aplicativo. Três fatos do
-> fluviapp mudaram o desenho:
+> **Revisão de 2026-09-22 (segunda).** Este bloco foi reescrito duas vezes no mesmo dia. A primeira, depois da
+> revisão contra o aplicativo; a segunda, depois da decisão de **a agência ter servidor próprio** — ver a
+> [segunda emenda do ADR-0002](adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md), que inverte a DP2.
 >
-> 1. **`autenticado()` é `request.auth != null`**, e libera `passagens`, `users`, `funcionarios` e o catálogo. A
->    autenticação anônima do plano original satisfaz isso — ver a emenda do ADR-0002. **Decidido: o totem não
->    autentica** (opção 2), e as Rules do fluviapp ficam como estão;
-> 2. **as Rules e os índices são um arquivo só por projeto**, e moram no repositório do fluviapp, com suíte de
->    emulador e deploy com gate (`regras.yml`). Este repositório **não publica Rules**: a regra de `reservas` é
->    uma contribuição ao fluviapp;
-> 3. **o aplicativo não usa App Check.** Ligar o *enforcement* do App Check no Firestore vale para o banco
->    inteiro — ligado para proteger o totem, derrubaria o aplicativo dos atendentes.
+> **O navegador não fala mais com o Firestore.** Duas rotas num **projeto separado**, a
+> [`naveg-api-vercel`](../../naveg-api-vercel) (Hono na Vercel), leem e gravam com uma conta de serviço:
+>
+> ```
+> navegador → GET  /api/catalogo   → Firestore (leitura)
+> navegador → POST /api/reservas   → Firestore (escrita)
+> ```
+>
+> Com isso somem do plano: a autenticação anônima, o App Check, a regra pública de `create` no `firestore.rules`
+> do fluviapp, o catálogo gerado no build e o rebuild diário. Some também o SDK do Firebase do bundle.
+>
+> **A API é repositório próprio** (decisão de 2026-09-22), e daí duas consequências para este plano: o
+> `apps/agencia` **continua inteiramente estático** — sem adaptador, sem rota sob demanda — e aparece **CORS**,
+> que não existiria se a API fosse do mesmo domínio. O `@naveg/domain` passa a ser **publicado** no GitHub
+> Packages para que os dois repositórios usem a mesma regra; ver "Publicando o `@naveg/domain`" no README.
+>
+> **O que sobra do lado do fluviapp** é uma mudança pequena e do feitio das que já existem lá: o **aplicativo**
+> precisa ler `reservas` e marcá-las `CONVERTIDA` (passo 12). Nada público.
+>
+> **O que aparece**, e é o que o passo 10 tem de resolver de verdade: sem App Check, o endpoint aberto precisa
+> de desafio e de limite por IP.
 
-## Passo 9 — O catálogo publicado no build
+## Passo 9 — A API do catálogo
 
-**← Análise do passo anterior:** o totem funciona inteiro contra um catálogo de molde e uma porta em memória.
+**← Análise do passo anterior:** o totem funciona inteiro contra o catálogo de demonstração e a porta em memória. Revalidar que `ilhas/TotemDaAgencia.tsx` é **o único** arquivo que precisa mudar para trocar as fontes — se outro precisar, a fronteira do passo 8 vazou.
 
-**Por quê no build.** O público não pode ler o catálogo do Firestore sem autenticação, e a autenticação anônima é justamente o que abre o resto. O catálogo gerado no build não precisa de credencial nenhuma no navegador — e `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, então o script é pequeno.
+**Entrega — na `naveg-api-vercel`**
+- `src/rotas/catalogo.ts` — `GET /catalogo`, devolve o `CatalogoDoFluviapp` **já recortado pela concessão** da NAVEG: só as viagens de rota ativa que a atuação cobre, e só os portos, localidades e embarcações que elas citam. Minimização: o pool das outras empresas não sai do servidor.
+- `src/firestore/CatalogoFirestore.ts` — o adaptador de leitura: lê as seis coleções com o Admin SDK e decodifica com `@naveg/domain` (`viagemDoDocumento` e companhia, que já leem como o aplicativo lê). O endpoint é fino: chama a porta, serializa, responde.
+- **A fronteira de serialização**, em `@naveg/domain/catalogo`: `catalogoParaJson` / `catalogoDoJson`. A concessão é `ReadonlySet`, que não sobrevive a `JSON.stringify` — e um `Set` que chega como `{}` vazio faz o totem não ofertar nada, em silêncio. O par tem cenário de ida e volta.
+**Entrega — no `naveg-front`**
+- `packages/dados` ganha `catalogoHttp(url)`, implementando a `FonteDoCatalogo` que o totem já consome. `TotemDaAgencia.tsx` troca `catalogoFixo(CATALOGO_DE_DEMONSTRACAO)` por ele — e é a única linha de ilha que muda. A URL da API entra como `PUBLIC_URL_DA_API` (pública de propósito: é um endereço, não um segredo).
+- O `@naveg/domain` publicado, para a API consumir a mesma regra.
+- **Cache na borda**: `Cache-Control: public, s-maxage=60, stale-while-revalidate=600`. O catálogo muda quando alguém cadastra uma viagem, não a cada pedido; um minuto de cache derruba a leitura do Firestore a quase nada e mantém a lista fresca. **A disponibilidade continua sendo calculada no navegador**, a cada minuto, sobre o catálogo em mãos — por isso o cache não faz saída vencida aparecer.
+- **O catálogo de demonstração fica**, como recurso de desenvolvimento e dos cenários: sem as variáveis de ambiente, `npm run dev` usa ele e a faixa de demonstração continua aparecendo. É o que mantém o totem rodável sem credencial.
 
-**Entrega**
-- `scripts/catalogo` (Node, roda no build): lê `viagens`, `rotas`, `portos`, `localidades`, `embarcacoes` e `empresas/{id}/atuacoes/AGENCIAMENTO` com o Admin SDK, por uma **conta de serviço só de leitura**, guardada como segredo do CI — nunca no repositório, nunca no bundle.
-- Decodifica com `catalogo/documentos.ts` e grava um `catalogo.json` com o `CatalogoDoFluviapp` **bruto** — e não as travessias. A disponibilidade continua sendo calculada no navegador, com o relógio do rio: assim o JSON não envelhece com o passar das horas, só quando o cadastro muda.
-- **Minimização:** o JSON leva só o que a concessão cobre. As viagens e embarcações de outras empresas do pool não são publicadas.
-- **Fail-closed no build:** sem o documento de concessão, o build falha — em vez de publicar um totem vazio que parece funcionar.
-- Rebuild **diário agendado, mais disparo manual** quando o cadastro mudar (decisão de 2026-09-22). O risco residual é uma viagem inativada continuar ofertada até o próximo build; a Rule do passo 10 o fecha.
+**Configuração**
+- `FIREBASE_SERVICE_ACCOUNT` (JSON da conta de serviço, **só leitura**: papel *Cloud Datastore Viewer*), `FIREBASE_PROJECT_ID`, `NAVEG_EMPRESA_ID`. Variáveis de ambiente da Vercel, **sem** prefixo `PUBLIC_`.
+- Funções **Node**, não edge: o Admin SDK depende de APIs de Node. A inicialização é memorizada por instância, para não repetir a cada invocação fria.
 
 **Aceite**
-- Cenários do script sobre documentos de exemplo: o que a concessão não cobre não sai no JSON; concessão ausente derruba o build.
-- `dist/` sem credencial nenhuma (varredura no CI).
+- Cenários do endpoint com uma porta de leitura falsa: o que a concessão não cobre não sai; rota inativa não sai; viagem com embarcação que não resolve não sai; sem `NAVEG_EMPRESA_ID` o endpoint responde 500 e **não** responde um catálogo vazio, que seria um totem sem saídas com cara de funcionando.
+- Cenário de ida e volta de `catalogoParaJson`/`catalogoDoJson`, com a concessão sobrevivendo.
+- `dist/` sem nenhuma credencial (varredura no CI) e sem o SDK do Firebase.
 
-**→ Análise do próximo passo:** com o catálogo publicado, a única coisa que falta sair do navegador é a reserva.
+**→ Análise do próximo passo:** com a leitura resolvida por conta de serviço, a escrita é o mesmo caminho na direção oposta — e é o passo que decide quem pode gravar.
 
 ---
 
-## Passo 10 — A escrita da reserva
+## Passo 10 — A API da reserva
 
-**← Análise do passo anterior:** o totem oferece saídas reais e monta reservas coerentes.
+**← Análise do passo anterior:** o totem mostra saídas reais, e nenhuma credencial chegou ao navegador.
 
-**Decisão tomada (emenda do ADR-0002, opção 2):** o totem **não autentica**. Nenhum provedor anônimo é ligado; a regra de `reservas` admite `create` sem `request.auth`, e não há `criadoPor`.
+**Entrega**
+- `apps/agencia/src/pages/api/reservas.ts` — `POST`, e o corpo é **só** o que o cliente pode afirmar:
+  ```json
+  { "viagemId": "...", "data": "2026-10-14", "respostas": { … }, "desafio": "token do Turnstile" }
+  ```
+  **O servidor não confia em mais nada.** A embarcação, a partida, o código e o instante são derivados ali:
+  1. valida o desafio;
+  2. carrega o catálogo (o mesmo caminho do passo 9, com o mesmo cache) e procura a travessia `viagemId@data` **entre as ofertadas agora**. Não achou — inativa, fora da concessão, já partida — é `409`, e a mensagem é a que o totem já sabe mostrar;
+  3. `montarReserva(respostas, contexto, { codigo: gerarCodigoDaReserva(), criadoEm: InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO) })`;
+  4. `INCOERENTE` vira `422` com as pendências **tipadas** — o totem já tem texto para cada uma;
+  5. `paraDocumento` e `create` com o Admin SDK. Documento existente derruba a gravação (`ALREADY_EXISTS`): gera outro código e monta de novo, até cinco vezes. É o `enviarReserva` que já existe, com a porta do Firestore no lugar da de memória.
+- Na `naveg-api-vercel`, `src/firestore/ReservaFirestore.ts` — a `ReservaRepositorio` de verdade: `create` que devolve `CODIGO_EM_USO` no `ALREADY_EXISTS`. O caso de uso (`enviarReserva`) é o mesmo do `@naveg/dados`… que vive no front. **Decisão a tomar no passo 10:** publicar também o `@naveg/dados`, ou mover `enviarReserva` para o domínio, que já é publicado.
+- No front, `packages/dados` ganha `reservaHttp(url)`: implementa a mesma porta, mandando o `POST` e traduzindo `409`/`422` nos casos que o totem já trata. **O `Totem.tsx` não muda.**
+- **O desafio**: Cloudflare Turnstile no passo de conferência. A chave pública é do bundle; a secreta, do servidor. Sem desafio válido, `403`.
+- **O limite por IP**: contador em Upstash Redis (plano gratuito), por janela curta. Passou do teto, `429`. É o substituto do App Check, e é o único lugar onde a API é mais frágil do que a porta do Firestore com App Check ligado — por isso ele é entrega, e não "depois".
+- **A origem**: o endpoint recusa `Origin` que não seja o domínio da agência. Não é segurança sozinho; é o que tira o tráfego trivial de cima do limite.
+- **O que o endpoint responde**, e é o que o totem mostra: `201` com `{ codigo }`.
 
-**Entrega — no fluviapp** (as Rules são um arquivo só, e é lá que elas têm suíte e gate)
-- `match /reservas/{codigo}` com `create` e nada mais para o público:
-  - `codigo` casando `^NVG-[0-9A-HJKMNP-TV-Z]{6}$` — o alfabeto de Crockford;
-  - `status == 'RESERVADA'`, `origem == 'TOTEM_WEB'`;
-  - `keys().hasOnly(CAMPOS_DO_DOCUMENTO)` — a lista sai de `@naveg/domain`; `cliente.keys().hasOnly(['nome', 'telefone'])`;
-  - `data` no formato ISO; `quantidadePessoas` inteiro entre 1 e 3; `cliente.nome` e textos com comprimento máximo;
-  - **`get(/databases/$(database)/documents/viagens/$(request.resource.data.viagemId)).data.ativo == true`** — a regra lê com privilégio próprio, então confere que a viagem existe e está ativa. É o que cobre o catálogo desatualizado do passo 9.
-- Leitura e transição (`CONVERTIDA`, `passagemId`) só para funcionário autenticado. Como o provedor anônimo não é ligado, `autenticado()` do fluviapp continua significando "funcionário com conta".
-- Os casos novos em `firestore-tests/` do fluviapp: público não lê; não atualiza; status diferente de `RESERVADA` negado; campo extra negado; código fora do alfabeto negado; viagem inativa negada; código existente negado (a colisão).
-- Índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.json` **do fluviapp**.
-- **App Check, em duas etapas, nesta ordem:** primeiro o aplicativo passa a enviar tokens (Play Integrity) e roda assim por um ciclo de distribuição; só depois o *enforcement* do Firestore é ligado, junto com o reCAPTCHA Enterprise no site. Invertida, a ordem derruba os atendentes.
-
-**Entrega — aqui**
-- `packages/dados` — `ReservaFirestoreRepositorio`, Web SDK modular importando só `firestore` e `app-check` — **sem `auth`**. `create` que colide → novo código → `montarReserva` de novo.
+**Do lado do fluviapp** (contribuição ao repositório deles, testada na suíte de lá)
+```
+match /reservas/{codigo} {
+  allow read:   if autenticado();                       // o aplicativo lista e abre
+  allow update: if autenticado() && ehConversao();      // CONVERTIDA + passagemId, nada mais
+  allow create, delete: if false;                       // quem cria é a API, com conta de serviço
+}
+```
+Mais os índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.json` deles. **Nenhuma regra pública**, nenhum App Check, nenhum provedor anônimo.
 
 **Aceite**
-- Suíte de Rules verde no CI do fluviapp; escrita ponta a ponta contra o emulador.
+- Cenários do endpoint, com portas falsas: corpo sem desafio é `403`; travessia que não está ofertada é `409`; respostas incoerentes são `422` com a pendência certa; o feliz devolve `201` e grava **o documento** (passa pelo codec); código em uso gera outro; o `criadoEm` e o `codigo` do corpo, se alguém os mandar, são **ignorados**.
+- Cenário de segurança: nenhuma resposta do endpoint devolve dado de outra reserva, e o erro não vaza mensagem do Firestore.
+- Escrita ponta a ponta contra o **emulador** do Firestore, com as Rules do fluviapp carregadas, provando que a conta de serviço grava e que um cliente anônimo não lê.
 - **Revisão de segurança antes do deploy.** Este passo não vai a produção sem ela.
 
 **→ Análise do próximo passo:** a reserva está gravada e o código na mão; falta entregá-la a um humano.
@@ -497,6 +530,7 @@ Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a p
 
 **Entrega — no fluviapp**
 - **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@naveg/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, moto com cilindrada, rebocado, cliente com e sem telefone), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
+- **As Rules de `reservas`** entram aqui se não tiverem entrado no passo 10: leitura para funcionário autenticado, `update` só para a conversão, `create` e `delete` negados (quem cria é a API da agência, com conta de serviço).
 - **Tela "Reservas"**: as `RESERVADA` por viagem e data. A expiração é **derivada na leitura** — `expiraEm ≤ agora` aparece como expirada sem que ninguém grave nada. Enquanto a validade for a partida, a lista do dia se limpa sozinha, e gravar `EXPIRADA` fica para uma rotina, se um dia for preciso.
 - **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** com o que define a passagem — acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários `DadosDoCliente`), natureza e classe, cilindrada. **A identificação é feita ali, no atendimento**: documento e nascimento de cada pessoa, placa do veículo — pelo caminho normal do balcão (`clientes/{chaveNatural}`, `veiculos/{placa}`). O nome e o telefone do cliente da reserva pré-preenchem o titular. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.
 - **Deeplink (Android App Links)**: o `applicationId` é **`br.com.fluviapp`** (o plano original dizia `br.com.fluviapp.android`, que é outro app). O manifest hoje só tem o `intent-filter` do launcher. Acrescentar o de `https://<domínio>/r/`, com `autoVerify`, `singleTask`, e o tratamento em `onCreate` **e** `onNewIntent`.
@@ -520,7 +554,8 @@ Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a p
 - Playwright: jornada completa em Chromium e WebKit, mobile e desktop; só teclado; a página institucional **sem JavaScript** continua legível.
 - `@axe-core/playwright` por seção, no CI.
 - Orçamento de performance no CI: JS da página institucional = 0; ilha do totem com teto declarado.
-- CSP, `Permissions-Policy`, `Referrer-Policy`; `preconnect` só para o Firestore.
+- CSP, `Permissions-Policy`, `Referrer-Policy`. Sem `preconnect` para o Firestore: quem fala com ele é o servidor.
+- **Cenários da API** no CI (os dos passos 9 e 10, com portas falsas) e um contra o **emulador** do Firestore; varredura do `dist/` por credencial.
 - **O CI clona o fluviapp** para rodar a camada 2 do contrato — sem isso, os 21 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
 - `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
@@ -537,25 +572,28 @@ Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a p
 A · Fundação     0 monorepo+ADRs -> 1 design system -> 2 casca Astro
 B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     <- publicável aqui
 C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
-D · Fronteira    9 catálogo no build -> 10 escrita sem autenticação [Rules no fluviapp; App Check no app antes]
+D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limite por IP]
                  -> 11 WhatsApp -> 12 no aplicativo: reserva vira passagem + deeplink -> 13 endurecimento
 ```
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
-**Caminho crítico:** o App Check no aplicativo (Play Integrity) antes do enforcement, e a regra de `reservas` aceita no repositório do fluviapp. Os passos 8 e 9 andam sem eles; o 10 não.
+**Caminho crítico:** a conta de serviço de leitura e o `NAVEG_EMPRESA_ID` (passo 9); o projeto na Vercel com os segredos (passos 9 e 10); a regra de leitura de `reservas` no repositório do fluviapp, que o **aplicativo** precisa (passo 12). Nada disso bloqueia o totem, que já roda contra o catálogo de demonstração.
 
 ## Riscos registrados
 
 | risco | onde aparece | mitigação |
 |---|---|---|
 | Domínio portado divergir do aplicativo | passo 7 | Contrato contra o Kotlin do **aplicativo** sobre valores **e significados** (natureza, carga, ocupação) e chaves dos documentos; o CI clona o fluviapp (passo 13) |
-| Auth anônima abrir as Rules do fluviapp | passos 9–10 | Decidido: o totem não autentica e o provedor anônimo não é ligado; catálogo no build |
+| Auth anônima abrir as Rules do fluviapp | passos 9–10 | Resolvido pela segunda emenda do ADR-0002: o navegador não fala com o Firestore, e nenhum provedor é ligado |
 | Totem recolher dado pessoal demais | passo 8 | Decidido: nenhum documento, nascimento ou placa — só a passagem, o nome e um telefone opcional |
-| Enforcement do App Check derrubar o aplicativo | passo 10 | O aplicativo passa a enviar tokens **antes**; só então o enforcement |
-| Catálogo publicado desatualizado | passos 9–10 | Rebuild agendado; a Rule confere `viagens/{id}.ativo` na escrita |
+| ~~Enforcement do App Check derrubar o aplicativo~~ | — | Não se aplica: não há cliente público no Firestore para atestar |
+| Endpoint público abusado (o que o App Check faria) | passo 10 | Turnstile no envio, limite por IP, checagem de origem, e a forma fechada que o domínio já garante |
+| Conta de serviço vazar | passos 9–10 | Segredo de runtime na Vercel, nunca `PUBLIC_`; varredura do `dist/` no CI; papel só de leitura no endpoint do catálogo |
+| A API cair e levar o totem junto | passos 9–10 | O catálogo tem cache na borda; a página institucional é estática e não depende da API |
+| Catálogo desatualizado | passos 9–10 | Leitura ao vivo com 60s de cache; e o `POST` reconfere a travessia contra o catálogo antes de gravar |
 | Horário errado por fuso do visitante | passos 8, 10 | `InstanteLocal.emFuso` com o fuso da operação; nunca o relógio do navegador |
-| Escrita pública abusada | passo 10 | App Check + Rules `create`-only com forma fechada + revisão de segurança obrigatória. Sem autenticação não há eixo por uid: o volume é o que o App Check e a forma fechada contêm |
+| Escrita pública abusada | passo 10 | A escrita é do servidor: o público manda respostas, não documento. Turnstile, limite por IP e revisão de segurança obrigatória |
 | Reserva e aplicativo lerem chaves diferentes | passo 12 | Documentos-exemplo gerados aqui e lidos por teste Kotlin lá |
 | App Links não verificarem | passo 12 | `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
 | Laranja reprovando contraste | passo 1 | Cenário de contraste sobre os tokens; laranja é superfície, nunca tinta de texto pequeno |

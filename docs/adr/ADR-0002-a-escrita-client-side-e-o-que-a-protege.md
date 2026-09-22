@@ -80,6 +80,80 @@
 
 ---
 
+> ## ⚠ Segunda emenda, 2026-09-22 — a escrita deixa de ser client-side
+>
+> **Esta emenda inverte a DP2 do plano** ("escrita real no Firestore, client-side") e, com ela, a decisão
+> central deste ADR. O que muda não é a avaliação das quatro camadas: é **com o que elas estavam sendo
+> comparadas**.
+>
+> ### O que mudou na comparação
+>
+> A DP2 recusou o backend por custo, medindo-o contra *"zero backend"*. A primeira emenda mostrou que o
+> caminho sem backend **não é zero**: ele custa
+>
+> 1. mexer no `firestore.rules` de **outro repositório**, com a suíte e o gate de deploy de lá;
+> 2. um rollout de App Check no **aplicativo dos atendentes** antes de qualquer coisa ir ao ar — e errar a
+>    ordem derruba quem está vendendo passagem no balcão;
+> 3. um catálogo publicado no build, que envelhece entre um build e outro;
+> 4. uma regra de segurança que precisa reproduzir, em linguagem de Rules, parte do que o domínio já sabe.
+>
+> Contra isso, um endpoint que lê e grava com conta de serviço é **mais barato e mais seguro**, não menos.
+>
+> ### A decisão
+>
+> **A agência passa a ter um servidor próprio, pequeno: duas rotas em `apps/agencia`, na Vercel** (decisão do
+> analista, 2026-09-22). O navegador não fala mais com o Firestore.
+>
+> ```
+> navegador → GET  /api/catalogo   → Firestore (conta de serviço, leitura)
+> navegador → POST /api/reservas   → Firestore (conta de serviço, escrita)
+> ```
+>
+> ### O que isso apaga
+>
+> | camada deste ADR | depois da emenda |
+> |---|---|
+> | 1 · autenticação anônima | **não existe** — nenhum provedor ligado, nenhuma Rule do fluviapp alcançada por visitante |
+> | 2 · App Check | **não existe** — não há cliente público no Firestore para atestar. Some o risco de derrubar o aplicativo |
+> | 3 · Rules `create`-only para o público | **não existe** — o Admin SDK passa por cima das Rules; `reservas` fica **fechada** ao público |
+> | 4 · o código como id | **continua**, e continua sendo o que impede sobrescrever: o servidor grava com `create` |
+>
+> E apaga também o catálogo gerado no build: a leitura passa a ser ao vivo, sem rebuild diário e sem conta de
+> serviço guardada no CI — ela vira segredo de runtime, que é o lugar dela.
+>
+> ### O que aparece no lugar
+>
+> - **A validação autoritativa é o domínio, rodando no servidor.** `montarReserva` é TypeScript e roda dos dois
+>   lados: no totem, para responder na hora; no endpoint, para decidir. Uma Rule nunca conseguiria isso — ela
+>   confere a forma do documento, não as regras da passagem;
+> - **o servidor não confia no contexto que o cliente manda.** O corpo do `POST` leva a ocorrência e as
+>   respostas; a embarcação, a partida, o código e o instante são **derivados no servidor**, do catálogo ao
+>   vivo. Reserva para saída que já partiu ou que a concessão não cobre é recusada ali;
+> - **o controle de abuso passa a ser nosso**: sem App Check, o endpoint precisa de um desafio (Cloudflare
+>   Turnstile) e de limite por IP. É a única coisa que a mudança torna mais difícil, e é a que o passo 10 tem de
+>   resolver explicitamente;
+> - **o segredo é de runtime**: a conta de serviço vive nas variáveis de ambiente da Vercel, nunca com prefixo
+>   `PUBLIC_`, nunca no bundle. O que sobra no navegador é `fetch` de JSON — e o SDK do Firebase **sai do
+>   bundle** (uns 100 kB que deixam de descer).
+>
+> ### O que continua igual
+>
+> - A página institucional continua **estática**: só as duas rotas de `/api` são renderizadas sob demanda.
+> - **Ainda é preciso uma mudança nas Rules do fluviapp**, mas menor e do feitio das que já existem lá: o
+>   aplicativo precisa **ler** `reservas` e marcá-las `CONVERTIDA`. Nada público.
+> - O contrato dos enums, a LGPD e o domínio: intactos.
+>
+> ### O que foi recusado, de novo
+>
+> **Cloud Functions no projeto do fluviapp.** Resolveria o mesmo, mas põe o servidor da agência dentro do
+> projeto de outra equipe, exige o plano Blaze e mistura o deploy dos dois. A Vercel mantém a fronteira onde o
+> resto do projeto já a coloca: a agência é um sistema que **lê e escreve no fluviapp**, não parte dele.
+>
+> **Cloudflare Workers.** Mais barato ainda, mas o Admin SDK não roda lá (depende de APIs de Node), e falar com
+> o Firestore por REST assinando JWT à mão é trabalho que não se paga nesta fase.
+
+---
+
 ## Contexto
 
 O totem é a única parte da agência virtual que **escreve**. A alternativa seria uma Cloud Function que valida e

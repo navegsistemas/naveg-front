@@ -1,11 +1,36 @@
 {
   "name": "@naveg/domain",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
-  "description": "O domínio da reserva — porte mínimo do @fluviapp/domain, com a Reserva como tipo próprio. Sem React, sem Astro, sem Firebase.",
+  "description": "O domínio da reserva da NAVEG: a Reserva como tipo próprio, o roteiro do totem e o catálogo do fluviapp. Sem React, sem Astro, sem Firebase.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naveg/naveg-front.git",
+    "directory": "packages/domain"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "prepack": "npx tsc --build --force"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "import": "./dist/src/index.js"
+      }
+    },
+    "types": "./dist/src/index.d.ts",
+    "main": "./dist/src/index.js"
+  },
+  "files": [
+    "dist/src",
+    "src",
+    "!src/**/*.spec.ts"
+  ],
   "dependencies": {}
 }
