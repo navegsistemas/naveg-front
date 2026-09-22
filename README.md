@@ -18,34 +18,47 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 5 | Seção Avaliações — a vitrine e as redes da Meta | ✅ |
 | 6 | Rodapé — identificação, contatos, endereços e o que a lei exige | ✅ |
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
-| 7–8 | Domínio da reserva e a ilha do totem | — |
+| 7 | `@naveg/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
+| 8 | Seção Totem — a ilha React | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
 ## Retomar daqui
 
-**Parei no fim do passo 6.** A exibição está fechada e a página é publicável; o que falta é o totem e a
-fronteira dele. `npm run verify` deve dar **119 cenários verdes**, `astro check` sem nada, e o `dist/` com
-**zero arquivo JavaScript** — se algum desses três não bater, o problema é anterior ao próximo passo.
+**Parei no fim do passo 7, revisado contra o aplicativo fluviapp** (`~/Documents/AndroidStudioProjects/fluviapp`,
+a gestão comercial que alimenta a agência). O domínio da reserva e o catálogo existem e estão cobertos; nada
+deles chega à página ainda. `npm run verify` deve dar **348 cenários verdes** (119 da exibição + 229 do
+domínio), `astro check` sem nada, e o `dist/` com **zero arquivo JavaScript**.
 
-**O próximo é o passo 7: `packages/domain`, domínio puro, sem tela e sem Firebase.** Ele é o passo que decide
-se o totem vai ser confiável, e é onde o esforço de teste se concentra. Em resumo — o detalhe está no plano:
+Os 229 incluem 21 que **leem o Kotlin do aplicativo** (ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o
+checkout eles aparecem como **pulados**, não como verdes — em outra máquina, `348 passed` vira
+`327 passed | 21 skipped`, e isso é o esperado.
 
-- portar o subconjunto mínimo do `@fluviapp/domain` (fica em `C:\Users\kurtm\VSCodeProjects\fluviapp`),
-  mantendo **os mesmos valores canônicos** dos enums, que é o que faz o documento gravado aqui ser legível lá;
-- escrever `roteiroDaReserva`, adaptação declarada do `roteiroDaEmissao`: **sem o passo `PAGAMENTO`** (não se
-  vende aqui) e **com um passo `CONTATO`**, que é a razão de ser da Fase 1 — formar clientela;
-- o tipo `Reserva` e a FSM própria dele (`RESERVADA → CONVERTIDA | EXPIRADA | CANCELADA`), que **não** toca a
-  FSM da passagem — ver [ADR-0001](docs/adr/ADR-0001-a-reserva-como-tipo-proprio.md);
-- o gerador do código `NVG-XXXXXX` e o codec do documento;
-- o **cenário de contrato com o KMP** (`C:\Users\kurtm\AndroidStudioProjects\fluviapp-kmp`), que confere os
-  valores dos enums contra os do Kotlin. É ele que transforma a divergência do porte manual em build vermelho,
-  em vez de dado ilegível em produção.
+**Antes do passo 9 há um bloqueio de segurança, e ele é do fluviapp, não daqui** — ver
+[ADR-0002, emenda de 2026-09-22](docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md). Em resumo: as
+Rules do fluviapp liberam `passagens`, `users`, `funcionarios` e o catálogo inteiro para qualquer
+`request.auth != null`, e a autenticação anônima que o plano previa **satisfaz isso**. Ligá-la no projeto
+abriria esses dados a qualquer visitante do site.
 
-Nada disso depende de dado do cliente. O que está pendente de dado — fotos, nome e WhatsApp do atendente,
-depoimentos, URLs das redes, identificação da empresa — é tudo conteúdo, entra em arquivo de `conteudo/` e
-**não bloqueia nenhum passo adiante**.
+**O próximo é o passo 8: a ilha React do totem.** Ele não depende do bloqueio — até o passo 9 nada sai do
+navegador. Antes de abrir o primeiro `.tsx`:
+
+1. **A ilha não monta nada.** `travessiasOfertadas` dá as saídas disponíveis com os rótulos e o contexto
+   pronto; `roteiroDaReserva` dá o nó em foco **com as opções dentro**; `voltar` dá o "voltar";
+   `montarReserva` dá a reserva ou as pendências; `gerarCodigoDaReserva` dá o código. Se aparecer vontade de
+   escrever um `if` sobre acomodação, natureza ou casco num componente, a regra está faltando no domínio.
+2. **O relógio é o do rio.** `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), fuso)`, com o fuso
+   **da operação** — nunca o do navegador. Qual fuso (`America/Belem`? há portos em `America/Manaus`?) é
+   decisão pendente; ver as pendências.
+3. **`apps/agencia` passa a depender de `@naveg/domain`.** É a hora de consolidar
+   `apps/agencia/src/conteudo/cnpj.ts` com `TipoDocumento.validar('CNPJ', …)`.
+4. **O catálogo de exemplo da ilha** implementa `CatalogoDoFluviapp` com dado declaradamente fictício, em
+   `test/` ou num arquivo que se anuncie como molde — pela mesma régua dos depoimentos.
+
+O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimentos, URLs das redes, identificação
+da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo
+adiante**.
 
 **Pendência operacional:** os branches do projeto antigo ainda estão no remoto. `main` já é o padrão.
 
@@ -87,7 +100,7 @@ responde** — na prática, só o totem.
 
 ```
 packages/design-system/   tokens, base.css, marca, ícones.   Sem React, sem domínio.
-packages/domain/          o domínio da reserva.              Sem React, sem Firebase.   (passo 7)
+packages/domain/          o domínio da reserva.              Sem React, sem Firebase.
 packages/ui/              as telas do totem, controladas.                                (passo 8)
 packages/dados/           a porta e o adaptador Firestore.                               (passo 9)
 apps/agencia/             a single page em Astro.
@@ -114,6 +127,42 @@ escreve em cima dele é marrom. Quando o laranja precisa ser lido, usa-se o tom 
 
 Isso não é convenção escrita num guia de estilo: `test/contraste.spec.ts` resolve cada token até o primitivo e
 mede. Trocar o rótulo do botão primário para branco derruba o build.
+
+### O totem é máquina de domínio
+
+`roteiroDaReserva` é a adaptação declarada do `roteiroDe` do aplicativo (`RoteiroDaEmissao.kt`): **sem
+`Pagamento`** (não se vende aqui) e **com `CONTATO`** (a razão de ser da Fase 1). O ramo do veículo é o do
+aplicativo: **natureza, depois classe** — e a classe só é perguntada quando há escolha naquele casco (num
+navio, nunca) —, o formulário com a placa e a cilindrada da moto como únicos obrigatórios, e o **responsável
+opcional**. As opções vêm dentro do nó: numa lancha, "Veículo" não é opção desabilitada, não é opção.
+
+No aplicativo, quem limpa a resposta que ficou para trás ao trocar de escolha é o ViewModel. Aqui não há
+ViewModel, então a garantia mora na leitura: **uma resposta só conta se estava entre as opções que o nó
+ofereceu**, e `montarReserva` lê os nós do roteiro, não as respostas. A `'MEIA'` de uma rede abandonada não
+vira meia numa suíte, e a van escolhida para um ferry não vira van num navio.
+
+### A reserva vale até o navio partir
+
+`expiraEm` é a partida da ocorrência escolhida — `data + horaMin` da viagem, o mesmo `ViagemSemana.partida` que
+o aplicativo usa para tirar a saída da lista. A regra mora em `reserva/validade-da-reserva.ts`, sozinha, porque é
+"por enquanto": quando mudar (uma antecedência para o atendimento emitir, um corte na véspera), muda ali.
+
+### A agência é alimentada pelo fluviapp
+
+`catalogo/` lê `viagens`, `rotas`, `portos`, `localidades`, `embarcacoes` e a concessão da agência
+(`empresas/{id}/atuacoes/AGENCIAMENTO`) **como o aplicativo lê** — mesmas chaves, mesmas recusas, mesmos
+padrões — e `travessiasOfertadas` faz o que o "Viagens Disponíveis" faz: recorta pela concessão, aplica a
+janela de sete dias e a partida não vencida, e escreve os rótulos do mesmo jeito. A única divergência é
+declarada e só esconde: a saída cuja embarcação ou porto não resolve não é oferecida ao público.
+
+O contrato (`test/contrato-fluviapp.spec.ts`) confere contra o Kotlin do aplicativo não só os nomes dos enums,
+mas **o que eles significam** — a natureza de cada classe, a carga de cada casco, a ocupação de cada
+acomodação — e as chaves dos documentos que a agência lê e escreve. A primeira versão conferia só nomes, contra
+o `fluviapp-kmp`, e passou verde com seis classes de veículo onde o aplicativo tem dezessete.
+
+O codec (`paraDominio`) recusa em vez de inventar padrão: documento ilegível, estado misto, incoerente — ou
+com **um** passageiro ilegível, que derruba a reserva inteira em vez de sumir da lista. Uma suíte para três que
+chega ao atendente como suíte para dois é uma família com alguém sem bilhete no embarque.
 
 ## Decisões
 
@@ -173,3 +222,18 @@ nenhum — dá um link que abre e não acha ninguém.
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
 - **Ratificação do analista** para tornar `rotas`, `portos`, `viagens` e `embarcacoes` ativos legíveis
   publicamente — é a única ampliação de leitura que o projeto propõe (passo 9).
+- **Bloqueio do passo 9 — autenticação anônima e as Rules do fluviapp.** Ver a emenda do ADR-0002. Precisa de
+  decisão do lado do fluviapp antes de qualquer escrita pública.
+- **O fuso da operação** — `America/Belem`, ou há portos no fuso de Manaus? O aplicativo usa o relógio do
+  aparelho no porto e não precisa dizer; a web precisa.
+- **A leitura do catálogo pelo público** — com as Rules atuais ela exige autenticação, e a autenticação
+  anônima é justamente o que abre o resto (ver acima). A saída mais segura é o catálogo **gerado no build** a
+  partir do fluviapp, que o plano já listava como alternativa; fica para o passo 9.
+- **Dois padrões do fluviapp que o site herda por paridade**: viagem sem `horaMin` vira saída à meia-noite, e
+  documento sem `ativo` é tratado como ativo. No balcão há quem perceba; no site, a saída das 00:00 aparece
+  para o público. A correção, se houver, é no cadastro do fluviapp.
+- **O `fluviapp-kmp` está atrás do aplicativo** — sem `ClasseVeiculo`, `NaturezaVeiculo` nem `TipoDocumento`.
+  O contrato daqui passou a conferir contra o aplicativo; quando o KMP alcançá-lo, vale apontar para os dois.
+- **DDD 55 em `telefone.ts`**: `digitosComPais` decide o código do país pelo prefixo `55`, e lê errado um
+  número do centro do RS digitado sem `+55`. É inofensivo ali (o número conferido é o da NAVEG), e o domínio
+  decide pelo comprimento para o número do cliente — mas a regra do app merece a mesma correção.

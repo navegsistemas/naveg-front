@@ -1,0 +1,11 @@
+{
+  "name": "@naveg/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "O domínio da reserva — porte mínimo do @fluviapp/domain, com a Reserva como tipo próprio. Sem React, sem Astro, sem Firebase.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

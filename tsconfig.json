@@ -1,4 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "./packages/design-system" }]
+  "references": [{ "path": "./packages/design-system" }, { "path": "./packages/domain" }]
 }

@@ -381,6 +381,13 @@ viagem/hora-do-dia           formatarHora
 
 **← Análise do passo anterior:** o totem fecha o fluxo inteiro em memória e produz uma `Reserva` coerente.
 
+> **⚠ Revisão de 2026-09-22 — bloqueio antes deste passo.** A auth anônima abaixo **não pode ser ligada** no
+> projeto do fluviapp como ele está: `autenticado()` é `request.auth != null`, e isso libera `passagens`,
+> `users`, `funcionarios` e o catálogo a qualquer anônimo. As opções estão na
+> [emenda do ADR-0002](adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md); a decisão é do lado do
+> fluviapp. Pelo mesmo motivo, o catálogo público passa a ser **gerado no build** (`@naveg/domain/catalogo`
+> já lê os documentos como o aplicativo lê), e não lido do Firestore pelo navegador.
+
 **Entrega**
 - `packages/dados` — `ReservaRepositorio` (porta) + `ReservaFirestoreRepositorio` (adaptador, Firebase Web SDK modular, importando só o que usa). O totem depende da **porta**; os cenários usam uma implementação em memória.
 - **Auth anônima** ao carregar a ilha: dá um `request.auth.uid` para as Rules amarrarem e para carimbar `criadoPor`.

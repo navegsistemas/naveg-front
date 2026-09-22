@@ -7,6 +7,49 @@
 
 ---
 
+> ## ⚠ Emenda de 2026-09-22 — a camada 1 abre o que as outras não fecham
+>
+> **Achado na revisão contra o aplicativo fluviapp** (`firestore.rules` do projeto que a agência compartilha).
+> Este ADR tratou a autenticação anônima como camada de proteção **da coleção `reservas`**. Ela não fica
+> contida nela: nas Rules do fluviapp, a função que autoriza leitura é
+>
+> ```
+> function autenticado() { return request.auth != null; }
+> ```
+>
+> e **um usuário anônimo satisfaz `request.auth != null`**. Com ela, ficam legíveis a qualquer visitante que
+> chame `signInAnonymously` com a chave pública do bundle:
+>
+> | coleção | regra de leitura hoje | o que expõe |
+> |---|---|---|
+> | `passagens` | `autenticado()` | todos os bilhetes, de todas as empresas: valores, lançamentos, ids de clientes |
+> | `users` | `autenticado()` | perfis de acesso, papéis e vínculos |
+> | `funcionarios` | `autenticado()` | o quadro de funcionários |
+> | `viagens`, `rotas`, `portos`, `localidades`, `embarcacoes`, `empresas` | `autenticado()` | o catálogo comercial inteiro |
+>
+> `clientes` e `veiculos` estão protegidos (exigem papel de plataforma ou assinatura da agência). O resto não.
+>
+> **Consequência: a camada 1 não pode ser ligada no projeto do fluviapp como ele está.** Ativar o provedor
+> anônimo no console é, sozinho, a abertura — antes de qualquer linha deste repositório ir a produção.
+>
+> **O que decidir, e quem decide** — é mudança do lado do fluviapp, e por isso fica registrada aqui como
+> bloqueio do passo 9, não resolvida:
+>
+> 1. **`autenticado()` passa a excluir anônimos** — `request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous'` —
+>    e a regra de `reservas` usa uma função própria que os admite. É a menor mudança, mas toca em todas as
+>    regras do fluviapp de uma vez, e precisa dos casos de emulador dele;
+> 2. **o totem não autentica**, e a Rule de `reservas` dispensa `criadoPor` — perde-se o eixo de medição de
+>    abuso, e o App Check vira a única camada de origem;
+> 3. **projeto Firebase separado para a agência**, com a coleção `reservas` só — isola por construção, mas o
+>    aplicativo passa a ler de dois projetos.
+>
+> E a leitura do catálogo pelo público (rotas, viagens) **não deve depender de autenticação anônima** pelo
+> mesmo motivo. A alternativa que o plano já listava — o catálogo **gerado no build** a partir do fluviapp —
+> passa a ser a recomendada: `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, e roda igual
+> num script de build.
+
+---
+
 ## Contexto
 
 O totem é a única parte da agência virtual que **escreve**. A alternativa seria uma Cloud Function que valida e
