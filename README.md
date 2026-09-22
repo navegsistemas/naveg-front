@@ -23,6 +23,36 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
+## Retomar daqui
+
+**Parei no fim do passo 6.** A exibição está fechada e a página é publicável; o que falta é o totem e a
+fronteira dele. `npm run verify` deve dar **119 cenários verdes**, `astro check` sem nada, e o `dist/` com
+**zero arquivo JavaScript** — se algum desses três não bater, o problema é anterior ao próximo passo.
+
+**O próximo é o passo 7: `packages/domain`, domínio puro, sem tela e sem Firebase.** Ele é o passo que decide
+se o totem vai ser confiável, e é onde o esforço de teste se concentra. Em resumo — o detalhe está no plano:
+
+- portar o subconjunto mínimo do `@fluviapp/domain` (fica em `C:\Users\kurtm\VSCodeProjects\fluviapp`),
+  mantendo **os mesmos valores canônicos** dos enums, que é o que faz o documento gravado aqui ser legível lá;
+- escrever `roteiroDaReserva`, adaptação declarada do `roteiroDaEmissao`: **sem o passo `PAGAMENTO`** (não se
+  vende aqui) e **com um passo `CONTATO`**, que é a razão de ser da Fase 1 — formar clientela;
+- o tipo `Reserva` e a FSM própria dele (`RESERVADA → CONVERTIDA | EXPIRADA | CANCELADA`), que **não** toca a
+  FSM da passagem — ver [ADR-0001](docs/adr/ADR-0001-a-reserva-como-tipo-proprio.md);
+- o gerador do código `NVG-XXXXXX` e o codec do documento;
+- o **cenário de contrato com o KMP** (`C:\Users\kurtm\AndroidStudioProjects\fluviapp-kmp`), que confere os
+  valores dos enums contra os do Kotlin. É ele que transforma a divergência do porte manual em build vermelho,
+  em vez de dado ilegível em produção.
+
+Nada disso depende de dado do cliente. O que está pendente de dado — fotos, nome e WhatsApp do atendente,
+depoimentos, URLs das redes, identificação da empresa — é tudo conteúdo, entra em arquivo de `conteudo/` e
+**não bloqueia nenhum passo adiante**.
+
+**Pendência operacional:** os branches do projeto antigo ainda estão no remoto. `main` já é o padrão.
+
+```bash
+git push origin --delete master dev dev-typescript test
+```
+
 ## Comandos
 
 ```bash
