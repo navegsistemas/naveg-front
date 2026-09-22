@@ -135,24 +135,32 @@ Ordem geral: **fundação → seções de exibição → domínio da reserva →
 
 ---
 
-## Passo 2 — `apps/agencia`: casca da single page
+## Passo 2 — `apps/agencia`: casca da single page · ✅ concluído em 2026-09-22
 
 **← Análise do passo anterior:** tokens publicados por subcaminho (`@naveg/design-system/tokens.css`), cenário de contraste verde.
 
+> **Ajuste feito na entrada deste passo.** `<meta name="theme-color">` precisa de cor literal, e o lint do passo 1 proíbe. A saída foi `src/marca.ts` — uma **segunda e última** casa para valor de cor, fechada por cenário que a amarra aos tokens. Sem esse cenário seria exatamente o problema que a regra existe para impedir; com ele, divergir é build vermelho.
+>
+> **Duas correções ao que este passo previa.** A integração do React **não** entrou: nada a usa até o passo 8, e declará-la agora acrescentaria dependência que o build não exercita — o mesmo raciocínio que o manifesto do KMP aplica às permissões. E **não há menu sanfona**: toda sanfona sem JavaScript é truque (`<details>` forçado por CSS, rótulo de checkbox), e truque de disclosure é onde teclado e leitor de tela quebram. Com quatro itens de uma palavra numa página só, a navegação quebra em linha e fica toda visível.
+
 **Decisão técnica:** **Astro `output: 'static'` + ilhas React**, como `apps/apresentacao`. A página é um documento institucional — capa, atendentes, depoimentos e rodapé não mudam depois do build e não devem custar um runtime de componente. **Só o totem é uma ilha**, hidratada com `client:visible`: o JavaScript da reserva desce quando alguém rola até ela. Uma SPA inteira em React mandaria o bundle do totem para quem só quer o telefone da agência.
 
-**Entrega**
-- `astro.config.mjs` com `react()`, `output: 'static'`, `vite.ssr.noExternal` dos pacotes do workspace.
-- `src/layouts/Pagina.astro` — `<head>`, meta OG/Twitter, JSON-LD `Organization` + `LocalBusiness`, `lang="pt-BR"`, skip-link.
-- `src/componentes/Topo.astro` — navegação por âncora (`#totem`, `#atendentes`, `#depoimentos`, `#contato`), menu mobile sem JS (`<details>` ou checkbox), botão de ação **"Reservar agora"** apontando para `#totem`.
-- `src/componentes/Secao.astro` — a moldura única: título, subtítulo, e **alternância de fundo derivada do índice**, não escrita seção a seção.
-- `src/pages/index.astro` — só a **ordem** das seções. Sem conteúdo próprio, como no fluviapp.
-- `src/conteudo/*.ts` — todo texto como dado tipado.
-- `scroll-behavior: smooth` com `@media (prefers-reduced-motion: reduce)` desligando.
+**Entregue**
+- `astro.config.mjs` — `output: 'static'`, `vite.ssr.noExternal` dos pacotes do workspace. Sem React (ver acima).
+- `src/layouts/Pagina.astro` — `<head>`, canonical, OG/Twitter, `theme-color`, JSON-LD `Organization` **só com o que se sabe** (endereço, CNPJ e perfis entram no passo 6: um JSON-LD com campo inventado afirma ao buscador o que não se confirma), `lang="pt-BR"`, skip-link como primeiro elemento do corpo.
+- `src/componentes/Topo.astro` — logo, navegação derivada de `menuDaPagina()`, ação "Reservar agora". Anel de foco próprio (`--header-foco`), porque `--foco` não alcança 3:1 sobre navy. Não gruda no topo abaixo de 40rem, onde um cabeçalho de três linhas comeria a tela.
+- `src/componentes/Secao.astro` — moldura única, `aria-labelledby` no `<h2>`, **alternância de fundo derivada do índice**.
+- `src/componentes/Rodape.astro` — a âncora `#contato` e o aviso "reserva, não venda". O resto é passo 6.
+- `src/componentes/Pendente.astro` — o andaime, que marca na página o conteúdo que falta e o passo que o traz. Uma seção vazia fica **visivelmente** vazia, em vez de parecer pronta e curta.
+- `src/pages/index.astro` — só a **ordem**.
+- `src/conteudo/site.ts` e `secoes.ts` — todo texto como dado tipado; menu e âncoras **derivados** da lista de seções.
+- `test/secoes.spec.ts` — 10 cenários: ids únicos, o rodapé não colide, todo item do menu aponta para âncora existente, nenhum rótulo vazio, a capa fora do menu, o contato por último, sem repetição, e **um item por seção que pede menu**.
 
-**Aceite**
-- `npm run build` gera `dist/` com **0 kB de JS** (nenhuma ilha ainda).
-- Âncoras navegam com teclado; foco visível; `astro check` verde.
+**Aceite — verificado**
+- `npm run build` gera `dist/` com **0 arquivo JavaScript**: 48 kB no total (HTML de 5,8 kB, uma folha de estilo, o SVG do logo). O único `<script>` é o JSON-LD, que não executa.
+- `npm run verify` verde: `tsc --build`, `astro check` (11 arquivos, 0 erro / 0 aviso / 0 dica) e **72 cenários**.
+- A varredura de cor do passo 1 segue verde com os cinco `.astro` novos — nenhum valor de cor fora das duas casas.
+- **O cenário de contagem do menu foi escrito por cima de um susto real**: os outros cenários passariam com o menu incompleto, porque apontar só para âncoras válidas é necessário e não suficiente. Uma seção sumiria do menu em silêncio.
 
 **→ Análise do próximo passo:** as seções 3–6 são conteúdo dentro desta casca. Se a moldura `<Secao>` não estiver resolvida aqui, cada seção vai inventar a sua — foi exatamente o que o ADR-0101 do fluviapp corrigiu ao derivar a alternância do índice em vez de repeti-la bloco a bloco.
 

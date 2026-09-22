@@ -1,0 +1,14 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "src/**/*", "test/**/*", "astro.config.mjs"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    /* O `astro/tsconfigs/strict` não traz estas quatro, e são as que o resto do monorepo usa.
+       Elas ficam repetidas aqui, em vez de o app estender o `tsconfig.base.json`, porque a base é
+       `NodeNext` e o Astro precisa de `bundler` — e `astro check` é quem verifica este pacote. */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}

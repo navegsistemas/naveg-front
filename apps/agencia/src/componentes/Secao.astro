@@ -1,0 +1,54 @@
+---
+/**
+ * **A moldura única de uma seção.**
+ *
+ * Título, subtítulo e a faixa de fundo. Nenhuma seção desenha a própria moldura — é o que impede que a terceira
+ * e a quinta fiquem com espaçamentos diferentes porque foram escritas em semanas diferentes.
+ *
+ * A **alternância de fundo é derivada do índice**, e vem de fora: quem sabe a ordem é `index.astro`, e quem sabe
+ * desenhar é este arquivo. Escrever `faixa--alt` seção a seção funcionaria até alguém inserir uma no meio.
+ */
+import type { SecaoDaPagina } from '../conteudo/secoes'
+
+interface Props {
+  readonly secao: SecaoDaPagina
+  readonly indice: number
+}
+
+const { secao, indice } = Astro.props
+
+const alternada = indice % 2 === 1
+/** O `<h2>` precisa de id para o `aria-labelledby` nomear a região. Sem título, não há o que nomear. */
+const idDoTitulo = secao.titulo === null ? undefined : `${secao.id}-titulo`
+---
+
+<section
+  id={secao.id}
+  class:list={['faixa', { 'faixa--alt': alternada }]}
+  aria-labelledby={idDoTitulo}
+>
+  <div class="conteudo">
+    {
+      secao.titulo !== null && (
+        <header class="secao__cabecalho">
+          <h2 id={idDoTitulo}>{secao.titulo}</h2>
+          {secao.subtitulo !== null && <p class="secao__subtitulo">{secao.subtitulo}</p>}
+        </header>
+      )
+    }
+
+    <slot />
+  </div>
+</section>
+
+<style>
+  .secao__cabecalho {
+    margin-block-end: var(--espaco-5);
+  }
+
+  .secao__subtitulo {
+    color: var(--text-secondary);
+    font-size: 1.0625rem;
+    margin: 0;
+  }
+</style>

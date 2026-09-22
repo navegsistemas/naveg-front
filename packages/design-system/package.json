@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
-    "./base.css": "./src/base.css"
+    "./base.css": "./src/base.css",
+    "./marca/horizontal.svg": "./src/marca/naveg-horizontal.svg",
+    "./marca/empilhado.svg": "./src/marca/naveg-empilhado.svg"
   },
   "dependencies": {}
 }

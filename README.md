@@ -12,7 +12,7 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 |---|---|---|
 | 0 | Esqueleto do monorepo e ADRs | ✅ |
 | 1 | `@naveg/design-system` — tokens, base, marca, ícones | ✅ |
-| 2 | `apps/agencia` — casca Astro da single page | — |
+| 2 | `apps/agencia` — casca Astro da single page | ✅ |
 | 3–6 | Seções de exibição: capa, atendentes, feedback, rodapé | — |
 | 7–8 | Domínio da reserva e a ilha do totem | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
@@ -23,10 +23,18 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ```bash
 npm install
-npm run verify      # typecheck + cenários
+npm run dev         # a página em http://localhost:4321
+npm run build       # gera apps/agencia/dist
+npm run verify      # typecheck + astro check + cenários
 npm test            # só os cenários
-npm run test:watch
 ```
+
+### O orçamento
+
+A página institucional entrega **0 kB de JavaScript** — hoje o `dist/` tem só o HTML, uma folha de estilo e o
+SVG do logo. O único `<script>` do documento é o JSON-LD, que não executa. A integração do React entra no
+passo 8, junto com a ilha do totem que a justifica, e o orçamento passa a ser "0 kB até alguém rolar até o
+totem".
 
 ## Arquitetura
 
@@ -39,8 +47,15 @@ packages/design-system/   tokens, base.css, marca, ícones.   Sem React, sem dom
 packages/domain/          o domínio da reserva.              Sem React, sem Firebase.   (passo 7)
 packages/ui/              as telas do totem, controladas.                                (passo 8)
 packages/dados/           a porta e o adaptador Firestore.                               (passo 9)
-apps/agencia/             a single page em Astro.                                        (passo 2)
+apps/agencia/             a single page em Astro.
 ```
+
+### A página é uma lista
+
+A ordem das seções, os títulos e o menu saem todos de `apps/agencia/src/conteudo/secoes.ts`. A navegação **não
+é escrita**, é derivada — acrescentar uma seção é uma entrada na lista, e a página e o menu não têm como
+divergir porque não são duas coisas. A alternância de fundo vem do índice, não de um `faixa--alt` escrito seção
+a seção.
 
 ### A cor mora em um lugar só
 

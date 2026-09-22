@@ -1,0 +1,71 @@
+---
+/**
+ * **A casca do documento.**
+ *
+ * O `<head>` inteiro, o esqueleto do `<body>` e nada mais. Ela não conhece nenhuma seção — quem decide a ordem
+ * é `index.astro`, e é a única decisão que aquela página toma.
+ *
+ * ### O link de pular navegação é o primeiro elemento do corpo
+ *
+ * E é de propósito: numa página só, sem ele, quem navega por teclado atravessa o menu inteiro a cada visita.
+ * Ele some da tela e volta ao receber foco — a regra está em `base.css`.
+ */
+import '@naveg/design-system/tokens.css'
+import '@naveg/design-system/base.css'
+import { COR_DA_MARCA } from '@naveg/design-system'
+
+import { SITE } from '../conteudo/site'
+
+interface Props {
+  readonly titulo?: string
+  readonly descricao?: string
+}
+
+const { titulo = SITE.titulo, descricao = SITE.descricao } = Astro.props
+
+const urlCanonica = new URL(Astro.url.pathname, SITE.origem).href
+
+/**
+ * Só o que se sabe é verdade.
+ *
+ * Endereço, CNPJ, telefone e perfis sociais entram no passo 6, quando os dados chegarem. Um JSON-LD com
+ * campo inventado é pior do que um JSON-LD curto: ele afirma ao buscador uma coisa que não se confirma.
+ */
+const dadosEstruturados = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.nomeCompleto,
+  alternateName: SITE.nome,
+  description: SITE.descricao,
+  url: SITE.origem,
+}
+---
+
+<!doctype html>
+<html lang={SITE.idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descricao} />
+    <link rel="canonical" href={urlCanonica} />
+
+    {/* O cabeçalho é navy nos dois temas, então a barra do navegador também é — um valor só. */}
+    <meta name="theme-color" content={COR_DA_MARCA.navy} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.nomeCompleto} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descricao} />
+    <meta property="og:url" content={urlCanonica} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(dadosEstruturados)} />
+  </head>
+
+  <body>
+    <a class="pular-para-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+    <slot />
+  </body>
+</html>

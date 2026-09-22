@@ -1,0 +1,88 @@
+---
+/**
+ * **O rodapé** — e, nesta fase, quase só a âncora `#contato` e o aviso.
+ *
+ * O conteúdo real (razão social, CNPJ, endereços das agências, telefones, links legais e as redes) é o passo 6,
+ * e depende de dados que ainda não chegaram. O que já está aqui é o que **não pode faltar desde agora**: o
+ * aviso de que este canal gera reserva e não venda.
+ *
+ * Ele aparece em três lugares no produto — aqui, no topo do totem e na mensagem do WhatsApp —, e é a mesma
+ * frase nos três: é a expectativa que ela ajusta, e três versões dela seriam três compromissos diferentes.
+ */
+import { AVISO_DE_RESERVA, SITE } from '../conteudo/site'
+import { ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
+import Pendente from './Pendente.astro'
+
+const ano = new Date().getFullYear()
+/* O próprio rodapé não entra na lista de atalhos dele. */
+const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`)
+---
+
+<footer id={ID_DO_RODAPE} class="rodape">
+  <div class="conteudo">
+    <p class="rodape__aviso">{AVISO_DE_RESERVA}</p>
+
+    <nav class="rodape__atalhos" aria-label="Atalhos do rodapé">
+      <ul>
+        {atalhos.map((item) => <li><a href={item.href}>{item.rotulo}</a></li>)}
+      </ul>
+    </nav>
+
+    <Pendente
+      passo={6}
+      descricao="Razão social, CNPJ, endereços das agências, telefones, links legais (privacidade, termos, encarregado de LGPD) e as redes da Meta."
+    />
+
+    <p class="rodape__assinatura">© {ano} {SITE.nomeCompleto}</p>
+  </div>
+</footer>
+
+<style>
+  .rodape {
+    background: var(--header-bg);
+    color: var(--header-texto);
+    padding-block: var(--espaco-6);
+  }
+
+  .rodape :focus-visible {
+    outline-color: var(--header-foco);
+  }
+
+  .rodape__aviso {
+    max-width: var(--largura-texto);
+    padding: var(--espaco-3) var(--espaco-4);
+    border-inline-start: 4px solid var(--accent-superficie);
+    background: rgb(255 255 255 / 0.06);
+    border-radius: var(--radius);
+    font-weight: 600;
+  }
+
+  .rodape__atalhos ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2) var(--espaco-4);
+    margin: 0 0 var(--espaco-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .rodape__atalhos a {
+    display: inline-block;
+    padding-block: var(--espaco-2);
+    color: var(--header-texto-dim);
+    text-decoration: none;
+  }
+
+  .rodape__atalhos a:hover,
+  .rodape__atalhos a:focus-visible {
+    color: var(--header-texto);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .rodape__assinatura {
+    margin: var(--espaco-5) 0 0;
+    color: var(--header-texto-dim);
+    font-size: 0.875rem;
+  }
+</style>

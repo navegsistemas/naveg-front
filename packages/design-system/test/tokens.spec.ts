@@ -24,6 +24,7 @@ import {
   resolver,
 } from './cor.js'
 import { DESENHOS, LADO_DO_ICONE, SLUGS_DE_ICONE } from '../src/icones.js'
+import { COR_DA_MARCA, ORIGEM_DA_COR } from '../src/marca.js'
 
 const css = lerTokens()
 
@@ -68,11 +69,17 @@ describe('a paridade entre os temas', () => {
 })
 
 describe('a cor mora em um lugar só', () => {
-  it('nenhum arquivo de fonte fora do tokens.css escreve uma cor à mão', () => {
+  /**
+   * As duas casas permitidas. `marca.ts` existe porque `<meta name="theme-color">` e o manifesto não
+   * aceitam `var()` — e ela não é um furo na regra porque o cenário seguinte a amarra aos tokens.
+   */
+  const CASAS_DA_COR = ['/src/tokens.css', '/src/marca.ts']
+
+  it('nenhum arquivo de fonte fora das duas casas escreve uma cor à mão', () => {
     const infratores: string[] = []
 
     for (const caminho of arquivosDeFonte()) {
-      if (caminho.endsWith('/src/tokens.css')) continue
+      if (CASAS_DA_COR.some((casa) => caminho.endsWith(casa))) continue
 
       const achados = conteudoDe(caminho).match(/#[0-9a-fA-F]{3,8}\b/g)
       if (achados !== null) infratores.push(`${caminho}: ${achados.join(', ')}`)
@@ -81,6 +88,13 @@ describe('a cor mora em um lugar só', () => {
     /* Os SVG da marca não entram na varredura: eles **são** a marca, e carregam as cores dela por
        definição. Qualquer outro arquivo que precise de cor pede um token. */
     expect(infratores).toEqual([])
+  })
+
+  it('o literal de `marca.ts` é idêntico ao token de que ele é cópia', () => {
+    for (const [chave, token] of Object.entries(ORIGEM_DA_COR)) {
+      const literal = COR_DA_MARCA[chave as keyof typeof COR_DA_MARCA]
+      expect(literal, `COR_DA_MARCA.${chave} divergiu de ${token}`).toBe(resolver(claro, `var(${token})`))
+    }
   })
 })
 

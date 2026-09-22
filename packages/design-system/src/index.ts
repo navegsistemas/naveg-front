@@ -15,3 +15,4 @@
  */
 
 export * from './icones.js'
+export * from './marca.js'

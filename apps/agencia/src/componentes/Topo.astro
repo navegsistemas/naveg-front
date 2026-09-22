@@ -1,0 +1,131 @@
+---
+/**
+ * **O cabeçalho.** Logo, navegação por âncora e a ação principal.
+ *
+ * ### Não há menu sanfona, e a ausência é decisão
+ *
+ * O padrão seria esconder a navegação atrás de um botão em telas estreitas. Aqui ela **quebra em linha**, e
+ * fica toda visível. Três razões, nesta ordem:
+ *
+ * 1. são quatro itens de uma palavra — o que se ganharia escondendo é pouco;
+ * 2. toda sanfona sem JavaScript é um truque (`<details>` forçado por CSS, rótulo de `<input type=checkbox>`), e
+ *    truque de disclosure é onde a navegação por teclado e por leitor de tela costuma quebrar;
+ * 3. numa página só, o menu é atalho, não a única via: quem rola chega em tudo.
+ *
+ * ### A navegação vem de `menuDaPagina()`
+ *
+ * Nenhum item é escrito aqui. Acrescentar uma seção à lista de `conteudo/secoes.ts` a faz aparecer no menu, e um
+ * item apontando para âncora inexistente é cenário vermelho, não descoberta em produção.
+ */
+import logo from '@naveg/design-system/marca/horizontal.svg'
+
+import { SITE } from '../conteudo/site'
+import { menuDaPagina } from '../conteudo/secoes'
+
+const menu = menuDaPagina()
+---
+
+<header class="topo">
+  <div class="conteudo topo__linha">
+    <a class="topo__marca" href="#capa" aria-label={`${SITE.nomeCompleto} — ir para o início`}>
+      {/* `alt` vazio porque o link ao redor já se nomeia: repetir faria o leitor de tela dizer duas vezes. */}
+      <img src={logo.src} width={logo.width} height={logo.height} alt="" />
+    </a>
+
+    <nav class="topo__nav" aria-label="Seções da página">
+      <ul>
+        {menu.map((item) => (
+          <li>
+            <a href={item.href}>{item.rotulo}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <a class="acao topo__acao" href="#totem">Reservar agora</a>
+  </div>
+</header>
+
+<style>
+  .topo {
+    background: var(--header-bg);
+    color: var(--header-texto);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: var(--sombra);
+  }
+
+  /* Sobre navy, o anel de foco do tema claro não alcança 3:1 — o cabeçalho usa o dele. */
+  .topo :focus-visible {
+    outline-color: var(--header-foco);
+  }
+
+  .topo__linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-3) var(--espaco-4);
+    padding-block: var(--espaco-2);
+  }
+
+  .topo__marca {
+    display: block;
+    line-height: 0;
+  }
+
+  .topo__marca img {
+    /* Altura fixa, largura pelo aspecto: o wordmark é largo e não pode empurrar o resto da linha. */
+    height: 34px;
+    width: auto;
+  }
+
+  .topo__nav {
+    /* Empurra a ação para a direita e deixa a navegação colada ao logo. */
+    margin-inline-end: auto;
+  }
+
+  .topo__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-1) var(--espaco-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .topo__nav a {
+    display: inline-block;
+    /* O alvo de toque mínimo vale também no cabeçalho — é onde a mão erra mais. */
+    padding-block: var(--espaco-2);
+    color: var(--header-texto-dim);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .topo__nav a:hover,
+  .topo__nav a:focus-visible {
+    color: var(--header-texto);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .topo__acao {
+    /* No cabeçalho o botão é compacto: o alvo cheio de 56px é do totem, não daqui. */
+    min-height: 40px;
+    padding-inline: var(--espaco-3);
+  }
+
+  @media (max-width: 40rem) {
+    .topo {
+      /* Num cabeçalho que quebra em três linhas, grudar no topo come a tela do celular. */
+      position: static;
+    }
+
+    .topo__nav {
+      order: 3;
+      flex-basis: 100%;
+      margin-inline-end: 0;
+    }
+  }
+</style>

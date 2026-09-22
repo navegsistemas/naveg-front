@@ -1,0 +1,20 @@
+{
+  "name": "@naveg/agencia",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A agência virtual da NAVEG — single page institucional, com o totem de reserva como única ilha.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@naveg/design-system": "*",
+    "astro": "^5.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10"
+  }
+}

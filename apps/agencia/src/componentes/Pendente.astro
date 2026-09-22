@@ -1,0 +1,40 @@
+---
+/**
+ * **O andaime.**
+ *
+ * Marca, na própria página, o conteúdo que ainda não chegou e o passo do plano que o traz. Existe para que a
+ * casca possa ser vista e revisada antes das seções — e para que uma seção vazia seja **visivelmente** vazia,
+ * em vez de parecer pronta e curta.
+ *
+ * Some quando o passo fecha: a entrada `pendenteDoPasso` vira `null` em `conteudo/secoes.ts` e este componente
+ * deixa de ser chamado.
+ */
+interface Props {
+  readonly passo: number
+  readonly descricao: string
+}
+
+const { passo, descricao } = Astro.props
+---
+
+<p class="pendente">
+  <strong>Passo {passo}</strong> · {descricao}
+</p>
+
+<style>
+  .pendente {
+    max-width: none;
+    padding: var(--espaco-4);
+    border: 1px dashed var(--border-forte);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  .pendente strong {
+    color: var(--text);
+  }
+</style>
