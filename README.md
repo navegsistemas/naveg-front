@@ -19,7 +19,7 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 6 | Rodapé — identificação, contatos, endereços e o que a lei exige | ✅ |
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
 | 7 | `@naveg/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
-| 8 | Seção Totem — a ilha React, com catálogo de molde e porta em memória | — |
+| 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
 | 9 | Catálogo do fluviapp publicado no build | — |
 | 10 | Escrita da reserva — **bloqueada** pela decisão do ADR-0002; Rules no fluviapp | — |
 | 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
@@ -28,16 +28,16 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**Parei no fim do passo 7, revisado contra o aplicativo fluviapp** (`~/Documents/AndroidStudioProjects/fluviapp`,
-a gestão comercial que alimenta a agência). O domínio da reserva e o catálogo existem e estão cobertos; nada
-deles chega à página ainda. `npm run verify` deve dar **316 cenários verdes** (119 da exibição + 197 do
-domínio), `astro check` sem nada, e o `dist/` com **zero arquivo JavaScript**.
+**Parei no fim do passo 8.** O totem funciona inteiro na página e em `/totem` (quiosque), contra um
+**catálogo de demonstração** que se anuncia como tal e um repositório **em memória** — nada sai do navegador.
+`npm run verify` deve dar **335 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
+ilha do totem** (ver o orçamento abaixo).
 
-Os 197 incluem 21 que **leem o Kotlin do aplicativo** (ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o
-checkout eles aparecem como **pulados**, não como verdes — em outra máquina, `316 passed` vira
-`295 passed | 21 skipped`, e isso é o esperado.
+Os 335 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
+ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem como **pulados**, não como verdes — em
+outra máquina, `335 passed` vira `314 passed | 21 skipped`, e isso é o esperado.
 
-**Decisões de 2026-09-22, já aplicadas ao domínio:**
+**Decisões de 2026-09-22, já aplicadas:**
 
 - **O totem não autentica e não exige documento.** Recolhe só a passagem pedida — travessia, categoria,
   acomodação, tipo, quantidade de pessoas, natureza e classe do veículo (e a cilindrada da moto, que muda a
@@ -45,22 +45,19 @@ checkout eles aparecem como **pulados**, não como verdes — em outra máquina,
   WhatsApp, e é lá que documento, nascimento e placa são recolhidos. Autenticação é da Fase 2.
 - **Sem autenticação nenhuma no Firebase** (a opção 2 da emenda do ADR-0002): o provedor anônimo **não** é
   ligado, e as Rules do fluviapp ficam como estão. A regra de `reservas` admite `create` sem `request.auth`.
-- **O fuso da operação é `America/Belem`.** Manaus entra depois; quando entrar, o fuso passa a ser do porto.
+- **O fuso da operação é `America/Belem`** (`conteudo/operacao.ts`). Manaus entra depois; quando entrar, o
+  fuso passa a ser do porto.
 - **O catálogo é reconstruído diariamente**, com disparo manual quando o cadastro mudar.
 
-**O próximo é o passo 8: a ilha React do totem.** Até o passo 10 nada sai do navegador. Antes de abrir o
-primeiro `.tsx`:
+**O próximo é o passo 9: o catálogo do fluviapp gerado no build.** Um script lê `viagens`, `rotas`, `portos`,
+`localidades`, `embarcacoes` e a concessão `empresas/{id}/atuacoes/AGENCIAMENTO` com o Admin SDK, decodifica
+com `@naveg/domain/catalogo` (que já lê como o aplicativo lê) e grava o JSON que a ilha carrega. O único
+arquivo da ilha que muda é `ilhas/TotemDaAgencia.tsx`: a fonte de demonstração vira a do JSON. Antes de
+começar, é preciso:
 
-1. **A ilha não monta nada.** `travessiasOfertadas` dá as saídas disponíveis com os rótulos e o contexto
-   pronto; `roteiroDaReserva` dá o nó em foco **com as opções dentro**; `voltar` dá o "voltar";
-   `montarReserva` dá a reserva ou as pendências; `gerarCodigoDaReserva` dá o código. Se aparecer vontade de
-   escrever um `if` sobre acomodação, natureza ou casco num componente, a regra está faltando no domínio.
-2. **O relógio é o do rio.** `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), 'America/Belem')`
-   — nunca o relógio do navegador.
-3. **`apps/agencia` passa a depender de `@naveg/domain`.** É a hora de consolidar
-   `apps/agencia/src/conteudo/cnpj.ts` com `TipoDocumento.validar('CNPJ', …)`.
-4. **O catálogo de exemplo da ilha** implementa `CatalogoDoFluviapp` com dado declaradamente fictício, em
-   `test/` ou num arquivo que se anuncie como molde — pela mesma régua dos depoimentos.
+1. **uma conta de serviço só de leitura** no projeto do fluviapp, guardada como segredo do CI;
+2. **o id da empresa NAVEG** no fluviapp, para achar a concessão;
+3. decidir **onde o build roda** — o rebuild diário precisa de um agendador (Actions, ou o do host).
 
 O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimentos, URLs das redes, identificação
 da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo
@@ -84,10 +81,22 @@ npm test            # só os cenários
 
 ### O orçamento
 
-A página institucional entrega **0 kB de JavaScript** — hoje o `dist/` tem só o HTML, uma folha de estilo e o
-SVG do logo. O único `<script>` do documento é o JSON-LD, que não executa. A integração do React entra no
-passo 8, junto com a ilha do totem que a justifica, e o orçamento passa a ser "0 kB até alguém rolar até o
-totem".
+A página institucional entrega **0 kB de JavaScript até alguém rolar até o totem**. A única ilha é o totem,
+com `client:visible`: o código dele só desce quando a seção entra na tela. No quiosque (`/totem`) ele é
+`client:load`, porque lá o totem **é** a página. Sem JavaScript, a seção diz para falar com o atendimento.
+
+Medido no build do passo 8:
+
+| o quê | bruto | gzip |
+|---|---|---|
+| a ilha — domínio, telas e o totem | 31,7 kB | 10,8 kB |
+| o runtime do React 19 (`react-dom`) | 215,6 kB | 67,0 kB |
+| o carregador de ilhas do Astro | 8,2 kB | 3,2 kB |
+
+O que pesa é o runtime, não o totem: a ilha sozinha fica perto da referência do totem do fluviapp web
+(15 kB / 5,4 kB, sem o React). Se os 67 kB incomodarem no celular de quem rola até a seção, a troca por
+`@astrojs/preact` com `compat` é interna à integração — os componentes não mudam — e cortaria o runtime para
+poucos kB. Fica registrado como opção, não feito.
 
 **Inclusive o carrossel.** A vitrine da flotilha, na capa, gira sozinha em CSS: uma `@keyframes` sobre o trilho,
 com uma cópia do primeiro item no fim da fila para o laço não ter emenda. Os percentuais são **derivados da
@@ -107,8 +116,8 @@ responde** — na prática, só o totem.
 ```
 packages/design-system/   tokens, base.css, marca, ícones.   Sem React, sem domínio.
 packages/domain/          o domínio da reserva.              Sem React, sem Firebase.
-packages/ui/              as telas do totem, controladas.                                (passo 8)
-packages/dados/           a porta (passo 8) e o adaptador Firestore (passo 10).
+packages/ui/              as telas do totem, controladas.     Sem estado de aplicação.
+packages/dados/           as portas e os adaptadores.         Em memória; Firestore no passo 10.
 apps/agencia/             a single page em Astro.
 ```
 
@@ -243,6 +252,3 @@ nenhum — dá um link que abre e não acha ninguém.
   para o público. A correção, se houver, é no cadastro do fluviapp.
 - **O `fluviapp-kmp` está atrás do aplicativo** — sem `ClasseVeiculo`, `NaturezaVeiculo` nem `TipoDocumento`.
   O contrato daqui passou a conferir contra o aplicativo; quando o KMP alcançá-lo, vale apontar para os dois.
-- **DDD 55 em `telefone.ts`**: `digitosComPais` decide o código do país pelo prefixo `55`, e lê errado um
-  número do centro do RS digitado sem `+55`. É inofensivo ali (o número conferido é o da NAVEG), e o domínio
-  decide pelo comprimento para o número do cliente — mas a regra do app merece a mesma correção.

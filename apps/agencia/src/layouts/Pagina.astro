@@ -19,9 +19,11 @@ import { SITE } from '../conteudo/site'
 interface Props {
   readonly titulo?: string
   readonly descricao?: string
+  /** `false` só para páginas que existem para outra coisa que não a busca — o quiosque. */
+  readonly indexar?: boolean
 }
 
-const { titulo = SITE.titulo, descricao = SITE.descricao } = Astro.props
+const { titulo = SITE.titulo, descricao = SITE.descricao, indexar = true } = Astro.props
 
 const urlCanonica = new URL(Astro.url.pathname, SITE.origem).href
 
@@ -49,6 +51,7 @@ const dadosEstruturados = {
     <title>{titulo}</title>
     <meta name="description" content={descricao} />
     <link rel="canonical" href={urlCanonica} />
+    {!indexar && <meta name="robots" content="noindex" />}
 
     {/* O cabeçalho é navy nos dois temas, então a barra do navegador também é — um valor só. */}
     <meta name="theme-color" content={COR_DA_MARCA.navy} />

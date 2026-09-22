@@ -1,0 +1,263 @@
+/*
+ * **O totem** — só tokens, nenhum valor de cor.
+ *
+ * A ergonomia é a de terminal público operado em pé: alvos de toque de `--alvo-toque` (56px), um passo por
+ * vez, texto grande. O botão de ação é o `.acao` do design system — laranja com rótulo marrom, porque branco
+ * sobre o laranja reprova no contraste.
+ */
+
+.totem {
+  display: grid;
+  gap: var(--espaco-4);
+  max-width: var(--largura-texto);
+  padding: var(--espaco-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-totem);
+  background: var(--surface);
+  box-shadow: var(--sombra);
+  font-size: 1.125rem;
+}
+
+.totem--quiosque {
+  max-width: none;
+  min-height: 100vh;
+  border-radius: 0;
+  font-size: 1.25rem;
+}
+
+.totem-aviso {
+  margin: 0;
+  padding: var(--espaco-3);
+  border-inline-start: 4px solid var(--accent-superficie);
+  background: var(--surface-2);
+  color: var(--text-body);
+  font-size: 0.95rem;
+}
+
+.totem-demonstracao {
+  margin: 0;
+  padding: var(--espaco-3);
+  border: 1px dashed var(--border-forte);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.totem-cabecalho {
+  display: grid;
+  gap: var(--espaco-1);
+}
+
+.totem-indicador {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.totem-pergunta {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+}
+
+.totem-pergunta:focus {
+  outline: none;
+}
+
+.totem-ajuda {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* ── Cartões de escolha ─────────────────────────────────────────────────────────────────────── */
+
+.totem-cartoes,
+.totem-travessias,
+.totem-pendencias {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.totem-cartao {
+  display: grid;
+  gap: var(--espaco-1);
+  width: 100%;
+  min-height: var(--alvo-toque);
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-cartao);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.totem-cartao:hover {
+  border-color: var(--border-forte);
+}
+
+.totem-cartao[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.totem-cartao__rotulo {
+  font-weight: 600;
+}
+
+.totem-cartao__descricao {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ── Formulários ────────────────────────────────────────────────────────────────────────────── */
+
+.totem-formulario {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.totem-campo {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.totem-campo label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.totem-campo input {
+  min-height: var(--alvo-toque);
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 2px solid var(--border-forte);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-body);
+  font: inherit;
+}
+
+.totem-campo input[aria-invalid='true'] {
+  border-color: var(--accent);
+}
+
+.totem-opcional {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.totem-erro {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Navegação do roteiro ───────────────────────────────────────────────────────────────────── */
+
+.totem-continuar {
+  justify-self: start;
+}
+
+.totem-navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+/* ── Travessias ─────────────────────────────────────────────────────────────────────────────── */
+
+.totem-travessia {
+  display: grid;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cartao);
+}
+
+.totem-travessia p {
+  margin: 0;
+}
+
+.totem-travessia__trecho {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.totem-travessia__quando {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1) var(--espaco-4);
+}
+
+.totem-travessia__embarcacao,
+.totem-vazio {
+  color: var(--text-secondary);
+}
+
+.totem-travessia .acao {
+  justify-self: start;
+}
+
+/* ── Conferência e conclusão ────────────────────────────────────────────────────────────────── */
+
+.totem-conferencia,
+.totem-conclusao {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.totem-conclusao p {
+  margin: 0;
+}
+
+.totem-resumo {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.totem-resumo__linha {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: var(--espaco-3);
+}
+
+.totem-resumo dt {
+  color: var(--text-secondary);
+}
+
+.totem-resumo dd {
+  margin: 0;
+  color: var(--text-body);
+}
+
+.totem-pendencias li {
+  padding: var(--espaco-3);
+  border-inline-start: 4px solid var(--accent);
+  background: var(--surface-2);
+  color: var(--text-body);
+}
+
+.totem-codigo {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.totem-conclusao .acao {
+  justify-self: start;
+}
+
+@media (max-width: 480px) {
+  .totem-resumo__linha {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

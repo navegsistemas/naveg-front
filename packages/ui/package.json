@@ -1,0 +1,17 @@
+{
+  "name": "@naveg/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "As telas do totem — componentes controlados, sem estado de aplicação. Desenham o nó que o domínio entrega; não decidem nada.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./totem.css": "./src/totem.css"
+  },
+  "dependencies": {
+    "@naveg/domain": "*"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  }
+}

@@ -9,6 +9,9 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    /* A ilha do totem é React; os .astro continuam com o JSX do Astro. */
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }

@@ -11,8 +11,14 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@naveg/dados": "*",
     "@naveg/design-system": "*",
-    "astro": "^5.2.0"
+    "@naveg/domain": "*",
+    "@naveg/ui": "*",
+    "astro": "^5.2.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10"

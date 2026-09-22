@@ -41,10 +41,10 @@ export const SECOES: readonly SecaoDaPagina[] = [
     id: 'totem',
     titulo: 'Reserve sua passagem',
     subtitulo:
-      'Escolha a travessia, informe quem viaja e receba o código da reserva. ' +
-      'Leva menos de um minuto e não pede cadastro.',
+      'Escolha a saída, diga o que vai embarcar e receba o código da reserva. ' +
+      'Leva menos de um minuto, não pede cadastro nem documento.',
     rotuloNoMenu: 'Reservar',
-    pendenteDoPasso: 8,
+    pendenteDoPasso: null,
   },
   {
     id: 'atendentes',

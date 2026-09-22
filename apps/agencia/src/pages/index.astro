@@ -16,13 +16,12 @@ import Atendimento from '../componentes/Atendimento.astro'
 import Depoimentos from '../componentes/Depoimentos.astro'
 import Rodape from '../componentes/Rodape.astro'
 import Pendente from '../componentes/Pendente.astro'
+import TotemDaAgencia from '../ilhas/TotemDaAgencia'
 
 import { SECOES } from '../conteudo/secoes'
 
 /** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
-const PENDENCIAS: Readonly<Record<string, string>> = {
-  totem: 'A ilha React do totem: o roteiro da reserva, passo a passo, e o handoff para o WhatsApp.',
-}
+const PENDENCIAS: Readonly<Record<string, string>> = {}
 ---
 
 <Pagina>
@@ -35,6 +34,18 @@ const PENDENCIAS: Readonly<Record<string, string>> = {
           {secao.id === 'capa' && <Capa />}
           {secao.id === 'atendentes' && <Atendimento />}
           {secao.id === 'depoimentos' && <Depoimentos />}
+          {/* A única ilha da página: o código desce quando a seção entra na tela. */}
+          {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" />}
+          {
+            secao.id === 'totem' && (
+              <noscript>
+                <p>
+                  O totem de reserva precisa de JavaScript. Sem ele, fale direto com o atendimento pelos
+                  contatos no fim da página.
+                </p>
+              </noscript>
+            )
+          }
           {secao.pendenteDoPasso !== null && (
             <Pendente passo={secao.pendenteDoPasso} descricao={PENDENCIAS[secao.id] ?? ''} />
           )}

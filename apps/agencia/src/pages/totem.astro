@@ -1,0 +1,21 @@
+---
+/**
+ * **O modo quiosque** — o totem como página cheia, para o terminal físico.
+ *
+ * Sem topo, sem menu, sem rodapé: num terminal de saguão, qualquer link para fora do totem é um caminho para a
+ * próxima pessoa encontrar a tela em outro lugar. O totem aqui é `client:load` — ele **é** a página, não há o
+ * que esperar rolar —, e zera por inatividade (`INATIVIDADE_DO_QUIOSQUE_MS`).
+ *
+ * `noindex`: a página existe para o terminal, e a de busca é a principal.
+ */
+import Pagina from '../layouts/Pagina.astro'
+import TotemDaAgencia from '../ilhas/TotemDaAgencia'
+import { SITE } from '../conteudo/site'
+---
+
+<Pagina titulo={`Reservar — ${SITE.nome}`} indexar={false}>
+  <main id="conteudo-principal">
+    <h1 class="apenas-leitor">Reserva de passagem</h1>
+    <TotemDaAgencia client:load modo="quiosque" />
+  </main>
+</Pagina>

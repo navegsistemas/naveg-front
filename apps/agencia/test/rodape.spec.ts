@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { cnpjValido, digitosDoCnpj, formatarCnpj } from '../src/conteudo/cnpj.js'
+import { TipoDocumento } from '@naveg/domain'
 import {
   CONTATO,
   ENCARREGADO_LGPD,
@@ -28,6 +28,12 @@ import {
 } from '../src/conteudo/telefone.js'
 
 describe('o CNPJ', () => {
+  /* A regra é a do domínio (`TipoDocumento`), a mesma que o aplicativo usa — o `conteudo/cnpj.ts` que existia
+     aqui antes do passo 8 era uma segunda cópia da conta, e foi consolidado. */
+  const cnpjValido = (valor: string) => TipoDocumento.validar('CNPJ', valor)
+  const formatarCnpj = (valor: string) => TipoDocumento.formatarProgressivo('CNPJ', valor)
+  const digitosDoCnpj = (valor: string) => TipoDocumento.normalizar('CNPJ', valor)
+
   /* Válidos de verdade: os dígitos verificadores batem. */
   const VALIDOS = ['11.222.333/0001-81', '11222333000181', '04.252.011/0001-10']
 
@@ -72,6 +78,13 @@ describe('o CNPJ', () => {
 })
 
 describe('o telefone', () => {
+  it('DDD 55 sem código do país é nacional — decide o comprimento, não o prefixo', () => {
+    /* Antes do passo 8, `(55) 3222-1111` começava com "55", não ganhava o código do país, e era recusado. */
+    expect(normalizarTelefone('(55) 3222-1111')).toBe('555532221111')
+    expect(normalizarCelular('(55) 99999-8888')).toBe('5555999998888')
+    expect(normalizarCelular('+55 55 99999-8888')).toBe('5555999998888')
+  })
+
   it('aceita fixo e celular, e recusa o resto', () => {
     expect(normalizarTelefone('(91) 3333-4444')).toBe('559133334444')
     expect(normalizarTelefone('(91) 98888-7777')).toBe('5591988887777')

@@ -21,7 +21,7 @@
 import { AVISO_DE_RESERVA } from '../conteudo/site'
 import { ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
 import { REDES } from '../conteudo/depoimentos'
-import { cnpjValido, formatarCnpj } from '../conteudo/cnpj'
+import { TipoDocumento } from '@naveg/domain'
 import { formatarTelefone, linkDeTelefone } from '../conteudo/telefone'
 import {
   CONTATO,
@@ -44,8 +44,8 @@ const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`
  * página mostra a pendência em vez de publicar um número que não existe.
  */
 const cnpj =
-  IDENTIFICACAO.cnpj !== null && cnpjValido(IDENTIFICACAO.cnpj)
-    ? formatarCnpj(IDENTIFICACAO.cnpj)
+  IDENTIFICACAO.cnpj !== null && TipoDocumento.validar('CNPJ', IDENTIFICACAO.cnpj)
+    ? TipoDocumento.formatar('CNPJ', IDENTIFICACAO.cnpj)
     : null
 
 const redesComEndereco = REDES.filter((rede) => rede.url !== null)

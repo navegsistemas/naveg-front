@@ -9,7 +9,11 @@ import { defineConfig } from 'vitest/config'
  */
 export default defineConfig({
   test: {
-    include: ['packages/*/test/**/*.spec.ts', 'apps/*/test/**/*.spec.{ts,tsx}'],
+    include: ['packages/*/test/**/*.spec.{ts,tsx}', 'apps/*/test/**/*.spec.{ts,tsx}'],
+    /* Node por padrão; os cenários de tela declaram `// @vitest-environment jsdom` no topo. O domínio não
+       precisa de DOM, e não ganhar um é parte de provar que ele não depende de um. */
     environment: 'node',
   },
+  /* O JSX automático do React 19 — o mesmo que o tsconfig das ilhas declara. */
+  esbuild: { jsx: 'automatic' },
 })

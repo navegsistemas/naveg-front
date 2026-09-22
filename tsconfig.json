@@ -1,4 +1,17 @@
 {
   "files": [],
-  "references": [{ "path": "./packages/design-system" }, { "path": "./packages/domain" }]
+  "references": [
+    {
+      "path": "./packages/design-system"
+    },
+    {
+      "path": "./packages/domain"
+    },
+    {
+      "path": "./packages/dados"
+    },
+    {
+      "path": "./packages/ui"
+    }
+  ]
 }

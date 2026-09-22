@@ -361,7 +361,15 @@ viagem/hora-do-dia           formatarHora
 
 ---
 
-## Passo 8 — Seção Totem (a ilha React)
+## Passo 8 — Seção Totem (a ilha React) · ✅ concluído em 2026-09-22
+
+> **Como ficou.** `packages/ui` (componentes controlados), `packages/dados` (as portas, os adaptadores em
+> memória e `enviarReserva`, que gera o código, monta e grava, com nova tentativa na colisão), e
+> `apps/agencia/src/ilhas/` — `Totem.tsx` (o estado e a orquestração, com as dependências injetadas) e
+> `TotemDaAgencia.tsx` (a ilha, que constrói as dependências). O catálogo é o de demonstração, que se anuncia na
+> tela. Os cenários do aceite estão em `apps/agencia/test/totem.spec.tsx`; a ilha custa 10,8 kB gzip, mais
+> 67 kB do runtime do React (ver o orçamento no README). `conteudo/cnpj.ts` foi consolidado no domínio, e
+> `conteudo/telefone.ts` passou a decidir o código do país pelo comprimento.
 
 **← Análise do passo anterior:** o domínio foi revisado contra o aplicativo (2026-09-22). As opções chegam **dentro do nó**; `travessiasOfertadas` entrega cada saída com o `ContextoDaReserva` pronto; `montarReserva` fecha o pedido e tira a validade da partida. A ilha não tem regra nenhuma a escrever — se aparecer um `if` sobre acomodação, natureza ou casco num componente, a regra está faltando no domínio.
 

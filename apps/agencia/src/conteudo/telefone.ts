@@ -8,7 +8,14 @@
  *
  * Aqui mora o que é comum: tirar a pontuação e garantir o `55`. Quem decide **qual forma é aceitável** é o
  * chamador — [normalizarCelular] para o WhatsApp, [normalizarTelefone] para o `tel:`.
+ *
+ * ### O celular é a regra do domínio
+ *
+ * Desde o passo 8, [normalizarCelular] é `normalizarWhatsapp` do `@naveg/domain` — a mesma regra que o totem
+ * aplica ao telefone do cliente. Duas cópias da regra do celular é a duplicação que este arquivo nasceu para
+ * evitar, e ela tinha se formado de novo.
  */
+import { normalizarWhatsapp } from '@naveg/domain'
 
 /** Brasil. O único país que este atendimento cobre — melhor explícito que um `55` solto no meio do código. */
 export const CODIGO_DO_PAIS = '55'
@@ -18,10 +25,16 @@ export const DIGITOS_DO_CELULAR = 13
 /** 55 + DDD (2) + número (8). */
 export const DIGITOS_DO_FIXO = 12
 
-/** Só os dígitos, com o código do país garantido. Não julga o comprimento — quem julga é quem chama. */
+/**
+ * Só os dígitos, com o código do país garantido.
+ *
+ * A decisão é **pelo comprimento**, e não pelo começo: `55` também é DDD (Santa Maria e o centro do RS), e
+ * `(55) 3222-1111` começa com `55` sem ter código do país. Dez ou onze dígitos são nacionais (DDD + número); o
+ * resto passa como veio, e quem julga se o comprimento serve é quem chama.
+ */
 export function digitosComPais(bruto: string): string {
   const digitos = bruto.replace(/\D/g, '')
-  return digitos.startsWith(CODIGO_DO_PAIS) ? digitos : `${CODIGO_DO_PAIS}${digitos}`
+  return digitos.length === 10 || digitos.length === 11 ? `${CODIGO_DO_PAIS}${digitos}` : digitos
 }
 
 /**
@@ -31,12 +44,12 @@ export function digitosComPais(bruto: string): string {
  * virar um link publicado na página — deve quebrar o build de quem o digitou.
  */
 export function normalizarCelular(bruto: string): string {
-  const numero = digitosComPais(bruto)
+  const numero = normalizarWhatsapp(bruto)
 
-  if (numero.length !== DIGITOS_DO_CELULAR) {
+  if (numero === null) {
     throw new Error(
-      `Celular inválido: "${bruto}" virou ${numero.length} dígitos, e o esperado são ${DIGITOS_DO_CELULAR} ` +
-        `(${CODIGO_DO_PAIS} + DDD + 9 dígitos).`,
+      `Celular inválido: "${bruto}" não é ${CODIGO_DO_PAIS} + DDD + 9 dígitos começando com 9 ` +
+        `(${DIGITOS_DO_CELULAR} dígitos ao todo).`,
     )
   }
 

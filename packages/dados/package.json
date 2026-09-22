@@ -1,0 +1,13 @@
+{
+  "name": "@naveg/dados",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "As portas de dados do totem — gravar a reserva, carregar o catálogo — e os adaptadores. No passo 8, só os em memória; o Firestore entra no passo 10.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@naveg/domain": "*"
+  }
+}
