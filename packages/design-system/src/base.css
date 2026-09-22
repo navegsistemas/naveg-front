@@ -1,0 +1,191 @@
+/**
+ * BASE DA NAVEG
+ *
+ * O reset, a tipografia e os poucos primitivos de layout que a página institucional usa. Nenhum valor
+ * literal aqui — tudo vem de `tokens.css`, e `test/tokens.spec.ts` recusa o contrário. A regra parece
+ * cerimônia até a primeira vez que alguém escreve o laranja da marca direto num botão e o tema escuro o
+ * deixa ilegível sem que nada acuse.
+ *
+ * Esta folha veste a **página**. O totem tem folha própria, e a separação é a mesma que o `fluviapp` faz
+ * entre o deck e o aparelho: o que fala sobre o produto e o que é o produto não compartilham estilo.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* A navegação é por âncora; sem isso o cabeçalho fixo cobre o título da seção de destino. */
+  scroll-padding-top: calc(var(--espaco-6) + var(--espaco-4));
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: 1.15;
+  text-wrap: balance;
+  margin: 0 0 var(--espaco-3);
+}
+
+h1 {
+  font-size: clamp(2rem, 1.4rem + 3vw, 3.5rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.25rem);
+}
+
+h3 {
+  font-size: clamp(1.125rem, 1rem + 0.8vw, 1.5rem);
+}
+
+p {
+  margin: 0 0 var(--espaco-3);
+  max-width: var(--largura-texto);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+img,
+svg,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* ── Foco ────────────────────────────────────────────────────────────────────────────────────────
+   `:focus-visible`, e não `:focus`: o anel aparece para quem navega por teclado e não pisca no clique
+   de mouse. O `outline-offset` existe para o anel não encostar na borda do controle e sumir dentro
+   dela — que é como um anel de 3:1 deixa de ter 3:1 na prática. */
+:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ── Movimento ─────────────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────────────────────────────
+   Uma faixa (`.faixa`) é a largura cheia com fundo; o conteúdo (`.conteudo`) é a coluna centrada. A
+   separação existe para que a alternância de fundo entre seções não obrigue cada seção a repetir o
+   cálculo de margem. */
+.conteudo {
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: var(--espaco-4);
+}
+
+.faixa {
+  padding-block: var(--espaco-6);
+}
+
+.faixa--alt {
+  background: var(--bg-alt);
+}
+
+/* ── Ação ────────────────────────────────────────────────────────────────────────────────────────
+   O botão primário é laranja com rótulo **marrom**, e não branco. Não é preferência: branco sobre o
+   laranja da marca dá 2,4:1 e reprova. A tabela medida está no cabeçalho do `tokens.css` — aqui só
+   se consomem os tokens, e é por isso que este arquivo não repete um único valor de cor. */
+.acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-height: var(--alvo-toque);
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--acao-bg);
+  color: var(--acao-texto);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.acao:hover {
+  background: var(--acao-bg-hover);
+  color: var(--acao-texto-hover);
+}
+
+.acao--secundaria {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-forte);
+}
+
+.acao--secundaria:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* ── Acessibilidade ──────────────────────────────────────────────────────────────────────────────
+   O link de pular navegação existe fora da tela e volta ao receber foco. Ele é o primeiro elemento do
+   `body`, e é o que separa "navegável por teclado" de "navegável por teclado depois de 30 tabulações". */
+.pular-para-conteudo {
+  position: absolute;
+  left: var(--espaco-2);
+  top: var(--espaco-2);
+  z-index: 100;
+  padding: var(--espaco-2) var(--espaco-3);
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border-forte);
+  border-radius: var(--radius);
+  transform: translateY(-200%);
+}
+
+.pular-para-conteudo:focus-visible {
+  transform: translateY(0);
+}
+
+/* Some da tela, permanece para o leitor de tela. */
+.apenas-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

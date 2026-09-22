@@ -1,0 +1,224 @@
+/**
+ * TOKENS DA NAVEG
+ *
+ * Duas camadas, e a separação é a razão de o arquivo existir:
+ *
+ *  - **primitivos** — a paleta e as medidas. Valor literal, declarados **uma vez**, em `:root`. Nenhum
+ *    componente os consome direto: um componente que referenciasse `--navy` estaria pintando de azul-marinho
+ *    também no tema escuro, onde o azul-marinho é o fundo;
+ *  - **semânticos** — o papel que a cor cumpre (`--text`, `--acao-bg`, `--border-forte`). É o que o componente
+ *    usa, e é o que troca entre os temas.
+ *
+ * A fronteira entre as duas é **verificável, e é verificada**: todo semântico é um `var(...)`, todo primitivo é
+ * um valor literal. `test/tokens.spec.ts` usa exatamente essa regra para saber quem é quem — e é ela que
+ * garante que um token declarado no tema claro não seja esquecido no escuro.
+ *
+ * ── De onde vêm as duas cores da marca ──────────────────────────────────────────────────────────────
+ *
+ * `--navy` e `--laranja` são os valores do **arquivo oficial do logo** (`src/marca/*.svg`, e o `LEIA-ME.txt`
+ * do pacote de marca os declara): laranja `#FA8B17`, azul-marinho `#103A5B`. Foram escolhidos sobre os tons
+ * aproximados do briefing (`#FF6E31` / `#243763`) para que o wordmark entre na página sem retoque — dois
+ * laranjas quase iguais lado a lado no cabeçalho é a diferença que se nota.
+ *
+ * Todos os demais tons são **derivados** destes dois e do marrom, e nenhum é escolhido a olho: cada um existe
+ * para cumprir um mínimo de contraste, anotado ao lado.
+ *
+ * ── O que a medição impõe ───────────────────────────────────────────────────────────────────────────
+ *
+ *   #FA8B17 sobre branco .......... 2,42:1   ✗ reprova (mínimo 4,5:1)
+ *   branco sobre #FA8B17 .......... 2,42:1   ✗ reprova  ← o botão laranja de rótulo branco
+ *   #1B1006 sobre #FA8B17 ......... 7,70:1   ✔
+ *   #103A5B sobre #FA8B17 ......... 4,87:1   ✔
+ *   #103A5B sobre branco ......... 11,79:1   ✔
+ *   #3A240E sobre branco ......... 14,60:1   ✔
+ *
+ * Daí saem duas decisões que este arquivo codifica em vez de deixar para a boa vontade de quem escreve tela:
+ *
+ *  1. o laranja entra como **superfície** (`--acao-bg`, `--accent-superficie`), e quem escreve em cima dele é
+ *     `--acao-texto` / `--accent-contraste`, que são marrom;
+ *  2. quando o laranja precisa ser **tinta** — link, ícone de destaque, número em evidência —, ele não é
+ *     `#FA8B17`: é `--laranja-escuro`, o tom derivado que passa em 5,9:1 sobre branco.
+ *
+ * `test/contraste.spec.ts` assere isso resolvendo os semânticos até o primitivo e calculando a razão WCAG. Um
+ * `--acao-texto: var(--branco)` deixa de ser uma escolha de gosto e passa a ser build vermelho.
+ */
+
+:root {
+  /* ── Primitivos: azul-marinho e seus tons ──────────────────────────────────────────────────────
+     `--navy` é a cor do logo. Os demais descem dela, e cada um tem um posto. */
+  --navy: #103a5b;
+  /* Baixa ênfase **sobre** navy — 5,3:1 com ele. Não serve como texto sobre fundo claro. */
+  --navy-claro: #8fb3ce;
+  /* Superfície elevada do tema escuro (o `--navy` puro é a superfície base lá). */
+  --navy-alto: #17496f;
+  --navy-noturno: #0d2c46;
+  /* O fundo do tema escuro. */
+  --navy-profundo: #0a2237;
+  /* Contorno decorativo no escuro — 1,9:1 com o fundo, e é para ser discreto mesmo. */
+  --navy-borda-noturna: #27506f;
+
+  /* ── Primitivos: laranja ───────────────────────────────────────────────────────────────────────
+     Os três tons cobrem os três papéis: preencher, escrever no claro, escrever no escuro. */
+  /* A cor do logo. **Preenchimento**, nunca tinta de texto. */
+  --laranja: #fa8b17;
+  /* O laranja quando precisa ser lido no tema claro: 5,9:1 com branco, 4,7:1 com `--areia-2`. */
+  --laranja-escuro: #9a5207;
+  /* O laranja quando precisa ser lido no tema escuro: 8,4:1 com `--navy-profundo`. */
+  --laranja-claro: #fda84a;
+
+  /* ── Primitivos: branco, areia e cinza ─────────────────────────────────────────────────────────
+     Neutros **quentes**, derivados do marrom. Um cinza azulado brigaria com o navy da marca. */
+  --branco: #ffffff;
+  --areia: #f7f4f1;
+  --areia-2: #ece6e0;
+  /* Baixa ênfase **sobre** navy escuro — 4,9:1 com `--navy-alto`, que é o pior caso do tema escuro. */
+  --areia-dim: #c4b8ad;
+  /* Contorno decorativo no claro. Não serve de contorno de campo: ver `--border-forte`. */
+  --cinza-borda: #d8cfc7;
+
+  /* ── Primitivos: marrom ────────────────────────────────────────────────────────────────────────
+     A quarta cor do briefing, e os dois tons mais escuros que ele pedia para bordas e texto. */
+  --marrom: #3a240e;
+  /* Texto de baixa ênfase e contorno de campo — 7,1:1 com branco, acima dos 3:1 da WCAG 1.4.11. */
+  --marrom-medio: #6b5443;
+  --marrom-borda: #2a1a0a;
+  /* O mais escuro da paleta: 18,6:1 com branco. É o texto de corpo e o que se escreve sobre o laranja. */
+  --marrom-tinta: #1b1006;
+
+  /* ── Primitivos: tipografia ────────────────────────────────────────────────────────────────────
+     Pilha de sistema, sem webfont: a página institucional tem orçamento de 0 kB de JavaScript, e uma
+     fonte externa custaria a mesma conexão que esse orçamento existe para evitar. Trocar por uma face
+     de marca é mudar estas três linhas. */
+  --font-display: ui-serif, Georgia, 'Times New Roman', serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+
+  /* ── Primitivos: forma e ritmo ─────────────────────────────────────────────────────────────── */
+  --radius: 4px;
+  --radius-cartao: 10px;
+  --radius-totem: 16px;
+
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 14px;
+  --espaco-4: 22px;
+  --espaco-5: 38px;
+  --espaco-6: 76px;
+
+  /* O alvo de toque do totem. Não é decoração: é terminal público, operado em pé, muitas vezes por quem
+     não usa o aparelho todo dia. */
+  --alvo-toque: 56px;
+
+  --largura-conteudo: 1180px;
+  --largura-texto: 680px;
+
+  --sombra-clara: 0 18px 40px rgba(16, 58, 91, 0.12);
+  --sombra-escura: 0 18px 40px rgba(3, 12, 22, 0.5);
+
+  /* ── Semânticos: o tema claro é o padrão, e mora no `:root` puro ──────────────────────────────
+     Nenhuma cor tem sua única definição dentro de uma media query. Sem isso, um navegador sem
+     preferência declarada renderizaria a página sem fundo. */
+  --bg: var(--areia);
+  --bg-alt: var(--branco);
+  --surface: var(--branco);
+  --surface-2: var(--areia-2);
+
+  --text: var(--navy);
+  --text-body: var(--marrom-tinta);
+  --text-secondary: var(--marrom-medio);
+
+  /* Decorativo — separa blocos, não delimita controle. */
+  --border: var(--cinza-borda);
+  /* Contorno de campo, de botão vazado e de qualquer coisa que a WCAG 1.4.11 cobre (≥3:1). */
+  --border-forte: var(--marrom-medio);
+
+  /* O laranja como **tinta**. */
+  --accent: var(--laranja-escuro);
+  /* O laranja como **preenchimento** — e `--accent-contraste` é o que se escreve em cima dele. */
+  --accent-superficie: var(--laranja);
+  --accent-contraste: var(--marrom-tinta);
+
+  --acao-bg: var(--laranja);
+  --acao-texto: var(--marrom-tinta);
+  --acao-bg-hover: var(--laranja-escuro);
+  --acao-texto-hover: var(--branco);
+
+  /* O cabeçalho é navy nos dois temas — é assinatura de marca, não superfície. */
+  --header-bg: var(--navy);
+  --header-texto: var(--branco);
+  --header-texto-dim: var(--navy-claro);
+  /* O anel de foco do cabeçalho é outro porque o fundo é outro: `--foco` não alcança 3:1 sobre navy. */
+  --header-foco: var(--laranja-claro);
+
+  --foco: var(--laranja-escuro);
+  --sombra: var(--sombra-clara);
+}
+
+/* Escuro por preferência do sistema — cede ao `data-theme="light"` explícito. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: var(--navy-profundo);
+    --bg-alt: var(--navy-noturno);
+    /* O navy da marca vira a superfície do cartão aqui — é onde ele ainda é ele mesmo no escuro. */
+    --surface: var(--navy);
+    --surface-2: var(--navy-alto);
+
+    --text: var(--areia);
+    --text-body: var(--areia-2);
+    --text-secondary: var(--areia-dim);
+
+    --border: var(--navy-borda-noturna);
+    --border-forte: var(--areia-dim);
+
+    --accent: var(--laranja-claro);
+    --accent-superficie: var(--laranja-claro);
+    --accent-contraste: var(--marrom-tinta);
+
+    --acao-bg: var(--laranja-claro);
+    --acao-texto: var(--marrom-tinta);
+    /* No escuro o hover **escurece** para o laranja da marca, e o rótulo segue marrom: branco sobre
+       `--laranja` reprova nos dois temas. */
+    --acao-bg-hover: var(--laranja);
+    --acao-texto-hover: var(--marrom-tinta);
+
+    --header-bg: var(--navy);
+    --header-texto: var(--areia);
+    --header-texto-dim: var(--navy-claro);
+    --header-foco: var(--laranja-claro);
+
+    --foco: var(--laranja-claro);
+    --sombra: var(--sombra-escura);
+  }
+}
+
+/* Escuro por escolha explícita — vence a preferência do sistema nos dois sentidos. */
+:root[data-theme='dark'] {
+  --bg: var(--navy-profundo);
+  --bg-alt: var(--navy-noturno);
+  --surface: var(--navy);
+  --surface-2: var(--navy-alto);
+
+  --text: var(--areia);
+  --text-body: var(--areia-2);
+  --text-secondary: var(--areia-dim);
+
+  --border: var(--navy-borda-noturna);
+  --border-forte: var(--areia-dim);
+
+  --accent: var(--laranja-claro);
+  --accent-superficie: var(--laranja-claro);
+  --accent-contraste: var(--marrom-tinta);
+
+  --acao-bg: var(--laranja-claro);
+  --acao-texto: var(--marrom-tinta);
+  --acao-bg-hover: var(--laranja);
+  --acao-texto-hover: var(--marrom-tinta);
+
+  --header-bg: var(--navy);
+  --header-texto: var(--areia);
+  --header-texto-dim: var(--navy-claro);
+  --header-foco: var(--laranja-claro);
+
+  --foco: var(--laranja-claro);
+  --sombra: var(--sombra-escura);
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Credenciais de cliente do Firebase — identificam QUAL projeto, e um repositório que carrega a
+# identidade de produção convida um build de teste a escrever nela. Ver ADR-0002.
+firebase.config.json
+.firebase/
+
+.DS_Store
+Thumbs.db

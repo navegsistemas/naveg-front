@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    /* O rigor é o que faz o domínio portado ser confiável — e as três opções abaixo não são gosto:
+       cada uma fecha uma classe de erro que este projeto tem motivo concreto para temer.
+
+       - `noUncheckedIndexedAccess`: o roteiro da reserva indexa a lista de nós (`nos[posicao - 1]`).
+         Sem isso, um índice fora da faixa vira `undefined` com cara de valor válido;
+       - `exactOptionalPropertyTypes`: `RespostasDaReserva` é toda opcional por definição. A diferença
+         entre "não respondeu" e "respondeu `undefined`" é exatamente a que o roteiro lê para decidir
+         qual é o passo em foco;
+       - `verbatimModuleSyntax`: obriga `import type` explícito. É o que impede um tipo do domínio de
+         arrastar código para o bundle da ilha. */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@naveg/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tokens e primitivos visuais da NAVEG. Sem React e sem domínio — o acoplamento com os dois é por vocabulário, não por import.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./base.css": "./src/base.css"
+  },
+  "dependencies": {}
+}
