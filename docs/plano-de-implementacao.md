@@ -266,19 +266,35 @@ Nada de `aria-roledescription="carrossel"`: esse papel promete controles de slid
 
 ---
 
-## Passo 6 — Rodapé e informações adicionais
+## Passo 6 — Rodapé e informações adicionais · ✅ concluído em 2026-09-22
 
 **← Análise do passo anterior:** todas as seções de exibição publicadas e revisadas.
 
-**Entrega**
-- Colunas: **Institucional** (razão social, CNPJ, endereço das agências), **Atendimento** (telefones, horário, WhatsApp), **Navegação** (âncoras), **Legal** (Política de Privacidade, Termos, LGPD e encarregado).
-- `<address>` semântico; `tel:` e `mailto:` reais.
-- Aviso obrigatório da Fase 1, em destaque: **"Este canal gera reserva, não venda. A emissão da passagem é feita pelo atendimento."** Essa frase precisa aparecer em três lugares — rodapé, topo do totem e mensagem do WhatsApp. É a expectativa que evita reclamação.
-- Selo de acessibilidade e link "Voltar ao topo".
+**Decisão do cliente:** **wireframe e placeholders** — os dados institucionais entram depois.
 
-**Aceite**
-- Lighthouse mobile: Acessibilidade ≥95, SEO ≥95, Performance ≥90.
-- Marco: **a página institucional está completa e publicável sem o totem.**
+**Entregue**
+- `conteudo/rodape.ts` — identificação, contato, endereços (Belém e Macapá), links legais e o canal do encarregado. **Todo campo é `string | null`, e nenhum foi preenchido com valor plausível.**
+- `conteudo/cnpj.ts` — porte de `Cnpj.kt` do `fluviapp-kmp`: dígito verificador com os pesos cíclicos de 2 a 9, recusa de sequência repetida, formatação que serve também ao parcial.
+- `conteudo/telefone.ts` — a normalização saiu de `whatsapp.ts` e virou módulo próprio, porque o rodapé pode trazer **fixo** e a regra do WhatsApp é estrita a celular. Duas cópias da regra do código do país é a duplicação que envelhece torta: uma passa a aceitar o que a outra recusa, e ninguém nota até o link não abrir.
+- `Falta.astro` — o irmão menor do `Pendente`: aquele marca um bloco, este marca **um valor**. É texto de verdade no HTML, não `content:` de CSS — quem usa leitor de tela precisa saber que ali falta dado, não encontrar silêncio.
+- `Rodape.astro` — cinco colunas (A empresa, Atendimento, Onde estamos, Navegação, Legal), a faixa do aviso, a base com assinatura, redes e "Voltar ao topo". `<address>` semântico, `tel:` e `mailto:` reais.
+- `test/rodape.spec.ts` — 16 cenários.
+
+**As três decisões**
+
+1. **Nenhum campo foi preenchido "para ver como fica".** Um CNPJ plausível num rodapé institucional não é um lugar-tenente inofensivo: número de documento é exatamente o que ninguém confere, e a empresa passaria a publicar a identificação de outra. O rodapé desenha o lugar do campo e **diz que ele falta**.
+2. **A LGPD entrou agora, não no lançamento do totem.** O totem vai tratar nome, documento, nascimento e telefone — isso põe a NAVEG na lei como controladora, com política de privacidade e canal do encarregado (art. 41) obrigatórios. Declará-los como pendência hoje é melhor do que descobri-los no dia em que já forem bloqueantes. Há cenário que impede a política de **sumir da lista**, porque sumir é como ela deixa de ser providenciada.
+3. **As redes só aparecem no rodapé quando têm endereço.** Na seção de avaliações a pendência é mostrada, para ser preenchida; duas fileiras de chip tracejado na mesma página seriam a mesma cobrança feita duas vezes.
+
+**Os cenários protegem valores que parecem certos quando estão errados**
+
+CNPJ com um dígito trocado, sequência repetida (que **passa** na conta dos verificadores e é o que alguém digita para vencer um campo obrigatório), telefone que o discador não abre, e-mail sem arroba, link legal apontando para o nada. Nenhum deles quebra a página — todos quebram a confiança de quem tentou usar.
+
+**Aceite — verificado**
+- `npm run verify` verde: `tsc`, `astro check` (0/0/0) e **119 cenários**.
+- **0 arquivo JavaScript** mantido. `dist/` em 88 kB, `index.html` em 28,5 kB.
+- No HTML gerado: as 9 pendências do rodapé como texto, e o **único bloco pendente restante é o "Passo 8"** — o totem.
+- 🏁 **Marco: a página institucional está completa e publicável, sem uma linha de Firebase.**
 
 **→ Análise do próximo passo:** o passo 7 é domínio puro, sem tela. É o passo que decide se o totem vai ser confiável — e é onde o tempo deve ser gasto.
 

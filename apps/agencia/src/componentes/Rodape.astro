@@ -1,39 +1,182 @@
 ---
 /**
- * **O rodapé** — e, nesta fase, quase só a âncora `#contato` e o aviso.
+ * **O rodapé.** Quem é a empresa, como falar com ela, onde ela está, e o que a lei exige que esteja escrito.
  *
- * O conteúdo real (razão social, CNPJ, endereços das agências, telefones, links legais e as redes) é o passo 6,
- * e depende de dados que ainda não chegaram. O que já está aqui é o que **não pode faltar desde agora**: o
- * aviso de que este canal gera reserva e não venda.
+ * Todo campo é desenhado, e **nenhum foi inventado**: onde falta dado entra o `Falta`, que é texto de verdade no
+ * HTML. A alternativa — preencher com um CNPJ plausível para "ver como fica" — é o jeito mais fácil de a empresa
+ * publicar a identificação de outra, porque número de documento é exatamente o que ninguém confere.
  *
- * Ele aparece em três lugares no produto — aqui, no topo do totem e na mensagem do WhatsApp —, e é a mesma
- * frase nos três: é a expectativa que ela ajusta, e três versões dela seriam três compromissos diferentes.
+ * ### O que a LGPD acrescentou aqui
+ *
+ * O totem vai tratar dado pessoal — nome, documento, nascimento, telefone de quem reserva. Isso põe a NAVEG na
+ * lei como controladora, e traz duas obrigações que moram no rodapé: a **política de privacidade** e o **canal
+ * do encarregado** (art. 41). Estão declarados como pendência agora, e não no dia do lançamento do totem, quando
+ * já seriam bloqueantes.
+ *
+ * ### As redes aparecem só quando têm endereço
+ *
+ * Diferente da seção de avaliações, que mostra a pendência para que ela seja preenchida, aqui a lista some se
+ * estiver vazia: duas fileiras de chip tracejado na mesma página seriam a mesma cobrança feita duas vezes.
  */
-import { AVISO_DE_RESERVA, SITE } from '../conteudo/site'
+import { AVISO_DE_RESERVA } from '../conteudo/site'
 import { ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
-import Pendente from './Pendente.astro'
+import { REDES } from '../conteudo/depoimentos'
+import { cnpjValido, formatarCnpj } from '../conteudo/cnpj'
+import { formatarTelefone, linkDeTelefone } from '../conteudo/telefone'
+import {
+  CONTATO,
+  ENCARREGADO_LGPD,
+  ENDERECOS,
+  IDENTIFICACAO,
+  LINKS_LEGAIS,
+} from '../conteudo/rodape'
+import Falta from './Falta.astro'
+import Icone from './Icone.astro'
 
 const ano = new Date().getFullYear()
+
 /* O próprio rodapé não entra na lista de atalhos dele. */
 const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`)
+
+/**
+ * Um CNPJ com dígito verificador errado **não é exibido**, e o build já terá quebrado antes disso
+ * (`test/rodape.spec.ts`). A guarda aqui é o cinto do suspensório: se um dia alguém contornar o cenário, a
+ * página mostra a pendência em vez de publicar um número que não existe.
+ */
+const cnpj =
+  IDENTIFICACAO.cnpj !== null && cnpjValido(IDENTIFICACAO.cnpj)
+    ? formatarCnpj(IDENTIFICACAO.cnpj)
+    : null
+
+const redesComEndereco = REDES.filter((rede) => rede.url !== null)
 ---
 
 <footer id={ID_DO_RODAPE} class="rodape">
   <div class="conteudo">
     <p class="rodape__aviso">{AVISO_DE_RESERVA}</p>
 
-    <nav class="rodape__atalhos" aria-label="Atalhos do rodapé">
-      <ul>
-        {atalhos.map((item) => <li><a href={item.href}>{item.rotulo}</a></li>)}
-      </ul>
-    </nav>
+    <div class="rodape__colunas">
+      <section class="coluna">
+        <h2 class="coluna__titulo">A empresa</h2>
+        <address class="coluna__corpo">
+          <p class="coluna__marca">{IDENTIFICACAO.nomeFantasia}</p>
+          <p>
+            {IDENTIFICACAO.razaoSocial ?? <Falta campo="Razão social" onde="conteudo/rodape.ts" />}
+          </p>
+          <p>
+            {cnpj !== null ? <span>CNPJ {cnpj}</span> : <Falta campo="CNPJ" onde="conteudo/rodape.ts" />}
+          </p>
+        </address>
+      </section>
 
-    <Pendente
-      passo={6}
-      descricao="Razão social, CNPJ, endereços das agências, telefones, links legais (privacidade, termos, encarregado de LGPD) e as redes da Meta."
-    />
+      <section class="coluna">
+        <h2 class="coluna__titulo">Atendimento</h2>
+        <ul class="coluna__corpo coluna__lista">
+          <li>
+            {
+              CONTATO.telefone === null ? (
+                <Falta campo="Telefone" onde="conteudo/rodape.ts" />
+              ) : (
+                <a href={linkDeTelefone(CONTATO.telefone)}>{formatarTelefone(CONTATO.telefone)}</a>
+              )
+            }
+          </li>
+          <li>
+            {
+              CONTATO.email === null ? (
+                <Falta campo="E-mail" onde="conteudo/rodape.ts" />
+              ) : (
+                <a href={`mailto:${CONTATO.email}`}>{CONTATO.email}</a>
+              )
+            }
+          </li>
+          <li><a href="#atendentes">Falar no WhatsApp</a></li>
+          <li class="coluna__nota">{CONTATO.horario}</li>
+        </ul>
+      </section>
 
-    <p class="rodape__assinatura">© {ano} {SITE.nomeCompleto}</p>
+      <section class="coluna">
+        <h2 class="coluna__titulo">Onde estamos</h2>
+        <ul class="coluna__corpo coluna__lista">
+          {
+            ENDERECOS.map((endereco) => (
+              <li>
+                <address>
+                  <strong>{endereco.rotulo}</strong>
+                  <br />
+                  {endereco.logradouro ?? <Falta campo="Endereço" onde="conteudo/rodape.ts" />}
+                  {endereco.complemento !== null && <><br />{endereco.complemento}</>}
+                  <br />
+                  {endereco.municipio} — {endereco.uf}
+                  {endereco.cep !== null && <><br />CEP {endereco.cep}</>}
+                </address>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="coluna">
+        <h2 class="coluna__titulo">Navegação</h2>
+        <ul class="coluna__corpo coluna__lista">
+          {atalhos.map((item) => <li><a href={item.href}>{item.rotulo}</a></li>)}
+        </ul>
+      </section>
+
+      <section class="coluna">
+        <h2 class="coluna__titulo">Legal</h2>
+        <ul class="coluna__corpo coluna__lista">
+          {
+            LINKS_LEGAIS.map((link) => (
+              <li>
+                {link.href === null ? (
+                  <Falta campo={link.rotulo} onde={link.motivo} />
+                ) : (
+                  <a href={link.href}>{link.rotulo}</a>
+                )}
+              </li>
+            ))
+          }
+          <li class="coluna__nota">
+            Encarregado de dados (LGPD):{' '}
+            {
+              ENCARREGADO_LGPD.email === null ? (
+                <Falta campo="Contato" onde="LGPD, art. 41 — conteudo/rodape.ts" />
+              ) : (
+                <a href={`mailto:${ENCARREGADO_LGPD.email}`}>
+                  {ENCARREGADO_LGPD.nome ?? ENCARREGADO_LGPD.email}
+                </a>
+              )
+            }
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="rodape__base">
+      <p class="rodape__assinatura">© {ano} {IDENTIFICACAO.nomeFantasia}</p>
+
+      {
+        redesComEndereco.length > 0 && (
+          <ul class="rodape__redes">
+            {redesComEndereco.map((rede) => (
+              <li>
+                <a
+                  href={rede.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`NAVEG no ${rede.nome}, abre em nova aba`}
+                >
+                  <Icone slug={rede.icone} tamanho={22} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <a class="rodape__topo" href="#capa">Voltar ao topo</a>
+    </div>
   </div>
 </footer>
 
@@ -48,6 +191,12 @@ const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`
     outline-color: var(--header-foco);
   }
 
+  .rodape a {
+    color: var(--header-texto);
+    text-decoration-color: var(--header-texto-dim);
+    text-underline-offset: 3px;
+  }
+
   .rodape__aviso {
     max-width: var(--largura-texto);
     padding: var(--espaco-3) var(--espaco-4);
@@ -55,34 +204,95 @@ const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`
     background: rgb(255 255 255 / 0.06);
     border-radius: var(--radius);
     font-weight: 600;
+    margin-block-end: var(--espaco-6);
   }
 
-  .rodape__atalhos ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espaco-2) var(--espaco-4);
-    margin: 0 0 var(--espaco-5);
+  .rodape__colunas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--espaco-5) var(--espaco-4);
+  }
+
+  .coluna__titulo {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--header-texto-dim);
+    margin: 0 0 var(--espaco-3);
+  }
+
+  .coluna__corpo {
+    font-size: 0.9375rem;
+    font-style: normal;
+    line-height: 1.7;
+  }
+
+  .coluna__corpo p {
+    margin: 0 0 var(--espaco-2);
+    max-width: none;
+  }
+
+  .coluna__marca {
+    font-weight: 700;
+  }
+
+  .coluna__lista {
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .rodape__atalhos a {
-    display: inline-block;
-    padding-block: var(--espaco-2);
-    color: var(--header-texto-dim);
-    text-decoration: none;
+  .coluna__lista address {
+    font-style: normal;
+    margin-block-end: var(--espaco-3);
   }
 
-  .rodape__atalhos a:hover,
-  .rodape__atalhos a:focus-visible {
-    color: var(--header-texto);
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  .coluna__nota {
+    color: var(--header-texto-dim);
+    font-size: 0.875rem;
+  }
+
+  .rodape__base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-3) var(--espaco-4);
+    margin-block-start: var(--espaco-6);
+    padding-block-start: var(--espaco-4);
+    border-block-start: 1px solid rgb(255 255 255 / 0.15);
   }
 
   .rodape__assinatura {
-    margin: var(--espaco-5) 0 0;
+    margin: 0;
+    margin-inline-end: auto;
     color: var(--header-texto-dim);
+    font-size: 0.875rem;
+  }
+
+  .rodape__redes {
+    display: flex;
+    gap: var(--espaco-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .rodape__redes a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgb(255 255 255 / 0.25);
+  }
+
+  .rodape__redes a:hover {
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  .rodape__topo {
     font-size: 0.875rem;
   }
 </style>

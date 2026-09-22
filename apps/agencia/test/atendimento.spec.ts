@@ -8,9 +8,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { ATENDENTES, ATENDIMENTO, NOME_PROVISORIO } from '../src/conteudo/atendimento.js'
-import { linkDeWhatsApp, normalizarTelefone } from '../src/conteudo/whatsapp.js'
+import { linkDeWhatsApp } from '../src/conteudo/whatsapp.js'
+import { normalizarCelular } from '../src/conteudo/telefone.js'
 
-describe('o telefone, normalizado', () => {
+describe('o celular, normalizado', () => {
   it('aceita as formas em que as pessoas escrevem', () => {
     for (const forma of [
       '(91) 98888-7777',
@@ -20,18 +21,18 @@ describe('o telefone, normalizado', () => {
       '5591988887777',
       ' 55 (91) 9 8888 7777 ',
     ]) {
-      expect(normalizarTelefone(forma), forma).toBe('5591988887777')
+      expect(normalizarCelular(forma), forma).toBe('5591988887777')
     }
   })
 
   it('acrescenta o código do país quando falta, e não duplica quando já está', () => {
-    expect(normalizarTelefone('91988887777')).toBe('5591988887777')
-    expect(normalizarTelefone('5591988887777')).toBe('5591988887777')
+    expect(normalizarCelular('91988887777')).toBe('5591988887777')
+    expect(normalizarCelular('5591988887777')).toBe('5591988887777')
   })
 
   it('recusa o que não é celular brasileiro, em vez de devolver link quebrado', () => {
     for (const invalido of ['', '9999', '91 8888-7777', '5591988887777000']) {
-      expect(() => normalizarTelefone(invalido), invalido).toThrow()
+      expect(() => normalizarCelular(invalido), invalido).toThrow()
     }
   })
 })
@@ -80,7 +81,7 @@ describe('o atendimento', () => {
     /* Sem este cenário, um número errado só apareceria para quem clicasse no botão. */
     for (const atendente of ATENDENTES) {
       if (atendente.whatsapp !== null) {
-        expect(() => normalizarTelefone(atendente.whatsapp ?? ''), atendente.id).not.toThrow()
+        expect(() => normalizarCelular(atendente.whatsapp ?? ''), atendente.id).not.toThrow()
       }
     }
   })

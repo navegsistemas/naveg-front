@@ -1,0 +1,34 @@
+---
+/**
+ * **O lugar de um campo que ainda não foi informado.**
+ *
+ * O irmão menor do `Pendente.astro`: aquele marca um bloco inteiro, este marca **um valor**. Existe para que o
+ * rodapé possa ser desenhado por inteiro sem que nenhum campo seja preenchido com um valor plausível — que é o
+ * jeito mais fácil de um CNPJ inventado ir a produção.
+ *
+ * Ele é texto de verdade no HTML, e não um `content:` de CSS: quem usa leitor de tela precisa saber que ali
+ * falta dado, não encontrar silêncio.
+ */
+interface Props {
+  /** O que falta, em minúsculas: "CNPJ", "razão social", "telefone". */
+  readonly campo: string
+  /** Onde preencher. Aparece como dica, para quem vier completar. */
+  readonly onde?: string
+}
+
+const { campo, onde } = Astro.props
+---
+
+<span class="falta" title={onde}>{campo} pendente</span>
+
+<style>
+  .falta {
+    display: inline-block;
+    padding: 0 var(--espaco-2);
+    border: 1px dashed currentColor;
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    opacity: 0.85;
+  }
+</style>

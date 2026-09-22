@@ -16,7 +16,8 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 3 | Seção Capa — proposta, credenciais e a vitrine da flotilha | ✅ |
 | 4 | Seção Atendimento — o argumento e quem atende | ✅ |
 | 5 | Seção Avaliações — a vitrine e as redes da Meta | ✅ |
-| 6 | Rodapé — razão social, contatos e links legais | — |
+| 6 | Rodapé — identificação, contatos, endereços e o que a lei exige | ✅ |
+| — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
 | 7–8 | Domínio da reserva e a ilha do totem | — |
 | 9–12 | Firestore, WhatsApp, deeplink, endurecimento | — |
 
@@ -100,7 +101,7 @@ com valor inventado, que é como conteúdo de mentira chega a produção parecen
 | cartão do atendente | nome, foto e o número do WhatsApp | [`public/atendentes/`](apps/agencia/public/atendentes/LEIA-ME.md) |
 | vitrine de avaliações | os depoimentos | `src/conteudo/depoimentos.ts` |
 | redes | as URLs do Instagram e do Facebook | `src/conteudo/depoimentos.ts` |
-| rodapé | razão social, CNPJ, endereço e links legais | passo 6 |
+| rodapé | razão social, CNPJ, endereços, telefone, e-mail, links legais e o canal do encarregado | `src/conteudo/rodape.ts` |
 
 `DEPOIMENTOS` é uma lista **vazia**, e isso é deliberado: depoimento inventado é a peça de conteúdo falso mais
 fácil de deixar passar — tem nome de gente, cidade de verdade, e ninguém no code review pergunta se aquela
@@ -109,6 +110,26 @@ repositório**.
 
 Toda URL de rede declarada é conferida no build: precisa ser `https` e pertencer ao domínio daquela rede. É o
 que impede o link do Instagram de levar ao perfil de outra pessoa por um erro de copiar e colar.
+
+### Os dados que ninguém confere
+
+O rodapé carrega valores que **parecem certos quando estão errados**, e cada um tem um guarda no build:
+
+- o **CNPJ** tem dígitos verificadores, então dá para saber que está errado sem perguntar a ninguém. A regra é
+  porte de `Cnpj.kt` do `fluviapp-kmp`, e recusa também as sequências repetidas — que passam na conta e são o
+  que alguém digita para vencer um campo obrigatório;
+- o **telefone** vale como fixo ou celular para o `tel:`, e só como celular para o WhatsApp;
+- o **e-mail** e as **URLs legais** têm forma conferida.
+
+E a **política de privacidade** não pode sumir da lista de links, mesmo pendente: sumir é como ela deixa de ser
+providenciada, e o totem vai tratar dado pessoal.
+
+## LGPD
+
+O totem trata nome, documento, data de nascimento e telefone de quem reserva. Isso põe a NAVEG na lei como
+controladora, e traz duas obrigações que já estão declaradas no rodapé como pendência: a **política de
+privacidade** e o **canal do encarregado** (art. 41). Estão ali desde agora, e não no dia do lançamento do
+totem, quando seriam bloqueantes.
 
 O número do WhatsApp é **validado no build**: `(91) 98888-7777`, `+55 91 98888-7777` ou `91988887777` dão no
 mesmo, mas o que não resultar em `55` + DDD + 9 dígitos quebra o build. Número errado não dá erro em lugar
