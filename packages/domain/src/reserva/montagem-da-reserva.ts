@@ -7,41 +7,34 @@
  * ### Ele lê o roteiro, não as respostas
  *
  * A montagem percorre **os nós que o roteiro devolveu** e lê a resposta de cada um. Se o nó do subtipo de
- * gratuidade não está no caminho, a `gratuidade` que sobrou não entra; se há dois nós `QUEM_VIAJA`, entram
- * duas pessoas; se a natureza tem uma classe só naquele casco, a classe é a derivada, não a que sobrou.
- * **O roteiro é a única fonte do que foi perguntado** — e só o que foi perguntado é resposta.
+ * gratuidade não está no caminho, a `gratuidade` que sobrou não entra; se o nó da cilindrada não está, a
+ * cilindrada digitada para uma moto não vai para o carro; se a natureza tem uma classe só naquele casco, a
+ * classe é a derivada. **O roteiro é a única fonte do que foi perguntado** — e só o que foi perguntado é
+ * resposta.
  *
  * ### A validade vem da travessia
  *
- * `expiraEm` é `validadeDaReserva(contexto.partida)` — hoje, a própria partida. Não há parâmetro de
- * validade: ela é consequência da ocorrência escolhida, calculada do catálogo do fluviapp, e não uma
- * escolha de quem monta. E se o navio já partiu quando a pessoa confirma, a reserva nasce com a pendência
- * `VALIDADE` — o terminal ficou aberto na tela de conferência, e o barco não esperou.
+ * `expiraEm` é `validadeDaReserva(contexto.partida)` — hoje, a própria partida. Se o navio já partiu quando
+ * a pessoa confirma, a reserva nasce com a pendência `VALIDADE`.
  */
-import { DataCalendario, type InstanteLocal } from '../primitivos/calendario.js'
+import type { InstanteLocal } from '../primitivos/calendario.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
-import { TipoDocumento } from '../documento/tipo-documento.js'
 import { normalizarWhatsapp } from './contato.js'
 import {
   pendenciasDaReserva,
-  placaCanonica,
-  type ContatoDaReserva,
-  type PassageiroDaReserva,
+  type ClienteDaReserva,
   type PendenciaDaReserva,
-  type PessoaDaReserva,
   type Reserva,
   type ReservaDePassageiro,
   type ReservaDeVeiculo,
-  type VeiculoDaReserva,
 } from './reserva.js'
 import {
-  pessoasDoBilhete,
+  classeEmVigor,
+  pessoasEmVigor,
   roteiroDaReserva,
-  SEM_RESPONSAVEL,
   tipoEmVigor,
   type ContextoDaReserva,
   type NoDoRoteiro,
-  type RascunhoDePessoa,
   type RespostasDaReserva,
 } from './roteiro-da-reserva.js'
 import { STATUS_DA_WEB } from './status-reserva.js'
@@ -87,27 +80,16 @@ function noDoPasso<P extends NoDoRoteiro['passo']>(nos: readonly NoDoRoteiro[], 
   return nos.find((no): no is No<P> => no.passo === passo)
 }
 
-function montarContato(respostas: RespostasDaReserva): ContatoDaReserva {
-  const bruto = aparado(respostas.contato?.whatsapp)
-  /* O número que não normaliza entra **como foi digitado**: o agregado o recusa por `CONTATO_WHATSAPP`,
-     junto com as demais pendências, em vez de a montagem parar no primeiro erro. */
-  return { nome: aparado(respostas.contato?.nome), whatsapp: normalizarWhatsapp(bruto) ?? bruto }
+function montarCliente(respostas: RespostasDaReserva): ClienteDaReserva {
+  const nome = aparado(respostas.cliente?.nome)
+  const bruto = aparado(respostas.cliente?.telefone)
+  if (bruto.length === 0) return { nome }
+  /* O telefone que não normaliza entra **como foi digitado**: o agregado o recusa por `CLIENTE_TELEFONE`,
+     em vez de a montagem o descartar em silêncio — quem digitou quer ser procurado nele. */
+  return { nome, telefone: normalizarWhatsapp(bruto) ?? bruto }
 }
 
-/** Rascunho → pessoa. `null` só quando a data não existe no calendário — a única conversão que falha. */
-function montarPessoa(rascunho: RascunhoDePessoa): PessoaDaReserva | null {
-  const dataNascimento = DataCalendario.de(rascunho.dataNascimento)
-  const tipoDocumento = rascunho.tipoDocumento
-  if (dataNascimento === null || tipoDocumento === undefined) return null
-  return {
-    nome: aparado(rascunho.nome),
-    tipoDocumento,
-    numeroDocumento: TipoDocumento.normalizar(tipoDocumento, rascunho.numeroDocumento),
-    dataNascimento,
-  }
-}
-
-type Base = Omit<ReservaDePassageiro, 'categoria' | 'acomodacao' | 'tipo' | 'gratuidade' | 'passageiros'>
+type Base = Omit<ReservaDePassageiro, 'categoria' | 'acomodacao' | 'tipo' | 'gratuidade' | 'quantidadePessoas'>
 
 function montarBase(
   respostas: RespostasDaReserva,
@@ -119,7 +101,7 @@ function montarBase(
   return {
     codigo: identidade.codigo,
     ocorrencia: contexto.ocorrencia,
-    contato: montarContato(respostas),
+    cliente: montarCliente(respostas),
     status: STATUS_DA_WEB,
     origem: 'TOTEM_WEB',
     criadoEm: identidade.criadoEm,
@@ -129,43 +111,24 @@ function montarBase(
   }
 }
 
-type Conversao<T> = { readonly reserva: T } | { readonly pendencias: ReadonlySet<PendenciaDaReserva> }
-
-function deReservaDePassageiro(
-  nos: readonly NoDoRoteiro[],
-  respostas: RespostasDaReserva,
-  base: Base,
-): Conversao<ReservaDePassageiro> {
+function deReservaDePassageiro(nos: readonly NoDoRoteiro[], respostas: RespostasDaReserva, base: Base): ReservaDePassageiro | null {
   const acomodacao = respostas.acomodacao
   /* O roteiro fechou, então estes existem — é o compilador pedindo a prova. */
-  if (acomodacao === undefined) return { pendencias: new Set(['TIPO_NAO_ADMITIDO']) }
+  if (acomodacao === undefined) return null
   const tipo = tipoEmVigor(respostas, acomodacao)
-  if (tipo === undefined) return { pendencias: new Set(['TIPO_NAO_ADMITIDO']) }
+  const quantidadePessoas = pessoasEmVigor(respostas, acomodacao)
+  if (tipo === undefined || quantidadePessoas === undefined) return null
 
   /* O subtipo entra **só se o nó dele estava no caminho**. */
   const gratuidade = noDoPasso(nos, 'TIPO_GRATUIDADE') === undefined ? undefined : respostas.gratuidade
 
-  const pessoas = nos.filter((no): no is No<'QUEM_VIAJA'> => no.passo === 'QUEM_VIAJA')
-  if (pessoas.length !== pessoasDoBilhete(respostas, acomodacao)) return { pendencias: new Set(['OCUPACAO_EXCEDIDA']) }
-
-  const passageiros: PassageiroDaReserva[] = []
-  for (const no of pessoas) {
-    const passageiro = montarPessoa(respostas.passageiros?.[no.pessoa] ?? {})
-    if (passageiro === null) return { pendencias: new Set(['NASCIMENTO']) }
-    passageiros.push(passageiro)
-  }
-  const [titular, ...acompanhantes] = passageiros
-  if (titular === undefined) return { pendencias: new Set(['PASSAGEIRO_INCOMPLETO']) }
-
   return {
-    reserva: {
-      ...base,
-      categoria: 'PASSAGEIRO',
-      acomodacao,
-      tipo,
-      ...(gratuidade !== undefined ? { gratuidade } : {}),
-      passageiros: [titular, ...acompanhantes],
-    },
+    ...base,
+    categoria: 'PASSAGEIRO',
+    acomodacao,
+    tipo,
+    ...(gratuidade !== undefined ? { gratuidade } : {}),
+    quantidadePessoas,
   }
 }
 
@@ -173,45 +136,29 @@ function deReservaDeVeiculo(
   nos: readonly NoDoRoteiro[],
   respostas: RespostasDaReserva,
   base: Base,
-): Conversao<ReservaDeVeiculo> {
-  /* A classe vem do nó — a escolhida ou a derivada da natureza, nunca a que sobrou nas respostas. */
-  const dados = noDoPasso(nos, 'DADOS_VEICULO')
-  if (dados === undefined) return { pendencias: new Set(['PLACA']) }
-
-  const perguntados = new Set(dados.campos)
-  const rascunho = respostas.veiculo ?? {}
-  const modelo = aparado(rascunho.modelo)
-  const cor = aparado(rascunho.cor)
-
-  const veiculo: VeiculoDaReserva = {
-    placa: placaCanonica(rascunho.placa),
-    ...(modelo.length > 0 ? { modelo } : {}),
-    ...(cor.length > 0 ? { cor } : {}),
-    /* A cilindrada digitada para uma moto não sobrevive à troca para carro — o carro não a pergunta. */
-    ...(perguntados.has('CILINDRADA') && rascunho.cilindrada !== undefined ? { cilindrada: rascunho.cilindrada } : {}),
-  }
-
-  let responsavel: PessoaDaReserva | undefined
-  if (respostas.responsavel !== undefined && respostas.responsavel !== SEM_RESPONSAVEL) {
-    const pessoa = montarPessoa(respostas.responsavel)
-    if (pessoa === null) return { pendencias: new Set(['NASCIMENTO']) }
-    responsavel = pessoa
-  }
+  contexto: ContextoDaReserva,
+): ReservaDeVeiculo | null {
+  const natureza = respostas.naturezaVeiculo
+  if (natureza === undefined) return null
+  /* A mesma derivação que o roteiro usa: a classe escolhida entre as ofertadas, ou a única que a natureza
+     tem neste casco. A van que sobrou de um ferry não vira van num navio. */
+  const classe = classeEmVigor(respostas, natureza, contexto.tipoEmbarcacao)
+  if (classe === undefined) return null
 
   return {
-    reserva: {
-      ...base,
-      categoria: 'VEICULO',
-      classe: dados.classe,
-      veiculo,
-      ...(responsavel !== undefined ? { responsavel } : {}),
-    },
+    ...base,
+    categoria: 'VEICULO',
+    classe,
+    /* A cilindrada entra **só se o nó dela estava no caminho**: a digitada para uma moto não vai para o carro. */
+    ...(noDoPasso(nos, 'CILINDRADA') !== undefined && respostas.cilindrada !== undefined
+      ? { cilindrada: respostas.cilindrada }
+      : {}),
   }
 }
 
 /**
  * **A reserva, se as respostas formam uma.** Pura: o código e o instante vêm de fora, e as mesmas entradas
- * dão a mesma reserva — o que permite ao passo 9 tentar gravar, colidir, gerar outro código e montar de novo.
+ * dão a mesma reserva — o que permite tentar gravar, colidir, gerar outro código e montar de novo.
  */
 export function montarReserva(
   respostas: RespostasDaReserva,
@@ -221,27 +168,27 @@ export function montarReserva(
   const roteiro = roteiroDaReserva(respostas, contexto)
   if (!roteiro.prontoParaConferir && roteiro.atual !== null) return { caso: 'INCOMPLETA', faltando: roteiro.atual }
 
+  const primeiro = roteiro.nos[0] as NoDoRoteiro
   const categoria = noDoPasso(roteiro.nos, 'CATEGORIA')
   const escolhida = respostas.categoria
   if (categoria === undefined || escolhida === undefined || !categoria.opcoes.includes(escolhida)) {
-    return { caso: 'INCOMPLETA', faltando: roteiro.nos[0] as NoDoRoteiro }
+    return { caso: 'INCOMPLETA', faltando: primeiro }
   }
 
   const base = montarBase(respostas, contexto, identidade)
-  let conversao: Conversao<Reserva>
+  let reserva: Reserva | null
   switch (escolhida) {
     case 'PASSAGEIRO':
-      conversao = deReservaDePassageiro(roteiro.nos, respostas, base)
+      reserva = deReservaDePassageiro(roteiro.nos, respostas, base)
       break
     case 'VEICULO':
-      conversao = deReservaDeVeiculo(roteiro.nos, respostas, base)
+      reserva = deReservaDeVeiculo(roteiro.nos, respostas, base, contexto)
       break
     default:
       return casoImpossivel(escolhida, 'montarReserva')
   }
+  if (reserva === null) return { caso: 'INCOMPLETA', faltando: primeiro }
 
-  if ('pendencias' in conversao) return { caso: 'INCOERENTE', pendencias: conversao.pendencias }
-
-  const pendencias = pendenciasDaReserva(conversao.reserva)
-  return pendencias.size > 0 ? { caso: 'INCOERENTE', pendencias } : { caso: 'OK', reserva: conversao.reserva }
+  const pendencias = pendenciasDaReserva(reserva)
+  return pendencias.size > 0 ? { caso: 'INCOERENTE', pendencias } : { caso: 'OK', reserva }
 }

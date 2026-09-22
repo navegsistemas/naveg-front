@@ -15,7 +15,7 @@
  * - a **ocupação** e os **tipos permitidos** de cada acomodação;
  * - o **comprimento** de cada documento;
  * - os **nomes das chaves** que a agência lê dos documentos do fluviapp (viagens, rotas, portos...) e que ela
- *   escreve para o aplicativo ler (a pessoa com as chaves do `ClienteDocumento`).
+ *   escreve para o aplicativo ler (o cliente com as chaves do `ClienteDocumento`).
  *
  * ### Duas camadas
  *
@@ -230,8 +230,9 @@ const CHAVES_USADAS: Readonly<Record<string, readonly string[]>> = {
     'capacidadeCamarote',
     'empresaId',
   ],
-  'ClienteDocumento.kt': ['nome', 'tipoDocumento', 'numeroDocumento', 'dataNascimento'],
-  'VeiculoDocumento.kt': ['placa', 'modelo', 'cor', 'cilindrada'],
+  /* O cliente da reserva usa as chaves do Cliente, para a emissão pré-preencher o cadastro. */
+  'ClienteDocumento.kt': ['nome', 'telefone'],
+  'VeiculoDocumento.kt': ['cilindrada'],
 }
 
 // ---------------------------------------------------------------------------------------------------------

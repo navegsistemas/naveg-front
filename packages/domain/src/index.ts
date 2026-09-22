@@ -9,7 +9,8 @@
  * - **o catálogo** (`catalogo/`) — os documentos do fluviapp lidos como o aplicativo os lê, e as travessias
  *   que a concessão da agência permite oferecer. A agência não tem catálogo próprio: é alimentada por ele;
  * - **a reserva** (`reserva/`) — a `Reserva` como tipo próprio (ADR-0001), a FSM dela, o roteiro do totem,
- *   o código `NVG-XXXXXX`, a validade (até a partida) e o codec.
+ *   o código `NVG-XXXXXX`, a validade (até a partida) e o codec. Sem documento de
+ *   ninguém: a passagem pedida e o cliente (nome, telefone opcional).
  *
  * Sem React, sem Astro, sem Firebase — e `test/estrutura.spec.ts` é quem garante que continue assim.
  */
@@ -83,53 +84,38 @@ export type { FonteDeAleatoriedade } from './reserva/codigo-da-reserva.js'
 export { formatarWhatsapp, normalizarWhatsapp, whatsappValido } from './reserva/contato.js'
 export { validadeDaReserva } from './reserva/validade-da-reserva.js'
 export {
-  chaveNatural,
   ORIGENS_DA_RESERVA,
   PENDENCIAS_DA_RESERVA,
   pendenciasDaReserva,
   pessoasDaReserva,
-  placaCanonica,
   reservaCoerente,
   reservaExpirada,
 } from './reserva/reserva.js'
 export type {
-  ContatoDaReserva,
+  ClienteDaReserva,
   OrigemDaReserva,
-  PassageiroDaReserva,
-  PassageirosDaReserva,
   PendenciaDaReserva,
-  PessoaDaReserva,
   Reserva,
   ReservaDePassageiro,
   ReservaDeVeiculo,
-  VeiculoDaReserva,
 } from './reserva/reserva.js'
 export {
-  CAMPOS_DO_VEICULO,
-  camposDoVeiculo,
-  camposExigidos,
   categoriasOfertadas,
   chaveDoNo,
   classeEmVigor,
   classesOfertadas,
-  DOCUMENTOS_DE_PESSOA,
-  pessoasDoBilhete,
+  pessoasEmVigor,
   respondido,
   roteiroDaReserva,
-  SEM_RESPONSAVEL,
   semResposta,
   tipoEmVigor,
   voltar,
 } from './reserva/roteiro-da-reserva.js'
 export type {
-  CampoDoVeiculo,
   ContextoDaReserva,
   NoDoRoteiro,
   PassoDaReserva,
-  RascunhoDePassageiro,
-  RascunhoDePessoa,
-  RascunhoDoContato,
-  RascunhoDoVeiculo,
+  RascunhoDoCliente,
   RespostasDaReserva,
   Roteiro,
 } from './reserva/roteiro-da-reserva.js'
@@ -142,4 +128,4 @@ export type {
   ResultadoDaMontagem,
 } from './reserva/montagem-da-reserva.js'
 export { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio } from './reserva/documento.js'
-export type { ContatoDocumento, PessoaDocumento, ReservaDocumento, VeiculoDocumento } from './reserva/documento.js'
+export type { ClienteDocumento, ReservaDocumento } from './reserva/documento.js'

@@ -2,22 +2,15 @@
  * **Os exemplos que os cenários compartilham.**
  *
  * Mora em `test/`, e não em `src/`, por um motivo deste projeto: o README proíbe conteúdo inventado que
- * possa chegar à página parecendo pronto. Dado de exemplo dentro de `src/` é importável pela ilha — e um CPF
- * de teste num formulário pré-preenchido é exatamente como isso acontece.
- *
- * Os CPFs abaixo têm **dígito verificador correto**, conferido pelo próprio algoritmo — são os números de
- * exemplo de uso corrente em documentação, não de pessoas.
+ * possa chegar à página parecendo pronto. Dado de exemplo dentro de `src/` é importável pela ilha.
  */
 import { DataCalendario, InstanteLocal } from '../src/primitivos/calendario.js'
 import type { OcorrenciaViagem } from '../src/viagem/ocorrencia-viagem.js'
 import type { TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
-import type {
-  ContextoDaReserva,
-  RascunhoDePessoa,
-  RespostasDaReserva,
-} from '../src/reserva/roteiro-da-reserva.js'
+import type { ContextoDaReserva, RespostasDaReserva } from '../src/reserva/roteiro-da-reserva.js'
 import type { IdentidadeDaReserva } from '../src/reserva/montagem-da-reserva.js'
 
+/** CPFs com dígito verificador correto — números de exemplo de documentação, não de pessoas. */
 export const CPFS_VALIDOS = ['52998224725', '11144477735', '39053344705'] as const
 
 export function data(texto: string): DataCalendario {
@@ -45,22 +38,12 @@ export const IDENTIDADE: IdentidadeDaReserva = {
   criadoEm: instante('2026-10-01T23:30:00'),
 }
 
-export function pessoa(indice: number): RascunhoDePessoa {
-  return {
-    nome: `Passageiro ${indice + 1}`,
-    tipoDocumento: 'CPF',
-    numeroDocumento: CPFS_VALIDOS[indice % CPFS_VALIDOS.length] as string,
-    dataNascimento: '1980-05-17',
-  }
-}
+export const CLIENTE = { nome: 'Maria Souza', telefone: '(91) 98888-7777' } as const
 
-export const CONTATO = { nome: 'Maria Souza', whatsapp: '(91) 98888-7777' } as const
-
-/** Uma rede inteira para uma pessoa, respondida até o contato. O caminho mais curto que fecha. */
+/** Uma rede inteira, respondida até o cliente. O caminho mais curto que fecha. */
 export const REDE_COMPLETA: RespostasDaReserva = {
   categoria: 'PASSAGEIRO',
   acomodacao: 'REDE',
   tipo: 'INTEIRA',
-  passageiros: [pessoa(0)],
-  contato: CONTATO,
+  cliente: CLIENTE,
 }

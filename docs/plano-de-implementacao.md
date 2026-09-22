@@ -324,6 +324,12 @@ viagem/ocorrencia-viagem     (viagemId, data)
 viagem/hora-do-dia           formatarHora
 ```
 
+> **Revisão de 2026-09-22 — o que mudou em relação ao texto abaixo.** O porte foi conferido contra o
+> **aplicativo** fluviapp (17 classes de veículo por natureza, roteiro natureza → classe), e a reserva perdeu
+> toda identificação: **o totem não exige documento** — sem `passageiros`, sem nascimento, sem responsável,
+> sem placa. Ela guarda a passagem pedida (com `quantidadePessoas`) e o `cliente` (nome, telefone opcional),
+> e vale até a partida. O que segue é o plano como foi escrito; o código é a versão revista.
+
 **O que é novo** — e é a peça central:
 
 - **`reserva/reserva.ts`** — o tipo `Reserva`, próprio, **que não é `Passagem`**:
@@ -363,14 +369,15 @@ viagem/hora-do-dia           formatarHora
 - `packages/ui` — componentes **controlados**, sem estado de aplicação:
   - `ListaDeTravessias` — as saídas de `travessiasOfertadas`, com os rótulos que vêm prontos. Filtrar por origem, destino ou dia é recorte **sobre opções que o domínio entregou**, não montagem de opção;
   - `EscolhaEmCartoes` — serve a categoria, a acomodação, o tipo, o subtipo de gratuidade, a quantidade, **a natureza e a classe** do veículo;
-  - `FormularioDePessoa` — o passageiro **e** o responsável pela retirada; no responsável, "ninguém além de mim" é um botão que responde `SEM_RESPONSAVEL`;
-  - `FormularioDeVeiculo` — mostra `no.campos`, trava só em `no.exigidos` (placa; cilindrada na moto);
-  - `FormularioDeContato`, `Conferencia` (documento por `TipoDocumento.mascarar`, WhatsApp por `formatarWhatsapp` — o terminal fica num saguão), `IndicadorDePasso` ("passo 3 de 7", que **cresce**), `ReservaConcluida`.
+  - `CampoDeCilindrada` — só aparece no nó `CILINDRADA` (a moto);
+  - `FormularioDoCliente` — nome obrigatório, telefone **opcional** e dito como opcional na tela;
+  - `Conferencia` (telefone por `formatarWhatsapp`), `IndicadorDePasso` ("passo 3 de 6", que **cresce**), `ReservaConcluida`.
+- **Nenhum campo de documento, nascimento, placa ou responsável** (decisão de 2026-09-22): o totem recolhe a passagem pedida e o cliente; a identificação é do atendimento pessoal.
 - `apps/agencia/src/ilhas/Totem.tsx` — o único `client:visible` da página. Guarda a travessia escolhida e as `RespostasDaReserva` em `useState`; desenha `roteiroDaReserva(...).atual`; **voltar é `voltar()`**, sem pilha paralela.
 - **A porta de escrita já nasce aqui**: `ReservaRepositorio` (em `packages/dados`, sem Firebase ainda) com uma implementação em memória. Confirmar = `gerarCodigoDaReserva` → `montarReserva` → `repositorio.criar`, com nova tentativa se o código colidir. O passo 10 só troca o adaptador.
 - **A fonte do catálogo** é uma interface que devolve `CatalogoDoFluviapp`. Aqui, uma implementação de **molde declarado** (em `test/` ou num arquivo que se anuncie como tal), pela régua dos depoimentos: nome de porto real com horário inventado é conteúdo falso com cara de pronto.
-- **O relógio é o do rio**: `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO)`. O fuso é constante de conteúdo, **pendente de decisão** (`America/Belem`? há portos em `America/Manaus`?).
-- **A oferta é recalculada** ao abrir o totem, ao voltar à lista e a cada minuto parado nela: uma saída pode partir com a tela aberta. Se partir durante o preenchimento, `montarReserva` devolve `VALIDADE`, e a conclusão diz "esta saída já partiu" e volta à lista — sem perder o que foi digitado das pessoas.
+- **O relógio é o do rio**: `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO)`, com `FUSO_DA_OPERACAO = 'America/Belem'` (decisão de 2026-09-22). Quando Manaus entrar, o fuso passa a ser do porto de origem.
+- **A oferta é recalculada** ao abrir o totem, ao voltar à lista e a cada minuto parado nela: uma saída pode partir com a tela aberta. Se partir durante o preenchimento, `montarReserva` devolve `VALIDADE`, e a conclusão diz "esta saída já partiu" e volta à lista — sem perder as respostas que ainda valem para outra saída.
 - Ergonomia de totem: alvos ≥56px, um passo por vez, sem scroll dentro do passo, `inputmode` correto, e **timeout de inatividade que zera respostas e travessia** — o dado do próximo cliente não nasce com o do anterior.
 - Aviso permanente no topo da seção: **reserva, não venda** — e que ela vale até a partida.
 - Modo quiosque: `id="totem"` na seção e `/totem` como página cheia.
@@ -378,10 +385,10 @@ viagem/hora-do-dia           formatarHora
 
 **Aceite**
 - Fluxo completo só por teclado; `aria-live` anuncia a troca de passo.
-- Cenários `@testing-library/react`: gratuidade acrescenta o subtipo; suíte para 3 acrescenta dois passos; lancha faz "Veículo" **não existir**; navio **não pergunta a classe**; responsável pulável; voltar apaga a resposta certa; timeout limpa tudo; saída que parte com a tela aberta é recusada com a mensagem certa.
+- Cenários `@testing-library/react`: gratuidade acrescenta o subtipo; suíte pergunta a quantidade e rede não; lancha faz "Veículo" **não existir**; navio **não pergunta a classe**; moto pergunta a cilindrada; o cliente fecha sem telefone; voltar apaga a resposta certa; timeout limpa tudo; saída que parte com a tela aberta é recusada com a mensagem certa.
 - Bundle da ilha medido e registrado no README (referência: o totem do fluviapp web custa 15 kB / 5,4 kB comprimido).
 
-**→ Análise do próximo passo:** até aqui nada sai do navegador. O passo 9 publica o catálogo e o 10 abre a escrita — e o 10 **depende de uma decisão do lado do fluviapp** (emenda do ADR-0002). Não começá-lo sem ela.
+**→ Análise do próximo passo:** até aqui nada sai do navegador. O passo 9 publica o catálogo e o 10 abre a escrita, sem autenticação (decisão da emenda do ADR-0002).
 
 ---
 
@@ -391,7 +398,8 @@ viagem/hora-do-dia           formatarHora
 > fluviapp mudaram o desenho:
 >
 > 1. **`autenticado()` é `request.auth != null`**, e libera `passagens`, `users`, `funcionarios` e o catálogo. A
->    autenticação anônima do plano original satisfaz isso — ver a emenda do ADR-0002;
+>    autenticação anônima do plano original satisfaz isso — ver a emenda do ADR-0002. **Decidido: o totem não
+>    autentica** (opção 2), e as Rules do fluviapp ficam como estão;
 > 2. **as Rules e os índices são um arquivo só por projeto**, e moram no repositório do fluviapp, com suíte de
 >    emulador e deploy com gate (`regras.yml`). Este repositório **não publica Rules**: a regra de `reservas` é
 >    uma contribuição ao fluviapp;
@@ -409,7 +417,7 @@ viagem/hora-do-dia           formatarHora
 - Decodifica com `catalogo/documentos.ts` e grava um `catalogo.json` com o `CatalogoDoFluviapp` **bruto** — e não as travessias. A disponibilidade continua sendo calculada no navegador, com o relógio do rio: assim o JSON não envelhece com o passar das horas, só quando o cadastro muda.
 - **Minimização:** o JSON leva só o que a concessão cobre. As viagens e embarcações de outras empresas do pool não são publicadas.
 - **Fail-closed no build:** sem o documento de concessão, o build falha — em vez de publicar um totem vazio que parece funcionar.
-- Frequência de rebuild — **decisão pendente**: diário agendado, mais disparo manual quando o cadastro mudar. O risco residual é uma viagem inativada continuar ofertada até o próximo build; a Rule do passo 10 o fecha.
+- Rebuild **diário agendado, mais disparo manual** quando o cadastro mudar (decisão de 2026-09-22). O risco residual é uma viagem inativada continuar ofertada até o próximo build; a Rule do passo 10 o fecha.
 
 **Aceite**
 - Cenários do script sobre documentos de exemplo: o que a concessão não cobre não sai no JSON; concessão ausente derruba o build.
@@ -423,22 +431,22 @@ viagem/hora-do-dia           formatarHora
 
 **← Análise do passo anterior:** o totem oferece saídas reais e monta reservas coerentes.
 
-**Pré-requisito:** a decisão da emenda do ADR-0002 — `autenticado()` passa a excluir anônimos, ou o totem não autentica, ou projeto separado. Sem ela, este passo não começa.
+**Decisão tomada (emenda do ADR-0002, opção 2):** o totem **não autentica**. Nenhum provedor anônimo é ligado; a regra de `reservas` admite `create` sem `request.auth`, e não há `criadoPor`.
 
 **Entrega — no fluviapp** (as Rules são um arquivo só, e é lá que elas têm suíte e gate)
 - `match /reservas/{codigo}` com `create` e nada mais para o público:
   - `codigo` casando `^NVG-[0-9A-HJKMNP-TV-Z]{6}$` — o alfabeto de Crockford;
   - `status == 'RESERVADA'`, `origem == 'TOTEM_WEB'`;
-  - `keys().hasOnly(CAMPOS_DO_DOCUMENTO)` (mais `criadoPor`, se houver autenticação) — a lista sai de `@naveg/domain`;
-  - `data` no formato ISO, `passageiros.size()` entre 1 e 3;
+  - `keys().hasOnly(CAMPOS_DO_DOCUMENTO)` — a lista sai de `@naveg/domain`; `cliente.keys().hasOnly(['nome', 'telefone'])`;
+  - `data` no formato ISO; `quantidadePessoas` inteiro entre 1 e 3; `cliente.nome` e textos com comprimento máximo;
   - **`get(/databases/$(database)/documents/viagens/$(request.resource.data.viagemId)).data.ativo == true`** — a regra lê com privilégio próprio, então confere que a viagem existe e está ativa. É o que cobre o catálogo desatualizado do passo 9.
-- Leitura e transição (`CONVERTIDA`, `passagemId`) só para funcionário autenticado — **não anônimo**.
+- Leitura e transição (`CONVERTIDA`, `passagemId`) só para funcionário autenticado. Como o provedor anônimo não é ligado, `autenticado()` do fluviapp continua significando "funcionário com conta".
 - Os casos novos em `firestore-tests/` do fluviapp: público não lê; não atualiza; status diferente de `RESERVADA` negado; campo extra negado; código fora do alfabeto negado; viagem inativa negada; código existente negado (a colisão).
 - Índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.json` **do fluviapp**.
 - **App Check, em duas etapas, nesta ordem:** primeiro o aplicativo passa a enviar tokens (Play Integrity) e roda assim por um ciclo de distribuição; só depois o *enforcement* do Firestore é ligado, junto com o reCAPTCHA Enterprise no site. Invertida, a ordem derruba os atendentes.
 
 **Entrega — aqui**
-- `packages/dados` — `ReservaFirestoreRepositorio`, Web SDK modular importando só `firestore` e `app-check` (e `auth`, conforme a decisão). `create` que colide → novo código → `montarReserva` de novo.
+- `packages/dados` — `ReservaFirestoreRepositorio`, Web SDK modular importando só `firestore` e `app-check` — **sem `auth`**. `create` que colide → novo código → `montarReserva` de novo.
 
 **Aceite**
 - Suíte de Rules verde no CI do fluviapp; escrita ponta a ponta contra o emulador.
@@ -462,7 +470,7 @@ viagem/hora-do-dia           formatarHora
   Vale até a partida.
   Abrir no app: https://<domínio>/r/NVG-7K3QP2
   ```
-  Reserva de veículo leva a classe e a placa no lugar da acomodação ("Carro · ABC1D23").
+  Reserva de veículo leva a classe no lugar da acomodação ("Carro", "Moto · 160 cc"). O nome é o do cliente; nenhum documento vai na mensagem.
 - Tela de conclusão com o código **em destaque e copiável**, o botão "Enviar ao atendimento" e o código em texto — o redirecionamento pode falhar e o cliente não sai de mãos vazias. No quiosque, o **QR do link**.
 
 **Aceite**
@@ -480,9 +488,9 @@ viagem/hora-do-dia           formatarHora
 Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a página `/r/[codigo]`.
 
 **Entrega — no fluviapp**
-- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@naveg/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, veículo com e sem responsável), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
+- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@naveg/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, moto com cilindrada, rebocado, cliente com e sem telefone), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
 - **Tela "Reservas"**: as `RESERVADA` por viagem e data. A expiração é **derivada na leitura** — `expiraEm ≤ agora` aparece como expirada sem que ninguém grave nada. Enquanto a validade for a partida, a lista do dia se limpa sozinha, e gravar `EXPIRADA` fica para uma rotina, se um dia for preciso.
-- **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** — acomodação, tipo, subtipo, pessoas, veículo. Cada pessoa vai a `clientes/{chaveNatural}` (criar ou assinar, como o balcão já faz); o veículo a `veiculos/{placa}`. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.
+- **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** com o que define a passagem — acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários `DadosDoCliente`), natureza e classe, cilindrada. **A identificação é feita ali, no atendimento**: documento e nascimento de cada pessoa, placa do veículo — pelo caminho normal do balcão (`clientes/{chaveNatural}`, `veiculos/{placa}`). O nome e o telefone do cliente da reserva pré-preenchem o titular. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.
 - **Deeplink (Android App Links)**: o `applicationId` é **`br.com.fluviapp`** (o plano original dizia `br.com.fluviapp.android`, que é outro app). O manifest hoje só tem o `intent-filter` do launcher. Acrescentar o de `https://<domínio>/r/`, com `autoVerify`, `singleTask`, e o tratamento em `onCreate` **e** `onNewIntent`.
 
 **Entrega — aqui**
@@ -521,24 +529,25 @@ Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a p
 A · Fundação     0 monorepo+ADRs -> 1 design system -> 2 casca Astro
 B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     <- publicável aqui
 C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
-D · Fronteira    9 catálogo no build -> 10 escrita [decisão do ADR-0002; Rules no fluviapp]
+D · Fronteira    9 catálogo no build -> 10 escrita sem autenticação [Rules no fluviapp; App Check no app antes]
                  -> 11 WhatsApp -> 12 no aplicativo: reserva vira passagem + deeplink -> 13 endurecimento
 ```
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
-**Caminho crítico:** a decisão do ADR-0002 (lado do fluviapp) e o App Check no aplicativo. Os passos 8 e 9 andam sem elas; o 10 não.
+**Caminho crítico:** o App Check no aplicativo (Play Integrity) antes do enforcement, e a regra de `reservas` aceita no repositório do fluviapp. Os passos 8 e 9 andam sem eles; o 10 não.
 
 ## Riscos registrados
 
 | risco | onde aparece | mitigação |
 |---|---|---|
 | Domínio portado divergir do aplicativo | passo 7 | Contrato contra o Kotlin do **aplicativo** sobre valores **e significados** (natureza, carga, ocupação) e chaves dos documentos; o CI clona o fluviapp (passo 13) |
-| Auth anônima abrir as Rules do fluviapp | passos 9–10 | Catálogo no build; escrita só depois da decisão da emenda do ADR-0002 |
+| Auth anônima abrir as Rules do fluviapp | passos 9–10 | Decidido: o totem não autentica e o provedor anônimo não é ligado; catálogo no build |
+| Totem recolher dado pessoal demais | passo 8 | Decidido: nenhum documento, nascimento ou placa — só a passagem, o nome e um telefone opcional |
 | Enforcement do App Check derrubar o aplicativo | passo 10 | O aplicativo passa a enviar tokens **antes**; só então o enforcement |
 | Catálogo publicado desatualizado | passos 9–10 | Rebuild agendado; a Rule confere `viagens/{id}.ativo` na escrita |
 | Horário errado por fuso do visitante | passos 8, 10 | `InstanteLocal.emFuso` com o fuso da operação; nunca o relógio do navegador |
-| Escrita pública abusada | passo 10 | App Check + Rules `create`-only com forma fechada + revisão de segurança obrigatória |
+| Escrita pública abusada | passo 10 | App Check + Rules `create`-only com forma fechada + revisão de segurança obrigatória. Sem autenticação não há eixo por uid: o volume é o que o App Check e a forma fechada contêm |
 | Reserva e aplicativo lerem chaves diferentes | passo 12 | Documentos-exemplo gerados aqui e lidos por teste Kotlin lá |
 | App Links não verificarem | passo 12 | `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
 | Laranja reprovando contraste | passo 1 | Cenário de contraste sobre os tokens; laranja é superfície, nunca tinta de texto pequeno |

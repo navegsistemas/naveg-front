@@ -6,19 +6,14 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import {
-  CAMPOS_DO_DOCUMENTO,
-  paraDocumento,
-  paraDominio,
-  type ReservaDocumento,
-} from '../src/reserva/documento.js'
+import { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio, type ReservaDocumento } from '../src/reserva/documento.js'
 import type { Reserva, ReservaDePassageiro, ReservaDeVeiculo } from '../src/reserva/reserva.js'
-import { CPFS_VALIDOS, data, instante, OCORRENCIA } from './exemplos.js'
+import { instante, OCORRENCIA } from './exemplos.js'
 
 const BASE = {
   codigo: 'NVG-7K3QP2',
   ocorrencia: OCORRENCIA,
-  contato: { nome: 'Maria Souza', whatsapp: '5591988887777' },
+  cliente: { nome: 'Maria Souza', telefone: '5591988887777' },
   status: 'RESERVADA',
   origem: 'TOTEM_WEB',
   criadoEm: instante('2026-10-01T23:30:00'),
@@ -31,42 +26,24 @@ const REDE_GRATUIDADE: ReservaDePassageiro = {
   acomodacao: 'REDE',
   tipo: 'GRATUIDADE',
   gratuidade: 'IDOSO',
-  passageiros: [
-    { nome: 'José Souza', tipoDocumento: 'CPF', numeroDocumento: CPFS_VALIDOS[0], dataNascimento: data('1950-03-02') },
-  ],
+  quantidadePessoas: 1,
 }
 
 const SUITE_PARA_TRES: ReservaDePassageiro = {
   ...BASE,
   codigo: 'NVG-5V1TE3',
+  cliente: { nome: 'Ana' },
   categoria: 'PASSAGEIRO',
   acomodacao: 'SUITE',
   tipo: 'INTEIRA',
+  quantidadePessoas: 3,
   agenciaId: 'agencia-naveg-belem',
   observacao: 'Chegamos de ônibus às 17h.',
-  passageiros: [
-    { nome: 'Ana', tipoDocumento: 'CPF', numeroDocumento: CPFS_VALIDOS[0], dataNascimento: data('1985-01-10') },
-    { nome: 'Bruno', tipoDocumento: 'RG', numeroDocumento: '1234567', dataNascimento: data('1983-07-22') },
-    { nome: 'Caio', tipoDocumento: 'PASSAPORTE', numeroDocumento: 'AB123456', dataNascimento: data('2019-11-30') },
-  ],
 }
 
-const MOTO: ReservaDeVeiculo = {
-  ...BASE,
-  codigo: 'NVG-M0T0CG',
-  categoria: 'VEICULO',
-  classe: 'MOTO',
-  veiculo: { placa: 'ABC1D23', modelo: 'CG 160', cor: 'Vermelha', cilindrada: 160 },
-  responsavel: { nome: 'Pedro Souza', tipoDocumento: 'CPF', numeroDocumento: CPFS_VALIDOS[1], dataNascimento: data('1990-08-08') },
-}
+const MOTO: ReservaDeVeiculo = { ...BASE, codigo: 'NVG-M0T0CG', categoria: 'VEICULO', classe: 'MOTO', cilindrada: 160 }
 
-const CAMINHAO: ReservaDeVeiculo = {
-  ...BASE,
-  codigo: 'NVG-CAM1NH',
-  categoria: 'VEICULO',
-  classe: 'CAMINHAO',
-  veiculo: { placa: 'XYZ9K87' },
-}
+const CARRETA: ReservaDeVeiculo = { ...BASE, codigo: 'NVG-CARRET', categoria: 'VEICULO', classe: 'CARRETA' }
 
 const CONVERTIDA: ReservaDePassageiro = {
   ...REDE_GRATUIDADE,
@@ -75,7 +52,7 @@ const CONVERTIDA: ReservaDePassageiro = {
   passagemId: 'passagem-abc',
 }
 
-const EXEMPLOS: readonly Reserva[] = [REDE_GRATUIDADE, SUITE_PARA_TRES, MOTO, CAMINHAO, CONVERTIDA]
+const EXEMPLOS: readonly Reserva[] = [REDE_GRATUIDADE, SUITE_PARA_TRES, MOTO, CARRETA, CONVERTIDA]
 
 /** O que o Firestore devolve: um objeto sem protótipo de classe, e sem `undefined`. */
 function comoFirestore(documento: ReservaDocumento): Record<string, unknown> {
@@ -85,16 +62,14 @@ function comoFirestore(documento: ReservaDocumento): Record<string, unknown> {
 describe('ida e volta', () => {
   for (const reserva of EXEMPLOS) {
     it(`${reserva.codigo}: domínio → documento → domínio é identidade`, () => {
-      const documento = comoFirestore(paraDocumento(reserva))
-      expect(paraDominio(reserva.codigo, documento)).toEqual(reserva)
+      expect(paraDominio(reserva.codigo, comoFirestore(paraDocumento(reserva)))).toEqual(reserva)
     })
   }
 
   it('o documento é JSON puro: nenhum `undefined`, nenhum `null` escrito', () => {
     for (const reserva of EXEMPLOS) {
       const documento = paraDocumento(reserva)
-      const texto = JSON.stringify(documento)
-      expect(texto, reserva.codigo).not.toContain('null')
+      expect(JSON.stringify(documento), reserva.codigo).not.toContain('null')
       expect(Object.values(documento), reserva.codigo).not.toContain(undefined)
     }
   })
@@ -103,12 +78,13 @@ describe('ida e volta', () => {
     expect('codigo' in paraDocumento(REDE_GRATUIDADE)).toBe(false)
   })
 
-  it('os campos de consulta estão no topo, planos', () => {
-    const documento = paraDocumento(SUITE_PARA_TRES)
-    expect(documento.status).toBe('RESERVADA')
-    expect(documento.viagemId).toBe(OCORRENCIA.viagemId)
-    expect(documento.data).toBe('2026-10-14')
-    expect(documento.agenciaId).toBe('agencia-naveg-belem')
+  it('nenhum dado de documento, nascimento ou placa é escrito — o totem não os recolhe', () => {
+    for (const reserva of EXEMPLOS) {
+      const texto = JSON.stringify(paraDocumento(reserva))
+      for (const chave of ['documento', 'Documento', 'nascimento', 'Nascimento', 'placa', 'passageiros']) {
+        expect(texto, `${reserva.codigo}: ${chave}`).not.toContain(`"${chave}`)
+      }
+    }
   })
 })
 
@@ -122,34 +98,19 @@ describe('as chaves são o contrato', () => {
     }
   })
 
-  it('o sub-objeto do outro ramo nunca é escrito', () => {
-    const passageiro = paraDocumento(SUITE_PARA_TRES)
-    expect(Object.keys(passageiro)).not.toContain('veiculo')
-    expect(Object.keys(passageiro)).not.toContain('classe')
-
-    const veiculo = paraDocumento(MOTO)
-    expect(Object.keys(veiculo)).not.toContain('passageiros')
-    expect(Object.keys(veiculo)).not.toContain('acomodacao')
-  })
-
-  it('os nomes são os que a Rule do passo 9 vai conferir', () => {
-    /* A Rule cita estes pelo nome. Renomear um aqui sem renomear lá abre a porta ou a fecha para todos. */
-    for (const chave of ['status', 'origem', 'data', 'passageiros']) {
-      expect(CAMPOS_DO_DOCUMENTO).toContain(chave)
-    }
+  it('o ramo do outro nunca é escrito', () => {
+    expect(Object.keys(paraDocumento(SUITE_PARA_TRES))).not.toContain('classe')
+    expect(Object.keys(paraDocumento(MOTO))).not.toContain('quantidadePessoas')
   })
 
   it('uma chave extra na leitura é ignorada — quem a recusa é a Rule, na escrita', () => {
-    const documento = { ...comoFirestore(paraDocumento(REDE_GRATUIDADE)), criadoPor: 'uid-anonimo' }
+    const documento = { ...comoFirestore(paraDocumento(REDE_GRATUIDADE)), extra: 'x' }
     expect(paraDominio(REDE_GRATUIDADE.codigo, documento)).toEqual(REDE_GRATUIDADE)
   })
 })
 
 describe('as recusas', () => {
-  function estragar(
-    reserva: Reserva,
-    alterar: (documento: Record<string, unknown>) => void,
-  ): Reserva | null {
+  function estragar(reserva: Reserva, alterar: (documento: Record<string, unknown>) => void): Reserva | null {
     const documento = comoFirestore(paraDocumento(reserva))
     alterar(documento)
     return paraDominio(reserva.codigo, documento)
@@ -160,17 +121,10 @@ describe('as recusas', () => {
     expect(estragar(MOTO, () => {})).not.toBeNull()
   })
 
-  it('1 · id que não é um código NVG', () => {
+  it('1 · id que não é um código NVG, e dado que não é objeto', () => {
     const documento = comoFirestore(paraDocumento(REDE_GRATUIDADE))
-    expect(paraDominio('', documento)).toBeNull()
-    expect(paraDominio('abc123', documento)).toBeNull()
-    expect(paraDominio('nvg-7k3qp2', documento)).toBeNull()
-  })
-
-  it('1b · dado que não é objeto', () => {
-    for (const lixo of [null, undefined, 'texto', 42, [], true]) {
-      expect(paraDominio('NVG-7K3QP2', lixo), String(lixo)).toBeNull()
-    }
+    for (const id of ['', 'abc123', 'nvg-7k3qp2']) expect(paraDominio(id, documento), id).toBeNull()
+    for (const lixo of [null, undefined, 'texto', 42, [], true]) expect(paraDominio('NVG-7K3QP2', lixo)).toBeNull()
   })
 
   it('2 · categoria ilegível', () => {
@@ -181,7 +135,6 @@ describe('as recusas', () => {
   it('3 · ocorrência ilegível: sem viagem, ou data que não existe', () => {
     expect(estragar(REDE_GRATUIDADE, (d) => void (d['viagemId'] = '  '))).toBeNull()
     expect(estragar(REDE_GRATUIDADE, (d) => void (d['data'] = '2026-02-30'))).toBeNull()
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['data'] = '14/10/2026'))).toBeNull()
   })
 
   it('4 · status ou origem fora do vocabulário', () => {
@@ -194,125 +147,58 @@ describe('as recusas', () => {
     expect(estragar(REDE_GRATUIDADE, (d) => void delete d['criadoEm'])).toBeNull()
   })
 
-  it('6 · contato ausente ou pela metade', () => {
-    expect(estragar(REDE_GRATUIDADE, (d) => void delete d['contato'])).toBeNull()
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['contato'] = { nome: 'Maria' }))).toBeNull()
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['contato'] = 'Maria, 91988887777'))).toBeNull()
+  it('6 · cliente ausente, sem nome, ou com telefone ilegível', () => {
+    expect(estragar(REDE_GRATUIDADE, (d) => void delete d['cliente'])).toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['cliente'] = { telefone: '5591988887777' }))).toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['cliente'] = 'Maria'))).toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['cliente'] = { nome: 'Maria', telefone: 91988887777 }))).toBeNull()
   })
 
-  it('7 · sujeito ausente: nenhum passageiro, ou nenhum veículo', () => {
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['passageiros'] = []))).toBeNull()
-    expect(estragar(REDE_GRATUIDADE, (d) => void delete d['passageiros'])).toBeNull()
-    expect(estragar(MOTO, (d) => void delete d['veiculo'])).toBeNull()
-    expect(estragar(MOTO, (d) => void (d['veiculo'] = { modelo: 'CG' }))).toBeNull()
+  it('6b · cliente sem telefone é aceito — ele é opcional', () => {
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['cliente'] = { nome: 'Maria' }))?.cliente).toEqual({ nome: 'Maria' })
   })
 
-  it('8 · estado misto: o sub-objeto do outro ramo presente', () => {
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['veiculo'] = { placa: 'ABC1D23' }))).toBeNull()
-    expect(estragar(MOTO, (d) => void (d['passageiros'] = []))).toBeNull()
+  it('7 · o que define a passagem ausente', () => {
+    expect(estragar(SUITE_PARA_TRES, (d) => void delete d['quantidadePessoas'])).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = '3'))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void delete d['acomodacao'])).toBeNull()
+    expect(estragar(MOTO, (d) => void delete d['classe'])).toBeNull()
+  })
+
+  it('8 · estado misto: a chave do outro ramo presente', () => {
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['classe'] = 'CARRO'))).toBeNull()
     expect(estragar(MOTO, (d) => void (d['acomodacao'] = 'REDE'))).toBeNull()
+    expect(estragar(MOTO, (d) => void (d['quantidadePessoas'] = 1))).toBeNull()
   })
 
-  it('9 · incoerente: meia numa suíte', () => {
+  it('9 · incoerente: meia numa suíte, quatro pessoas, meia pessoa', () => {
     expect(estragar(SUITE_PARA_TRES, (d) => void (d['tipo'] = 'MEIA'))).toBeNull()
-  })
-
-  it('9 · incoerente: quatro pessoas numa suíte', () => {
-    expect(
-      estragar(SUITE_PARA_TRES, (d) => {
-        const lista = d['passageiros'] as unknown[]
-        d['passageiros'] = [...lista, lista[0]]
-      }),
-    ).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 4))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 1.5))).toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['quantidadePessoas'] = 2))).toBeNull()
   })
 
   it('9 · incoerente: gratuidade sem subtipo, e subtipo sem gratuidade', () => {
     expect(estragar(REDE_GRATUIDADE, (d) => void delete d['gratuidade'])).toBeNull()
-    expect(
-      estragar(REDE_GRATUIDADE, (d) => {
-        d['tipo'] = 'MEIA'
-      }),
-    ).toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['tipo'] = 'MEIA'))).toBeNull()
   })
 
-  it('9 · incoerente: convertida sem passagem, e passagem sem conversão', () => {
+  it('9 · incoerente: moto sem cilindrada, e cilindrada num carro', () => {
+    expect(estragar(MOTO, (d) => void delete d['cilindrada'])).toBeNull()
+    expect(estragar(MOTO, (d) => void (d['classe'] = 'CARRO'))).toBeNull()
+  })
+
+  it('9 · incoerente: telefone que não é celular, e conversão pela metade', () => {
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['cliente'] = { nome: 'Maria', telefone: '9132221111' }))).toBeNull()
     expect(estragar(CONVERTIDA, (d) => void delete d['passagemId'])).toBeNull()
     expect(estragar(REDE_GRATUIDADE, (d) => void (d['passagemId'] = 'passagem-xyz'))).toBeNull()
   })
 
-  it('9 · incoerente: moto sem cilindrada', () => {
-    expect(
-      estragar(MOTO, (d) => {
-        const { cilindrada: _, ...resto } = d['veiculo'] as Record<string, unknown>
-        d['veiculo'] = resto
-      }),
-    ).toBeNull()
-  })
-
-  it('carro sem modelo é aceito — no aplicativo o modelo é opcional, e o bilhete mostra a classe', () => {
-    expect(estragar(CAMINHAO, (d) => void (d['classe'] = 'CARRO'))).not.toBeNull()
-  })
-
-  it('9 · incoerente: placa fora da forma canônica — é o id em `veiculos/{placa}`', () => {
-    expect(estragar(CAMINHAO, (d) => void (d['veiculo'] = { placa: 'xyz-9k87' }))).toBeNull()
-  })
-
-  it('9 · incoerente: a mesma pessoa duas vezes — o CLIENTE_REPETIDO do aplicativo', () => {
-    expect(
-      estragar(SUITE_PARA_TRES, (d) => {
-        const lista = d['passageiros'] as unknown[]
-        d['passageiros'] = [lista[0], lista[0]]
-      }),
-    ).toBeNull()
-  })
-
-  it('responsável presente e ilegível recusa; ausente é a forma normal', () => {
-    expect(estragar(MOTO, (d) => void (d['responsavel'] = 'Pedro Souza'))).toBeNull()
-    expect(estragar(MOTO, (d) => void (d['responsavel'] = { nome: 'Pedro' }))).toBeNull()
-    expect(estragar(MOTO, (d) => void delete d['responsavel'])).not.toBeNull()
-  })
-
   it('as classes novas do aplicativo são lidas — e "carreta" é o rebocado', () => {
     for (const classe of ['CARRETA_CAVALINHO', 'ONIBUS', 'JET_SKI', 'RETROESCAVADEIRA']) {
-      const lida = estragar(CAMINHAO, (d) => void (d['classe'] = classe))
+      const lida = estragar(CARRETA, (d) => void (d['classe'] = classe))
       expect(lida?.categoria === 'VEICULO' && lida.classe, classe).toBe(classe)
     }
-  })
-
-  it('9 · incoerente: CPF com dígito trocado', () => {
-    expect(
-      estragar(REDE_GRATUIDADE, (d) => {
-        const [titular] = d['passageiros'] as Record<string, unknown>[]
-        d['passageiros'] = [{ ...titular, numeroDocumento: '52998224726' }]
-      }),
-    ).toBeNull()
-  })
-
-  it('10 · um passageiro ilegível recusa a reserva inteira — não some da lista', () => {
-    /* Descartar só o ilegível faria a suíte para três chegar ao atendente como suíte para dois. */
-    for (const estrago of [
-      { dataNascimento: '1983-02-30' },
-      { tipoDocumento: 'CERTIDAO' },
-      { nome: 42 },
-    ]) {
-      const resultado = estragar(SUITE_PARA_TRES, (d) => {
-        const lista = d['passageiros'] as Record<string, unknown>[]
-        d['passageiros'] = [lista[0], { ...lista[1], ...estrago }, lista[2]]
-      })
-      expect(resultado, JSON.stringify(estrago)).toBeNull()
-    }
-  })
-
-  it('opcional com tipo errado também recusa — foi escrito por fora do codec', () => {
-    expect(estragar(SUITE_PARA_TRES, (d) => void (d['observacao'] = 42))).toBeNull()
-    expect(estragar(SUITE_PARA_TRES, (d) => void (d['agenciaId'] = { id: 'x' }))).toBeNull()
-    expect(estragar(MOTO, (d) => void ((d['veiculo'] as Record<string, unknown>)['cilindrada'] = '160'))).toBeNull()
-  })
-
-  it('opcional em branco é ausência, não recusa', () => {
-    const lido = estragar(SUITE_PARA_TRES, (d) => void (d['observacao'] = '   '))
-    expect(lido).not.toBeNull()
-    expect(lido !== null && 'observacao' in lido).toBe(false)
   })
 
   it('a grafia legada dos enums é tolerada — é a mesma fronteira do Kotlin', () => {
@@ -323,8 +209,10 @@ describe('as recusas', () => {
     expect(lido).toEqual(REDE_GRATUIDADE)
   })
 
-  it('a agência ausente nunca recusa — ver a nota em Reserva.agenciaId', () => {
-    const lido = estragar(SUITE_PARA_TRES, (d) => void delete d['agenciaId'])
-    expect(lido).not.toBeNull()
+  it('opcional em branco é ausência; opcional de outro tipo recusa', () => {
+    const lido = estragar(SUITE_PARA_TRES, (d) => void (d['observacao'] = '   '))
+    expect(lido !== null && 'observacao' in lido).toBe(false)
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['observacao'] = 42))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void delete d['agenciaId'])).not.toBeNull()
   })
 })

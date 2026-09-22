@@ -30,29 +30,33 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 **Parei no fim do passo 7, revisado contra o aplicativo fluviapp** (`~/Documents/AndroidStudioProjects/fluviapp`,
 a gestão comercial que alimenta a agência). O domínio da reserva e o catálogo existem e estão cobertos; nada
-deles chega à página ainda. `npm run verify` deve dar **348 cenários verdes** (119 da exibição + 229 do
+deles chega à página ainda. `npm run verify` deve dar **316 cenários verdes** (119 da exibição + 197 do
 domínio), `astro check` sem nada, e o `dist/` com **zero arquivo JavaScript**.
 
-Os 229 incluem 21 que **leem o Kotlin do aplicativo** (ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o
-checkout eles aparecem como **pulados**, não como verdes — em outra máquina, `348 passed` vira
-`327 passed | 21 skipped`, e isso é o esperado.
+Os 197 incluem 21 que **leem o Kotlin do aplicativo** (ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o
+checkout eles aparecem como **pulados**, não como verdes — em outra máquina, `316 passed` vira
+`295 passed | 21 skipped`, e isso é o esperado.
 
-**Antes do passo 10 (a escrita) há um bloqueio de segurança, e ele é do fluviapp, não daqui** — ver
-[ADR-0002, emenda de 2026-09-22](docs/adr/ADR-0002-a-escrita-client-side-e-o-que-a-protege.md). Em resumo: as
-Rules do fluviapp liberam `passagens`, `users`, `funcionarios` e o catálogo inteiro para qualquer
-`request.auth != null`, e a autenticação anônima que o plano previa **satisfaz isso**. Ligá-la no projeto
-abriria esses dados a qualquer visitante do site.
+**Decisões de 2026-09-22, já aplicadas ao domínio:**
 
-**O próximo é o passo 8: a ilha React do totem.** Ele não depende do bloqueio — até o passo 10 nada sai do
-navegador. Antes de abrir o primeiro `.tsx`:
+- **O totem não autentica e não exige documento.** Recolhe só a passagem pedida — travessia, categoria,
+  acomodação, tipo, quantidade de pessoas, natureza e classe do veículo (e a cilindrada da moto, que muda a
+  tarifa) — e o **cliente**: nome, e telefone **opcional**. A finalização leva ao atendimento pessoal pelo
+  WhatsApp, e é lá que documento, nascimento e placa são recolhidos. Autenticação é da Fase 2.
+- **Sem autenticação nenhuma no Firebase** (a opção 2 da emenda do ADR-0002): o provedor anônimo **não** é
+  ligado, e as Rules do fluviapp ficam como estão. A regra de `reservas` admite `create` sem `request.auth`.
+- **O fuso da operação é `America/Belem`.** Manaus entra depois; quando entrar, o fuso passa a ser do porto.
+- **O catálogo é reconstruído diariamente**, com disparo manual quando o cadastro mudar.
+
+**O próximo é o passo 8: a ilha React do totem.** Até o passo 10 nada sai do navegador. Antes de abrir o
+primeiro `.tsx`:
 
 1. **A ilha não monta nada.** `travessiasOfertadas` dá as saídas disponíveis com os rótulos e o contexto
    pronto; `roteiroDaReserva` dá o nó em foco **com as opções dentro**; `voltar` dá o "voltar";
    `montarReserva` dá a reserva ou as pendências; `gerarCodigoDaReserva` dá o código. Se aparecer vontade de
    escrever um `if` sobre acomodação, natureza ou casco num componente, a regra está faltando no domínio.
-2. **O relógio é o do rio.** `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), fuso)`, com o fuso
-   **da operação** — nunca o do navegador. Qual fuso (`America/Belem`? há portos em `America/Manaus`?) é
-   decisão pendente; ver as pendências.
+2. **O relógio é o do rio.** `agora` e `criadoEm` vêm de `InstanteLocal.emFuso(new Date(), 'America/Belem')`
+   — nunca o relógio do navegador.
 3. **`apps/agencia` passa a depender de `@naveg/domain`.** É a hora de consolidar
    `apps/agencia/src/conteudo/cnpj.ts` com `TipoDocumento.validar('CNPJ', …)`.
 4. **O catálogo de exemplo da ilha** implementa `CatalogoDoFluviapp` com dado declaradamente fictício, em
@@ -133,15 +137,18 @@ mede. Trocar o rótulo do botão primário para branco derruba o build.
 ### O totem é máquina de domínio
 
 `roteiroDaReserva` é a adaptação declarada do `roteiroDe` do aplicativo (`RoteiroDaEmissao.kt`): **sem
-`Pagamento`** (não se vende aqui) e **com `CONTATO`** (a razão de ser da Fase 1). O ramo do veículo é o do
-aplicativo: **natureza, depois classe** — e a classe só é perguntada quando há escolha naquele casco (num
-navio, nunca) —, o formulário com a placa e a cilindrada da moto como únicos obrigatórios, e o **responsável
-opcional**. As opções vêm dentro do nó: numa lancha, "Veículo" não é opção desabilitada, não é opção.
+`Pagamento`** (não se vende aqui), **sem nenhum passo de identificação** (quem viaja, documento, placa,
+responsável — tudo isso é do atendimento pessoal) e **com `CLIENTE`**: nome, e telefone opcional. O que fica
+é o que define a passagem, decidido pelas mesmas regras do aplicativo: o tipo só na rede, o subtipo só na
+gratuidade, a quantidade só em suíte e camarote; no veículo, **natureza, depois classe** — a classe só é
+perguntada quando há escolha naquele casco (num navio, nunca) — e a cilindrada só na moto, porque muda a
+tarifa. As opções vêm dentro do nó: numa lancha, "Veículo" não é opção desabilitada, não é opção.
 
 No aplicativo, quem limpa a resposta que ficou para trás ao trocar de escolha é o ViewModel. Aqui não há
 ViewModel, então a garantia mora na leitura: **uma resposta só conta se estava entre as opções que o nó
 ofereceu**, e `montarReserva` lê os nós do roteiro, não as respostas. A `'MEIA'` de uma rede abandonada não
-vira meia numa suíte, e a van escolhida para um ferry não vira van num navio.
+vira meia numa suíte, a van escolhida para um ferry não vira van num navio, e a cilindrada de uma moto não
+vai para o carro.
 
 ### A reserva vale até o navio partir
 
@@ -162,9 +169,8 @@ mas **o que eles significam** — a natureza de cada classe, a carga de cada cas
 acomodação — e as chaves dos documentos que a agência lê e escreve. A primeira versão conferia só nomes, contra
 o `fluviapp-kmp`, e passou verde com seis classes de veículo onde o aplicativo tem dezessete.
 
-O codec (`paraDominio`) recusa em vez de inventar padrão: documento ilegível, estado misto, incoerente — ou
-com **um** passageiro ilegível, que derruba a reserva inteira em vez de sumir da lista. Uma suíte para três que
-chega ao atendente como suíte para dois é uma família com alguém sem bilhete no embarque.
+O codec (`paraDominio`) recusa em vez de inventar padrão: documento ilegível, estado misto (uma reserva de
+passageiro com `classe`), incoerente (meia numa suíte, quatro pessoas num camarote, moto sem cilindrada).
 
 ## Decisões
 
@@ -207,7 +213,10 @@ providenciada, e o totem vai tratar dado pessoal.
 
 ## LGPD
 
-O totem trata nome, documento, data de nascimento e telefone de quem reserva. Isso põe a NAVEG na lei como
+O totem trata **só o nome e, se a pessoa quiser, o telefone** de quem reserva — nenhum documento, nenhuma
+data de nascimento, nenhuma placa. É o mínimo para o atendimento chamar a pessoa, e é deliberado: identificador
+digitado num terminal público é o dado pessoal de maior risco e o mais propenso a erro, e ele passa a ser
+recolhido no atendimento, por quem pode conferir. Ainda assim nome e telefone põem a NAVEG na lei como
 controladora, e traz duas obrigações que já estão declaradas no rodapé como pendência: a **política de
 privacidade** e o **canal do encarregado** (art. 41). Estão ali desde agora, e não no dia do lançamento do
 totem, quando seriam bloqueantes.
@@ -222,18 +231,13 @@ nenhum — dá um link que abre e não acha ninguém.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
-- **Frequência de rebuild do catálogo** (passo 9): diário agendado mais disparo manual? E a **conta de serviço
-  só de leitura** para o build, guardada como segredo do CI. O catálogo no build substitui a ampliação de leitura
-  pública que o plano original propunha.
+- **A conta de serviço só de leitura** para o build do catálogo (passo 9), guardada como segredo do CI. O
+  rebuild é diário, com disparo manual.
 - **App Check no aplicativo** (Play Integrity) **antes** do enforcement no Firestore — sem isso, ligar o App
   Check para o totem derruba os atendentes (passo 10).
-- **Bloqueio do passo 10 — autenticação anônima e as Rules do fluviapp.** Ver a emenda do ADR-0002. Precisa de
-  decisão do lado do fluviapp antes de qualquer escrita pública.
-- **O fuso da operação** — `America/Belem`, ou há portos no fuso de Manaus? O aplicativo usa o relógio do
-  aparelho no porto e não precisa dizer; a web precisa.
-- **A leitura do catálogo pelo público** — com as Rules atuais ela exige autenticação, e a autenticação
-  anônima é justamente o que abre o resto (ver acima). A saída mais segura é o catálogo **gerado no build** a
-  partir do fluviapp, que o plano já listava como alternativa; fica para o passo 9.
+- **A regra de `reservas` no `firestore.rules` do fluviapp** (passo 10) — `create` sem autenticação, com a
+  forma fechada. É contribuição ao repositório do fluviapp, com os casos de emulador de lá.
+- **Manaus**: quando entrar, o fuso deixa de ser constante e passa a ser do porto de origem.
 - **Dois padrões do fluviapp que o site herda por paridade**: viagem sem `horaMin` vira saída à meia-noite, e
   documento sem `ativo` é tratado como ativo. No balcão há quem perceba; no site, a saída das 00:00 aparece
   para o público. A correção, se houver, é no cadastro do fluviapp.

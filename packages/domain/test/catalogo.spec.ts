@@ -20,7 +20,7 @@ import { montarReserva } from '../src/reserva/montagem-da-reserva.js'
 import { roteiroDaReserva } from '../src/reserva/roteiro-da-reserva.js'
 import type { Rota } from '../src/rota/rota.js'
 import { chegadaEstimada, disponiveisAPartirDe, type Viagem } from '../src/viagem/viagem.js'
-import { CONTATO, instante, pessoa } from './exemplos.js'
+import { CLIENTE, instante } from './exemplos.js'
 
 describe('os decodificadores recusam o que o aplicativo recusa, e só isso', () => {
   it('viagem: sem rota, sem embarcação ou com dia desconhecido não vira nada', () => {
@@ -164,7 +164,7 @@ describe('as travessias ofertadas', () => {
     const ferry = travessiasOfertadas(BASE, TERCA).find((t) => t.id === 'v-ferry@2026-10-14')
     if (ferry === undefined) throw new Error('exemplo quebrado')
     const resultado = montarReserva(
-      { categoria: 'PASSAGEIRO', acomodacao: 'REDE', tipo: 'INTEIRA', passageiros: [pessoa(0)], contato: CONTATO },
+      { categoria: 'PASSAGEIRO', acomodacao: 'REDE', tipo: 'INTEIRA', cliente: CLIENTE },
       ferry.contexto,
       { codigo: 'NVG-7K3QP2', criadoEm: TERCA },
     )

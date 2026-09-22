@@ -43,6 +43,26 @@
 > 3. **projeto Firebase separado para a agência**, com a coleção `reservas` só — isola por construção, mas o
 >    aplicativo passa a ler de dois projetos.
 >
+> ### Decisão (analista, 2026-09-22): a opção 2 — o totem não autentica
+>
+> *"Não tem problema ser anônimo: o totem não exige documento, apenas as informações da passagem, o cliente
+> com nome e contato opcional, e a finalização com redirecionamento para o atendimento pessoal. Autenticação na
+> próxima fase."*
+>
+> Com isso:
+>
+> - **a camada 1 deste ADR sai.** Nenhum `signInAnonymously`, nenhum provedor anônimo ligado no console — e as
+>   Rules do fluviapp ficam exatamente como estão, sem nada novo para ler;
+> - **a regra de `reservas` admite `create` sem `request.auth`**, e deixa de exigir `criadoPor`. Perde-se o eixo
+>   por uid para medir abuso; o que resta de origem é o App Check (camada 2), e o que resta de forma são as
+>   Rules (camada 3) e o código como id (camada 4);
+> - **o risco residual muda de natureza e diminui**: o documento gravado não carrega identificador de ninguém —
+>   só a passagem pedida, um nome e um telefone opcional. Lixo em volume continua possível; vazamento de
+>   dado sensível, não, porque ele não é recolhido. É o mesmo argumento que o "O que foi recusado" usava para a
+>   Cloud Function, agora mais forte;
+> - a autenticação volta na Fase 2, junto com o cadastro — e aí com provedor que não seja anônimo, ou com o
+>   `autenticado()` do fluviapp corrigido antes.
+>
 > E a leitura do catálogo pelo público (rotas, viagens) **não deve depender de autenticação anônima** pelo
 > mesmo motivo. A alternativa que o plano já listava — o catálogo **gerado no build** a partir do fluviapp —
 > passa a ser a recomendada: `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, e roda igual

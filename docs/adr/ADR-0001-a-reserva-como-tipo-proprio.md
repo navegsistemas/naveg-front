@@ -77,8 +77,13 @@ reserva não é sub-domínio de passagem.
 - O app mobile ganha uma tela nova: abrir a reserva e emitir a partir dela. É o consumidor do deeplink.
 - O porte do domínio para a web fica **menor** do que seria: a reserva não precisa de `Lancamento`, de
   `Dinheiro` nem de `MetadadosPassagem`.
-- Reserva sem tratamento envelhece. `expiraEm` é campo do documento, e expirar é responsabilidade do app ou de
-  uma rotina — não da web, que não tem permissão de atualizar nada.
-- `passageiros` guarda **nome + documento + nascimento**, não `clienteId`: na Fase 1 não há pool de clientes
-  acessível ao público, e inventar um id no cliente criaria referência quebrada. O pool se resolve na emissão,
-  que é onde ele já se resolve hoje.
+- Reserva sem tratamento envelhece. `expiraEm` é campo do documento — **a partida do navio** (decisão de
+  2026-09-22, "por enquanto") —, e o app pode tratar como expirada, na leitura, a reserva cuja partida passou,
+  sem gravar nada. A web não tem permissão de atualizar coisa alguma.
+- ~~`passageiros` guarda nome + documento + nascimento~~ — **revisto em 2026-09-22.** A reserva **não guarda
+  pessoa nenhuma**: o totem não exige documento. Ela guarda a passagem pedida (categoria, acomodação, tipo,
+  subtipo, quantidade de pessoas; ou a classe do veículo e, na moto, a cilindrada) e o **cliente** — nome e
+  telefone opcional, com as chaves do `Cliente` do aplicativo. Quem viaja é identificado no atendimento
+  pessoal, e o pool de clientes se resolve na emissão, que é onde ele já se resolve hoje. A razão de fundo
+  continua a mesma — não inventar `clienteId` no cliente —, e agora também não se recolhe identificador num
+  terminal público sem ninguém para conferir.
