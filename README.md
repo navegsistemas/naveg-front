@@ -45,13 +45,16 @@ cadastradas lá. **Quando o front subir na Vercel**, o endereço dele precisa en
 API (e um redeploy dela), ou o navegador recusa a resposta por CORS. Os detalhes estão no README da
 [`naveg-api-vercel`](../naveg-api-vercel).
 
-O `@navegsistemas/domain` publicado é o **0.4.0**: o contrato HTTP da reserva (o corpo do `POST` e o
+O `@navegsistemas/domain` vai para o **0.5.0** (a publicar): o carimbo `tratamento` da reserva e os
+**eventos** da plataforma (`evento/`), que a API grava junto com a reserva desde que passou a gravar sob as
+Rules do fluviapp (ADR-0013 do `fluviapp-kmp`). Antes, o contrato HTTP da reserva (o corpo do `POST` e o
 decodificador estrito dele) entrou no 0.4.0, o `enviarReserva` no 0.3.0, e o 0.2.0 trouxe o recorte pela concessão e a fronteira de JSON do
 catálogo, que a API e o totem usam dos dois lados do fio.
 
-Os 377 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
-ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem como **pulados**, não como verdes — em
-outra máquina, `377 passed` vira `356 passed | 21 skipped`, e isso é o esperado.
+Os 390 incluem 24 que **leem o Kotlin do fluviapp**: 19 do `fluviapp-kmp`, que é a fonte do contrato
+(`~/AndroidStudioProjects/fluviapp-kmp`, ou `FLUVIAPP_KMP`), e 5 do aplicativo Android, para o que o KMP ainda
+não tem (`~/Documents/AndroidStudioProjects/fluviapp`, ou `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem
+como **pulados**, não como verdes — e isso é o esperado em outra máquina e no CI.
 
 **Decisões de 2026-09-22, já aplicadas:**
 
@@ -267,7 +270,8 @@ padrões — e `travessiasOfertadas` faz o que o "Viagens Disponíveis" faz: rec
 janela de sete dias e a partida não vencida, e escreve os rótulos do mesmo jeito. A única divergência é
 declarada e só esconde: a saída cuja embarcação ou porto não resolve não é oferecida ao público.
 
-O contrato (`test/contrato-fluviapp.spec.ts`) confere contra o Kotlin do aplicativo não só os nomes dos enums,
+O contrato (`test/contrato-fluviapp.spec.ts`) confere contra o Kotlin do fluviapp — o `fluviapp-kmp`, e o
+aplicativo Android só no que ainda não foi portado — não só os nomes dos enums,
 mas **o que eles significam** — a natureza de cada classe, a carga de cada casco, a ocupação de cada
 acomodação — e as chaves dos documentos que a agência lê e escreve. A primeira versão conferia só nomes, contra
 o `fluviapp-kmp`, e passou verde com seis classes de veículo onde o aplicativo tem dezessete.
@@ -346,5 +350,6 @@ nenhum — dá um link que abre e não acha ninguém.
 - **Dois padrões do fluviapp que o site herda por paridade**: viagem sem `horaMin` vira saída à meia-noite, e
   documento sem `ativo` é tratado como ativo. No balcão há quem perceba; no site, a saída das 00:00 aparece
   para o público. A correção, se houver, é no cadastro do fluviapp.
-- **O `fluviapp-kmp` está atrás do aplicativo** — sem `ClasseVeiculo`, `NaturezaVeiculo` nem `TipoDocumento`.
-  O contrato daqui passou a conferir contra o aplicativo; quando o KMP alcançá-lo, vale apontar para os dois.
+- **O contrato aponta para o `fluviapp-kmp`** desde o 0.5.0 (a P4 do ADR-0010 de lá). Ainda lidos do
+  aplicativo: `TipoDocumento`, a lista de carga do navio, e os documentos de cliente e veículo — cada porte
+  para o KMP move uma cláusula de fonte.

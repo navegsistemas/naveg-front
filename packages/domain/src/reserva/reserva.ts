@@ -83,6 +83,20 @@ interface ReservaBase {
    */
   readonly agenciaId?: string
   readonly observacao?: string
+  /**
+   * Quem cancelou ou converteu, e quando — **gravado pelo fluviapp**, nunca pela web. Ausente enquanto
+   * ninguém tratou. É o carimbo `{porId, em}` do ADR-0011 do `fluviapp-kmp`.
+   */
+  readonly tratamento?: Tratamento
+}
+
+/**
+ * O carimbo de quem tratou a reserva: o `uid` de quem cancelou ou converteu, e o instante. Autoria e
+ * instante andam juntos — pela metade, o codec o lê como ausente.
+ */
+export interface Tratamento {
+  readonly porId: string
+  readonly em: InstanteLocal
 }
 
 export interface ReservaDePassageiro extends ReservaBase {

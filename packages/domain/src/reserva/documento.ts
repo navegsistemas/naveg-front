@@ -28,13 +28,26 @@ import { InstanteLocal } from '../primitivos/calendario.js'
 import { casoImpossivel, deValor } from '../primitivos/fronteira.js'
 import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import { codigoValido } from './codigo-da-reserva.js'
-import { ORIGENS_DA_RESERVA, pendenciasDaReserva, type ClienteDaReserva, type Reserva } from './reserva.js'
+import {
+  ORIGENS_DA_RESERVA,
+  pendenciasDaReserva,
+  type ClienteDaReserva,
+  type Reserva,
+  type Tratamento,
+} from './reserva.js'
 import { StatusReserva } from './status-reserva.js'
 
 /** Quem pediu, com as chaves do `ClienteDocumento` do aplicativo (`nome`, `telefone`). */
 export interface ClienteDocumento {
   readonly nome: string
   readonly telefone?: string
+}
+
+/** O carimbo de quem tratou — `{porId, em}`, escrito pelo fluviapp. */
+export interface TratamentoDocumento {
+  readonly porId: string
+  /** ISO `yyyy-MM-ddTHH:mm:ss`, no fuso da operação. */
+  readonly em: string
 }
 
 /** A forma gravada. Toda enumeração é o **valor canônico** — o mesmo texto que o Kotlin grava. */
@@ -62,6 +75,8 @@ export interface ReservaDocumento {
   // --- só quando `categoria == VEICULO` ---
   readonly classe?: string
   readonly cilindrada?: number
+  // --- só do fluviapp: quem cancelou ou converteu ---
+  readonly tratamento?: TratamentoDocumento
 }
 
 /**
@@ -86,6 +101,7 @@ export const CAMPOS_DO_DOCUMENTO = [
   'quantidadePessoas',
   'classe',
   'cilindrada',
+  'tratamento',
 ] as const satisfies readonly (keyof ReservaDocumento)[]
 
 /* A volta do `satisfies`: toda chave de `ReservaDocumento` está na lista. */
@@ -121,6 +137,9 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
     ...(reserva.agenciaId !== undefined ? { agenciaId: reserva.agenciaId } : {}),
     ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
     ...(reserva.observacao !== undefined ? { observacao: reserva.observacao } : {}),
+    ...(reserva.tratamento !== undefined
+      ? { tratamento: { porId: reserva.tratamento.porId, em: reserva.tratamento.em } }
+      : {}),
   }
 
   switch (reserva.categoria) {
@@ -175,6 +194,19 @@ function numeroOpcional(dado: Dado, chave: string): number | undefined | typeof 
   const valor = dado[chave]
   if (valor === undefined) return undefined
   return typeof valor === 'number' && Number.isFinite(valor) ? valor : ILEGIVEL
+}
+
+/**
+ * O carimbo: inteiro, ou ausente. Pela metade ou de tipo errado é **ilegível, e ilegível aqui é ausente** —
+ * "ninguém tratou que se saiba" —, e não recusa: quem cancelou não muda o que o cliente pediu. É a leitura
+ * do `TratamentoDocumento` do fluviapp-kmp.
+ */
+function tratamentoDoDocumento(valor: unknown): Tratamento | undefined {
+  if (!ehObjeto(valor)) return undefined
+  const porId = textoOpcional(valor, 'porId')
+  const em = InstanteLocal.de(texto(valor, 'em'))
+  if (porId === undefined || porId === ILEGIVEL || em === null) return undefined
+  return { porId, em }
 }
 
 function clienteDoDocumento(valor: unknown): ClienteDaReserva | null {
@@ -232,6 +264,7 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
   const passagemId = textoOpcional(dado, 'passagemId')
   const observacao = textoOpcional(dado, 'observacao')
   if (agenciaId === ILEGIVEL || passagemId === ILEGIVEL || observacao === ILEGIVEL) return null
+  const tratamento = tratamentoDoDocumento(dado['tratamento'])
 
   const comum = {
     codigo: id,
@@ -244,6 +277,7 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
     ...(agenciaId !== undefined ? { agenciaId } : {}),
     ...(passagemId !== undefined ? { passagemId } : {}),
     ...(observacao !== undefined ? { observacao } : {}),
+    ...(tratamento !== undefined ? { tratamento } : {}),
   }
 
   let reserva: Reserva
