@@ -15,7 +15,7 @@ import { catalogoFixo, ReservaEmMemoria } from '@navegsistemas/dados'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO } from '../src/conteudo/operacao'
-import { Totem } from '../src/ilhas/Totem'
+import { Totem, type Demonstracao } from '../src/ilhas/Totem'
 
 /** 11:00 UTC é 08:00 em Belém: o ferry das 18:00 e o navio das 21:30 de hoje ainda não partiram. */
 const TERCA_8H = new Date('2026-10-13T11:00:00Z')
@@ -25,7 +25,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date } = {}) {
+function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date; demonstracao?: Demonstracao | null } = {}) {
   const repositorio = new ReservaEmMemoria()
   render(
     <Totem
@@ -33,7 +33,7 @@ function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date } 
       repositorio={repositorio}
       fuso={FUSO_DA_OPERACAO}
       inatividadeMs={opcoes.inatividadeMs ?? null}
-      demonstracao
+      demonstracao={opcoes.demonstracao === undefined ? 'SAIDAS_E_ENVIO' : opcoes.demonstracao}
       relogio={opcoes.relogio ?? (() => TERCA_8H)}
     />,
   )
@@ -69,6 +69,22 @@ describe('a lista de saídas', () => {
     expect(itens[0]?.textContent).toContain('Terça-feira, 13/10 · 18:00')
     expect(itens[1]?.textContent).toContain('21:30')
     expect(screen.getByText(/Demonstração\./)).toBeTruthy()
+  })
+
+  it('a faixa diz o que ainda é de mentira — e só isso', async () => {
+    montar({ demonstracao: 'SAIDAS_E_ENVIO' })
+    expect(await screen.findByText(/saídas abaixo são fictícias/)).toBeTruthy()
+    cleanup()
+
+    /* Com a API configurada, as saídas são as da operação: dizer que são fictícias seria mentir ao contrário. */
+    montar({ demonstracao: 'ENVIO' })
+    expect(await screen.findByText(/saídas abaixo são as da operação, mas nenhuma reserva é enviada/)).toBeTruthy()
+    expect(screen.queryByText(/fictícias/)).toBeNull()
+    cleanup()
+
+    montar({ demonstracao: null })
+    await screen.findAllByRole('listitem')
+    expect(screen.queryByText(/Demonstração\./)).toBeNull()
   })
 
   it('o aviso de reserva, não venda, acompanha o totem', async () => {

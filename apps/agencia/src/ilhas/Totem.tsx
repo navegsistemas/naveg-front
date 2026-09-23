@@ -36,6 +36,8 @@ import {
   resumoDaReserva,
 } from '@navegsistemas/ui'
 
+export type Demonstracao = 'SAIDAS_E_ENVIO' | 'ENVIO'
+
 export interface PropsDoTotem {
   readonly fonte: FonteDoCatalogo
   readonly repositorio: ReservaRepositorio
@@ -43,8 +45,16 @@ export interface PropsDoTotem {
   readonly fuso: string
   /** `null` desliga o zerar por inatividade (fora do quiosque). */
   readonly inatividadeMs: number | null
-  /** Mostra a faixa de demonstração e avisa que nada é enviado ao atendimento. */
-  readonly demonstracao: boolean
+  /**
+   * O que ainda **não** é de verdade — e a faixa diz exatamente isso, nem mais nem menos:
+   * - `'SAIDAS_E_ENVIO'`: o catálogo é o de demonstração, e nada é enviado (sem a API configurada);
+   * - `'ENVIO'`: as saídas são as da operação, mas a reserva ainda não é enviada (até o passo 10);
+   * - `null`: tudo de verdade, e não há faixa.
+   *
+   * Era um booleano só até o passo 9, quando as saídas passaram a poder ser reais antes do envio. Uma faixa
+   * dizendo "as saídas são fictícias" sobre saídas reais seria mentira no sentido contrário.
+   */
+  readonly demonstracao: Demonstracao | null
   readonly quiosque?: boolean
   /** O relógio. Os cenários passam um fixo; a página, o do sistema. */
   readonly relogio?: () => Date
@@ -193,7 +203,7 @@ export function Totem({ fonte, repositorio, fuso, inatividadeMs, demonstracao, q
         aoRecomecar={recomecar}
         atendimento={
           <p className="totem-aviso">
-            {demonstracao
+            {demonstracao !== null
               ? 'Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o atendimento pelo WhatsApp, já com o código.'
               : 'Fale com o atendimento pelo WhatsApp informando este código.'}
           </p>
@@ -255,10 +265,12 @@ export function Totem({ fonte, repositorio, fuso, inatividadeMs, demonstracao, q
   return (
     <div className={quiosque ? 'totem totem--quiosque' : 'totem'}>
       <p className="totem-aviso">{AVISO_RESERVA_NAO_VENDA}</p>
-      {demonstracao && (
+      {demonstracao !== null && (
         <p className="totem-demonstracao">
-          <strong>Demonstração.</strong> As saídas abaixo são fictícias e nenhuma reserva é enviada ao
-          atendimento.
+          <strong>Demonstração.</strong>{' '}
+          {demonstracao === 'SAIDAS_E_ENVIO'
+            ? 'As saídas abaixo são fictícias e nenhuma reserva é enviada ao atendimento.'
+            : 'As saídas abaixo são as da operação, mas nenhuma reserva é enviada ao atendimento ainda.'}
         </p>
       )}
 

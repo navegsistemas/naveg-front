@@ -15,12 +15,12 @@ import {
   rotaDoDocumento,
   viagemDoDocumento,
 } from '../src/catalogo/documentos.js'
-import { travessiasOfertadas, type CatalogoDoFluviapp } from '../src/catalogo/travessias.js'
+import { travessiasOfertadas } from '../src/catalogo/travessias.js'
 import { montarReserva } from '../src/reserva/montagem-da-reserva.js'
 import { roteiroDaReserva } from '../src/reserva/roteiro-da-reserva.js'
 import type { Rota } from '../src/rota/rota.js'
 import { chegadaEstimada, disponiveisAPartirDe, type Viagem } from '../src/viagem/viagem.js'
-import { CLIENTE, instante } from './exemplos.js'
+import { CATALOGO_DE_EXEMPLO, CLIENTE, instante } from './exemplos.js'
 
 describe('os decodificadores recusam o que o aplicativo recusa, e só isso', () => {
   it('viagem: sem rota, sem embarcação ou com dia desconhecido não vira nada', () => {
@@ -85,40 +85,7 @@ describe('a disponibilidade é a do aplicativo', () => {
 })
 
 describe('as travessias ofertadas', () => {
-  const BASE: CatalogoDoFluviapp = {
-    localidades: [
-      { id: 'bel', municipio: 'Belém', uf: 'PA', codigoIbge: '1501402', ativo: true },
-      { id: 'sou', municipio: 'Soure', uf: 'PA', codigoIbge: '1507904', ativo: true },
-    ],
-    portos: [
-      { id: 'p-bel', nome: 'Terminal Hidroviário', localidadeId: 'bel', ativo: true },
-      { id: 'p-sou', nome: 'Porto de Camará', localidadeId: 'sou', ativo: true },
-      { id: 'p-fora', nome: 'Porto sem concessão', localidadeId: 'bel', ativo: true },
-    ],
-    rotas: [
-      { id: 'r-ida', portoOrigemId: 'p-bel', portoDestinoId: 'p-sou', distanciaMn: 40, tempoMedioH: 3.5, ativo: true },
-      { id: 'r-fora', portoOrigemId: 'p-bel', portoDestinoId: 'p-fora', distanciaMn: 10, tempoMedioH: 1, ativo: true },
-      { id: 'r-inativa', portoOrigemId: 'p-sou', portoDestinoId: 'p-bel', distanciaMn: 40, tempoMedioH: 3.5, ativo: false },
-    ],
-    embarcacoes: [
-      {
-        id: 'e-ferry', nome: 'Ferry Exemplo', tipo: 'FERRY_BOAT', capacidadeVeiculo: 40,
-        capacidadeSuite2: 0, capacidadeSuite3: 0, capacidadeCamarote: 4, empresaId: 'x',
-      },
-      {
-        id: 'e-lancha', nome: 'Lancha Exemplo', tipo: 'LANCHA', capacidadeVeiculo: 0,
-        capacidadeSuite2: 0, capacidadeSuite3: 0, capacidadeCamarote: 0, empresaId: 'x',
-      },
-    ],
-    viagens: [
-      { id: 'v-ferry', rotaId: 'r-ida', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 21 * 60 + 30, ativo: true },
-      { id: 'v-lancha', rotaId: 'r-ida', embarcacaoId: 'e-lancha', diaSemana: 'WEDNESDAY', horaMin: 7 * 60, ativo: true },
-      { id: 'v-nao-concedida', rotaId: 'r-ida', embarcacaoId: 'e-outra', diaSemana: 'WEDNESDAY', horaMin: 9 * 60, ativo: true },
-      { id: 'v-porto-fora', rotaId: 'r-fora', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 10 * 60, ativo: true },
-      { id: 'v-rota-inativa', rotaId: 'r-inativa', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 11 * 60, ativo: true },
-    ],
-    atuacao: { embarcacaoIds: new Set(['e-ferry', 'e-lancha', 'e-outra']), portoIds: new Set(['p-bel', 'p-sou']) },
-  }
+  const BASE = CATALOGO_DE_EXEMPLO
   const TERCA = instante('2026-10-13T08:00:00')
 
   it('só o que a concessão cobre, de rota ativa, com embarcação que resolve — ordenado pela partida', () => {

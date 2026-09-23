@@ -160,11 +160,11 @@ A página institucional entrega **0 kB de JavaScript até alguém rolar até o t
 com `client:visible`: o código dele só desce quando a seção entra na tela. No quiosque (`/totem`) ele é
 `client:load`, porque lá o totem **é** a página. Sem JavaScript, a seção diz para falar com o atendimento.
 
-Medido no build do passo 8:
+Medido no build do passo 9 (o `catalogoHttp` e o decodificador do JSON somaram 0,2 kB):
 
 | o quê | bruto | gzip |
 |---|---|---|
-| a ilha — domínio, telas e o totem | 31,7 kB | 10,8 kB |
+| a ilha — domínio, telas e o totem | 31,9 kB | 10,9 kB |
 | o runtime do React 19 (`react-dom`) | 215,6 kB | 67,0 kB |
 | o carregador de ilhas do Astro | 8,2 kB | 3,2 kB |
 

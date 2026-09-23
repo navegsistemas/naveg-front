@@ -68,6 +68,9 @@ export {
 } from './catalogo/documentos.js'
 export { travessiasOfertadas } from './catalogo/travessias.js'
 export type { CatalogoDoFluviapp, TravessiaOfertada } from './catalogo/travessias.js'
+export { recortarPelaConcessao } from './catalogo/recorte.js'
+export { catalogoDoJson, catalogoParaJson } from './catalogo/serializacao.js'
+export type { CatalogoJson } from './catalogo/serializacao.js'
 
 // --- novo: a reserva ---
 export { StatusReserva, STATUS_DE_RESERVA, STATUS_DA_WEB } from './reserva/status-reserva.js'

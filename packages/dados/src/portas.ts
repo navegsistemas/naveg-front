@@ -23,7 +23,7 @@ export interface ReservaRepositorio {
 }
 
 /**
- * De onde vem o catálogo do fluviapp. No passo 9 é o JSON gerado no build; aqui, qualquer coisa que devolva um
+ * De onde vem o catálogo do fluviapp: a API da agência (`catalogoHttp`), ou qualquer coisa que devolva um
  * `CatalogoDoFluviapp` — inclusive o catálogo de demonstração, que se anuncia como tal.
  */
 export interface FonteDoCatalogo {
