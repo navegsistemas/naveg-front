@@ -21,31 +21,37 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 7 | `@navegsistemas/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
 | 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
 | 9 | `GET /catalogo` — o catálogo do fluviapp, lido pelo servidor e recortado pela concessão | ✅ |
-| 10 | `POST /reservas` — a escrita, com conta de serviço | — |
+| 10 | `POST /reservas` — a escrita, com conta de serviço, Turnstile e limite por IP | ✅ código · ⏳ ligar |
 | 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
 ## Retomar daqui
 
-**Parei no fim do passo 9, com o começo do 10 adiantado.** O totem lê o catálogo **da API, por padrão** — o
+**Parei no fim do código do passo 10.** O totem **envia** a reserva à API quando tem a chave pública do
+Turnstile (`PUBLIC_TURNSTILE_SITE_KEY`): manda a ocorrência, as respostas e o desafio, e mostra o código que o
+**servidor** gerou. Sem a chave, a reserva fica em memória, como antes, e a faixa diz isso. Para ligar em dev
+— chaves de teste da Cloudflare e um Upstash gratuito — ver "Para ligar" no README da
+[`naveg-api-vercel`](../naveg-api-vercel), junto das decisões do passo que pedem confirmação.
+
+O resto deste parágrafo é do passo 9, e continua valendo. O totem lê o catálogo **da API, por padrão** — o
 site publicado não depende de ninguém lembrar de uma variável. O catálogo de demonstração só entra quando
 pedido: `PUBLIC_URL_DA_API=demonstracao`. A mesma variável aponta para outra API (`https://…`, ou
 `http://localhost…`), e qualquer outro valor **quebra o build** (`conteudo/api.ts`). A faixa diz qual dos dois
-catálogos está na tela. A reserva continua **em memória** até o passo 10: nada é enviado ao atendimento, e a
-faixa diz isso também. `npm run verify` deve dar **357 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
+catálogos está na tela. `npm run verify` deve dar **377 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
 ilha do totem** (ver o orçamento abaixo). A API está no ar em
 `https://naveg-api-vercel.vercel.app` e lê o `fluvi-app-dev` de verdade — o totem mostra as duas viagens
 cadastradas lá. **Quando o front subir na Vercel**, o endereço dele precisa entrar em `ORIGENS_PERMITIDAS` da
 API (e um redeploy dela), ou o navegador recusa a resposta por CORS. Os detalhes estão no README da
 [`naveg-api-vercel`](../naveg-api-vercel).
 
-O `@navegsistemas/domain` publicado é o **0.3.0**: o 0.2.0 trouxe o recorte pela concessão e a fronteira de JSON do
+O `@navegsistemas/domain` publicado é o **0.4.0**: o contrato HTTP da reserva (o corpo do `POST` e o
+decodificador estrito dele) entrou no 0.4.0, o `enviarReserva` no 0.3.0, e o 0.2.0 trouxe o recorte pela concessão e a fronteira de JSON do
 catálogo, que a API e o totem usam dos dois lados do fio.
 
-Os 357 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
+Os 377 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
 ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem como **pulados**, não como verdes — em
-outra máquina, `357 passed` vira `336 passed | 21 skipped`, e isso é o esperado.
+outra máquina, `377 passed` vira `356 passed | 21 skipped`, e isso é o esperado.
 
 **Decisões de 2026-09-22, já aplicadas:**
 

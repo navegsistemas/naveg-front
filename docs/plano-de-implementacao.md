@@ -463,7 +463,13 @@ viagem/hora-do-dia           formatarHora
 
 ---
 
-## Passo 10 — A API da reserva
+## Passo 10 — A API da reserva ✅ código · ⏳ ligar
+
+> **Código feito em 2026-09-23**, com a revisão de segurança antes do deploy. Diferenças do que estava escrito:
+> a rota mora na `naveg-api-vercel` (e não em `apps/agencia/src/pages/api`); a porta do totem passou a ser
+> `EnvioDaReserva` — o navegador manda o pedido, não uma reserva — e o `201` devolve o documento gravado, que o
+> totem lê com `paraDominio`; o `409` vira a pendência `VALIDADE` no totem; a observação é ignorada. **Falta**:
+> ligar (Turnstile e Upstash na Vercel, chave pública no front) e o cenário contra o **emulador** do Firestore.
 
 **← Análise do passo anterior:** o totem mostra saídas reais, e nenhuma credencial chegou ao navegador.
 
