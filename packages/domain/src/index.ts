@@ -101,6 +101,7 @@ export type {
   Reserva,
   ReservaDePassageiro,
   ReservaDeVeiculo,
+  Tratamento,
 } from './reserva/reserva.js'
 export {
   categoriasOfertadas,
@@ -131,7 +132,7 @@ export type {
   ResultadoDaMontagem,
 } from './reserva/montagem-da-reserva.js'
 export { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio } from './reserva/documento.js'
-export type { ClienteDocumento, ReservaDocumento } from './reserva/documento.js'
+export type { ClienteDocumento, ReservaDocumento, TratamentoDocumento } from './reserva/documento.js'
 export { enviarReserva, TENTATIVAS_DE_CODIGO } from './reserva/envio-da-reserva.js'
 export type {
   PedidoDeEnvio,
@@ -149,3 +150,15 @@ export {
   respostasDoJson,
 } from './reserva/pedido-http.js'
 export type { PedidoDeReserva, PedidoDeReservaJson, ReservaCriadaJson } from './reserva/pedido-http.js'
+
+// --- a plataforma: os eventos (ADR-0013 do fluviapp-kmp) ---
+export {
+  CAMPOS_DO_EVENTO,
+  eventoDaReservaCriada,
+  idDoEvento,
+  ORIGENS_DO_EVENTO,
+  paraDoTipo,
+  SEVERIDADES,
+  TIPOS_DE_EVENTO,
+} from './evento/evento.js'
+export type { EventoDocumento, OrigemDoEvento, Severidade, TipoDeEvento } from './evento/evento.js'

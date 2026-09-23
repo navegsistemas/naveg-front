@@ -1,6 +1,6 @@
 {
   "name": "@navegsistemas/domain",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "O domínio da reserva da NAVEG: a Reserva como tipo próprio, o roteiro do totem e o catálogo do fluviapp. Sem React, sem Astro, sem Firebase.",
   "license": "UNLICENSED",

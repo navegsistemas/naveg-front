@@ -50,9 +50,17 @@ const CONVERTIDA: ReservaDePassageiro = {
   codigo: 'NVG-C0NV3R',
   status: 'CONVERTIDA',
   passagemId: 'passagem-abc',
+  tratamento: { porId: 'uid-ana', em: instante('2026-10-02T09:00:00') },
 }
 
-const EXEMPLOS: readonly Reserva[] = [REDE_GRATUIDADE, SUITE_PARA_TRES, MOTO, CARRETA, CONVERTIDA]
+const CANCELADA: ReservaDeVeiculo = {
+  ...MOTO,
+  codigo: 'NVG-CANCE1',
+  status: 'CANCELADA',
+  tratamento: { porId: 'uid-ana', em: instante('2026-10-02T09:00:00') },
+}
+
+const EXEMPLOS: readonly Reserva[] = [REDE_GRATUIDADE, SUITE_PARA_TRES, MOTO, CARRETA, CONVERTIDA, CANCELADA]
 
 /** O que o Firestore devolve: um objeto sem protótipo de classe, e sem `undefined`. */
 function comoFirestore(documento: ReservaDocumento): Record<string, unknown> {
@@ -101,6 +109,17 @@ describe('as chaves são o contrato', () => {
   it('o ramo do outro nunca é escrito', () => {
     expect(Object.keys(paraDocumento(SUITE_PARA_TRES))).not.toContain('classe')
     expect(Object.keys(paraDocumento(MOTO))).not.toContain('quantidadePessoas')
+  })
+
+  it('o carimbo de quem tratou é lido inteiro, ou lido como ausente — nunca recusa a reserva', () => {
+    const documento = comoFirestore(paraDocumento(CANCELADA))
+    expect(paraDominio(CANCELADA.codigo, documento)?.tratamento).toEqual(CANCELADA.tratamento)
+
+    for (const pelaMetade of [{ porId: 'uid-ana' }, { em: '2026-10-02T09:00:00' }, { porId: 7, em: 'ontem' }, 'x']) {
+      const lido = paraDominio(CANCELADA.codigo, { ...documento, tratamento: pelaMetade })
+      expect(lido, JSON.stringify(pelaMetade)).not.toBeNull()
+      expect(lido?.tratamento, JSON.stringify(pelaMetade)).toBeUndefined()
+    }
   })
 
   it('uma chave extra na leitura é ignorada — quem a recusa é a Rule, na escrita', () => {
