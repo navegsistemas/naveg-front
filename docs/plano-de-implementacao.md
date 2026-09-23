@@ -443,7 +443,7 @@ viagem/hora-do-dia           formatarHora
 - **O catálogo de demonstração fica**, como recurso de desenvolvimento e dos cenários: sem as variáveis de ambiente, `npm run dev` usa ele e a faixa de demonstração continua aparecendo. É o que mantém o totem rodável sem credencial.
 
 **Configuração**
-- `FIREBASE_SERVICE_ACCOUNT` (JSON da conta de serviço, **só leitura**: papel *Cloud Datastore Viewer*), `FIREBASE_PROJECT_ID`, `NAVEG_EMPRESA_ID`. Variáveis de ambiente da Vercel, **sem** prefixo `PUBLIC_`.
+- `FIREBASE_CONTA_DE_LEITURA` (JSON da conta `naveg-api-leitura`, **só leitura**: papel *Cloud Datastore Viewer*), `FIREBASE_PROJECT_ID` (`fluvi-app-dev` — tudo é dev por enquanto, decisão de 2026-09-23), `NAVEG_EMPRESA_ID`. Variáveis de ambiente da Vercel, **sem** prefixo `PUBLIC_`. O roteiro de criação das contas está no README da `naveg-api-vercel`.
 - Funções **Node**, não edge: o Admin SDK depende de APIs de Node. A inicialização é memorizada por instância, para não repetir a cada invocação fria.
 
 **Aceite**
@@ -466,7 +466,7 @@ viagem/hora-do-dia           formatarHora
   ```
   **O servidor não confia em mais nada.** A embarcação, a partida, o código e o instante são derivados ali:
   1. valida o desafio;
-  2. carrega o catálogo (o mesmo caminho do passo 9, com o mesmo cache) e procura a travessia `viagemId@data` **entre as ofertadas agora**. Não achou — inativa, fora da concessão, já partida — é `409`, e a mensagem é a que o totem já sabe mostrar;
+  2. carrega o catálogo (o mesmo caminho do passo 9, com o mesmo cache **e a mesma conta de leitura** — a de escrita só aparece no `create` do item 5) e procura a travessia `viagemId@data` **entre as ofertadas agora**. Não achou — inativa, fora da concessão, já partida — é `409`, e a mensagem é a que o totem já sabe mostrar;
   3. `montarReserva(respostas, contexto, { codigo: gerarCodigoDaReserva(), criadoEm: InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO) })`;
   4. `INCOERENTE` vira `422` com as pendências **tipadas** — o totem já tem texto para cada uma;
   5. `paraDocumento` e `create` com o Admin SDK. Documento existente derruba a gravação (`ALREADY_EXISTS`): gera outro código e monta de novo, até cinco vezes. É o `enviarReserva` que já existe, com a porta do Firestore no lugar da de memória.

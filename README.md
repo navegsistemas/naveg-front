@@ -67,17 +67,27 @@ fosse do mesmo domínio.
 6 cenários verdes), e o `@navegsistemas/domain` já está preparado para o GitHub Packages — ver "Publicando o
 `@navegsistemas/domain`" abaixo.
 
-**O próximo é o passo 9: `GET /catalogo`, na `naveg-api-vercel`.** Ele está bloqueado por coisas que não são
-código:
+**O próximo é o passo 9: `GET /catalogo`, na `naveg-api-vercel`, e ele está destravado.** O que o bloqueava não
+era código, e caiu todo em 2026-09-23:
 
 1. ~~mover os dois repositórios para a org~~ **feito.** Os dois estão na `navegsistemas` — a `naveg-front` foi
    transferida (`github.com/kurtmatheus/naveg-front` hoje é só um redirecionamento) e a `naveg-api-vercel`
    subiu em 2026-09-23. **O escopo do pacote passou a ser `@navegsistemas`**, porque o GitHub Packages exige
    que ele seja o nome da org, e a org que existe é a `navegsistemas`, não uma `naveg`;
-2. **um PAT clássico com `read:packages`** como `NPM_TOKEN`, na Vercel e na máquina de quem desenvolve;
-3. **publicar o `@navegsistemas/domain` 0.1.0** (tag `domain-v0.1.0`, o workflow faz o resto);
-4. **a conta de serviço** do projeto do fluviapp (uma de leitura, uma de escrita) e o **`NAVEG_EMPRESA_ID`**,
-   para achar a concessão `empresas/{id}/atuacoes/AGENCIAMENTO`.
+2. ~~um PAT clássico com `read:packages` como `NPM_TOKEN`~~ **feito** (2026-09-23). O token lê o pacote.
+   Dentro da `naveg-api-vercel` o `.npmrc` lê `${NPM_TOKEN}` **do ambiente** — token só no `~/.npmrc` dá 401
+   lá; o terminal precisa exportar a variável;
+3. ~~publicar o `@navegsistemas/domain` 0.1.0~~ **feito.** O workflow da tag `domain-v0.1.0` publicou;
+4. ~~as duas contas de serviço e o `NAVEG_EMPRESA_ID`~~ **feito.** As contas `naveg-api-leitura` e
+   `naveg-api-escrita` existem no `fluvi-app-dev`, e as chaves, o `NAVEG_EMPRESA_ID` e o `NPM_TOKEN` estão nas
+   variáveis da Vercel. O roteiro, para quando for preciso refazer (troca de chave, projeto de produção), está
+   no README da [`naveg-api-vercel`](../naveg-api-vercel), em "As contas de serviço".
+
+**Decisão de 2026-09-23: o projeto Firebase é o `fluvi-app-dev`, e tudo é tratado como dev por enquanto.** É o
+único projeto que o aplicativo conhece (`.firebaserc` e `google-services.json`); o `naveg-app-homol` não é
+destino. As contas, as chaves e as variáveis da Vercel nascem ali, com nome de dev. Quando houver projeto de
+produção, **nada disto migra**: contas novas, chaves novas, variáveis novas — e as de dev nunca vão para o
+ambiente de produção.
 
 Nada disso bloqueia a tela: o totem continua rodando contra o catálogo de demonstração, e `npm run dev` sem
 variável de ambiente nenhuma usa ele, com a faixa de demonstração à mostra.
@@ -305,8 +315,9 @@ nenhum — dá um link que abre e não acha ninguém.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
-- **A conta de serviço só de leitura**, o `NAVEG_EMPRESA_ID` e o projeto na Vercel (passos 9 e 10). Segredos
-  de runtime, nunca com prefixo `PUBLIC_`.
+- **Troca das chaves das contas de serviço** a cada 90 dias — criadas em 2026-09-23, a primeira vence por
+  volta de 2026-12-22.
+- **Projeto Firebase de produção**: hoje tudo é dev. Quando existir, contas e chaves são recriadas lá.
 - **Cloudflare Turnstile** (chave pública e secreta) e um Upstash Redis para o limite por IP (passo 10) — é o
   que substitui o App Check agora que não há cliente público no Firestore.
 - **A regra de `reservas` no `firestore.rules` do fluviapp** — agora **menor**: leitura para funcionário
