@@ -86,11 +86,16 @@ O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimento
 da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo
 adiante**.
 
-**Pendência operacional:** os branches do projeto antigo ainda estão no remoto. `main` já é o padrão.
+**O repositório é público** desde 2026-09-23, porque o plano Hobby da Vercel não deploia repositório
+**privado** de organização — e a intenção é hospedar front e API lá. O histórico foi varrido antes de abrir:
+nenhum `.env`, chave de serviço ou credencial embutida, em nenhum commit de nenhum branch. O que protege o
+projeto daqui para frente é que segredo nenhum entra no repositório: tudo mora nas variáveis de ambiente da
+Vercel, e o `dist/` é varrido no CI.
 
-```bash
-git push origin --delete master dev dev-typescript test
-```
+**O projeto antigo saiu daqui.** As branches `master`, `dev`, `dev-typescript` e `test` eram de 2022–2023 e
+não tinham parentesco nenhum com este código — 26 commits de uma história separada, que a reescrita não
+continua. Foram para [`naveg-front-legado`](https://github.com/navegsistemas/naveg-front-legado) (privado,
+padrão `dev`, que contém `master` e `test`; `dev-typescript` tem um commit só dela). Aqui só existe `main`.
 
 ## Comandos
 
