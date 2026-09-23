@@ -9,11 +9,16 @@ e são pendência do passo 6 (rodapé e JSON-LD).
 
 **Base de referência nesta máquina:**
 
+> **Revisão de 2026-09-23 (terceira).** O `fluviapp-kmp` virou **o centralizador da plataforma** e a fonte do
+> contrato (ADR-0010 e ADR-0013 de lá), e o aplicativo Android original passou a ser **legado e referência**:
+> continua distribuindo até a paridade, mas nada novo nasce nele. Os dois repositórios do fluviapp estão
+> sendo movidos para a org `navegsistemas` (D5 do [plano de ambientes](plano-de-ambientes.md), decidida).
+
 | projeto | o que é | o que este plano herda dele |
 |---|---|---|
-| **`Documents/AndroidStudioProjects/fluviapp`** | **o aplicativo Android — a gestão comercial em produção**, e a fonte da verdade (revisão de 2026-09-22) | O domínio **atual**: 17 classes de veículo por natureza, o `roteiroDe` da emissão, o `Cliente` e a chave natural, `ViagemSemana` e a disponibilidade, a concessão por atuação, as Rules e os índices do projeto. É contra ele que o contrato confere |
-| `AndroidStudioProjects/fluviapp-kmp` | Kotlin Multiplatform — **atrás do aplicativo** (sem `ClasseVeiculo`, `NaturezaVeiculo`, `TipoDocumento`) | O modelo real: `Passagem` selada, FSM `StatusPassagem`, `OcorrenciaViagem`, `Acomodacao`, cota de gratuidade, nomes das coleções |
-| `VSCodeProjects/fluviapp` | monorepo web — **atrás do aplicativo** no domínio; referência de arquitetura: `@fluviapp/domain`, `@fluviapp/design-system`, `@fluviapp/ui`, `apps/apresentacao` (Astro + ilhas React) | A arquitetura: domínio puro em TS, design system sem domínio, telas controladas sem estado, Astro estático + ilhas. E o `roteiroDaEmissao` — **o totem já é máquina de domínio lá** |
+| **`AndroidStudioProjects/fluviapp-kmp`** | **o centralizador** — painel Desktop e, adiante, o app móvel; **a fonte da verdade** desde 2026-09-23 | Os enums e os documentos que a agência lê, as **Rules** (inclusive `reservas` e `eventos`), os índices, a esteira que as publica por ambiente. É contra ele que o contrato confere |
+| `Documents/AndroidStudioProjects/fluviapp` | o aplicativo Android original — **legado e referência** | O que ainda não foi portado para o KMP, e só isso: `TipoDocumento`, a carga admitida de cada casco, `ClienteDocumento`/`VeiculoDocumento`. Cada porte tira uma linha daqui |
+| `VSCodeProjects/fluviapp` | monorepo web — **atrás do centralizador** no domínio; referência de arquitetura: `@fluviapp/domain`, `@fluviapp/design-system`, `@fluviapp/ui`, `apps/apresentacao` (Astro + ilhas React) | A arquitetura: domínio puro em TS, design system sem domínio, telas controladas sem estado, Astro estático + ilhas. E o `roteiroDaEmissao` — **o totem já é máquina de domínio lá** |
 
 ---
 
@@ -428,6 +433,23 @@ viagem/hora-do-dia           formatarHora
 > **O que aparece**, e é o que o passo 10 tem de resolver de verdade: sem App Check, o endpoint aberto precisa
 > de desafio e de limite por IP.
 
+> **Revisão de 2026-09-23 (terceira): a API sob as regras do centralizador.** O PO decidiu as propostas do
+> ADR-0010 do `fluviapp-kmp` (registro no ADR-0013 de lá), e três delas mudam este bloco:
+>
+> - **a API grava sob as Rules** (P3): a conta de escrita deixa de gravar — ela só assina um **token
+>   customizado** do usuário de serviço `naveg-api` (*claims* `papel: SERVICO` e a agência), e a gravação vai
+>   pelo SDK cliente. As Rules passam a cercar a criação: `RESERVADA`, `TOTEM_WEB`, a agência **do token**, as
+>   chaves do contrato;
+> - **eventos** (P1): toda reserva nasce com `eventos/reserva.criada:{codigo}` no mesmo lote, e a Rule exige
+>   os dois juntos. O centralizador narra o cancelamento e a conversão do mesmo jeito;
+> - **o contrato tem fonte no KMP** (P4): o teste daqui lê o `fluviapp-kmp`, e o app Android só no que ainda não
+>   foi portado.
+>
+> **As Rules novas já estão publicadas no `fluvi-app-dev`** (merge do fluviapp-kmp#7, 2026-09-23). A API que está
+> no ar ainda grava pelo Admin SDK, que passa por cima delas — não quebra, mas grava reserva sem evento até o
+> PR da API entrar. O lado da agência são dois PRs: navegsistemas/naveg-front#1 (o domínio 0.5.0) e
+> navegsistemas/naveg-api-vercel#1 (a API sob as regras).
+
 ## Passo 9 — A API do catálogo ✅
 
 > **Feito em 2026-09-23.** Os nomes abaixo são os do plano; os arquivos de verdade são `src/rotas/catalogo.ts`,
@@ -463,13 +485,32 @@ viagem/hora-do-dia           formatarHora
 
 ---
 
-## Passo 10 — A API da reserva ✅ código · ⏳ ligar
+## Passo 10 — A API da reserva ✅ código · ✅ sob as regras (PR) · ⏳ ligar
 
 > **Código feito em 2026-09-23**, com a revisão de segurança antes do deploy. Diferenças do que estava escrito:
 > a rota mora na `naveg-api-vercel` (e não em `apps/agencia/src/pages/api`); a porta do totem passou a ser
 > `EnvioDaReserva` — o navegador manda o pedido, não uma reserva — e o `201` devolve o documento gravado, que o
-> totem lê com `paraDominio`; o `409` vira a pendência `VALIDADE` no totem; a observação é ignorada. **Falta**:
-> ligar (Turnstile e Upstash na Vercel, chave pública no front) e o cenário contra o **emulador** do Firestore.
+> totem lê com `paraDominio`; o `409` vira a pendência `VALIDADE` no totem; a observação é ignorada.
+>
+> **Emenda de 2026-09-23 (a API sob as regras).** O `ReservaFirestore` deixa o Admin SDK: grava pelo SDK cliente,
+> autenticado com o token de serviço, numa **transação** que confere o código livre e grava a reserva e o
+> `reserva.criada` juntos (o `create` que recusa id existente não existe no SDK cliente; a leitura na transação
+> faz o papel dele, e as Rules deixam o serviço ler a reserva que ainda não existe). O cenário contra o
+> **emulador** existe — `npm run test:emulador` na API, com as Rules do `fluviapp-kmp`, inclusive a recusa da
+> reserva de outra agência —, mas roda só onde os dois repositórios estão lado a lado.
+>
+> **Para ligar, nesta ordem:**
+> 1. merge do naveg-front#1 e a tag `domain-v0.5.0`;
+> 2. na API, `npm install` (o `package-lock.json` ainda aponta o 0.4.0, e é por isso que o preview da Vercel do
+>    PR falha) e push;
+> 3. na Vercel da API: `FIREBASE_WEB_API_KEY` (a `apiKey` do app Web do Firebase — **sem restrição por
+>    referenciador**, porque quem a usa é o servidor, que não manda `Referer`), e o que o passo já pedia:
+>    `TURNSTILE_SECRET`, `UPSTASH_REDIS_REST_URL`/`_TOKEN`, `ORIGENS_PERMITIDAS`;
+> 4. **o projeto do front na Vercel**, que ainda não existe: `PUBLIC_URL_DA_API` e a chave pública do Turnstile;
+> 5. merge do naveg-api-vercel#1; a prova é uma reserva feita no totem aparecer na seção Reservas do painel de
+>    homologação do KMP, e ser cancelada lá;
+> 6. no IAM, **tirar o papel *Cloud Datastore User* da `naveg-api-escrita`** — é o que tira de uma chave vazada o
+>    poder de gravar por cima das Rules.
 
 **← Análise do passo anterior:** o totem mostra saídas reais, e nenhuma credencial chegou ao navegador.
 
@@ -491,20 +532,19 @@ viagem/hora-do-dia           formatarHora
 - **A origem**: o endpoint recusa `Origin` que não seja o domínio da agência. Não é segurança sozinho; é o que tira o tráfego trivial de cima do limite.
 - **O que o endpoint responde**, e é o que o totem mostra: `201` com `{ codigo }`.
 
-**Do lado do fluviapp** (contribuição ao repositório deles, testada na suíte de lá)
-```
-match /reservas/{codigo} {
-  allow read:   if autenticado();                       // o aplicativo lista e abre
-  allow update: if autenticado() && ehConversao();      // CONVERTIDA + passagemId, nada mais
-  allow create, delete: if false;                       // quem cria é a API, com conta de serviço
-}
-```
-Mais os índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.json` deles. **Nenhuma regra pública**, nenhum App Check, nenhum provedor anônimo.
+**Do lado do fluviapp** — ✅ **feito no `fluviapp-kmp`** (ADR-0011 e ADR-0013 de lá, 242 casos na suíte de regras).
+O que estava previsto aqui (`create` negado, a API com conta de serviço) foi superado pela P3: a regra de
+`reservas` agora **admite** o `create`, mas só do usuário de serviço (`ehServico()`: *claims* e login por token
+customizado), com id `NVG-XXXXXX`, as chaves do `CAMPOS_DO_DOCUMENTO` menos `passagemId` e `tratamento`,
+`RESERVADA`, `TOTEM_WEB`, a agência do token e o `reserva.criada` no lote. Ler e tratar é da plataforma e da
+operação da agência citada; `delete`, de ninguém. O serviço fica **fora** de `autenticado()` — não lê
+`passagens`, `users`, `viagens` nem `clientes`. **Nenhuma regra pública**, nenhum App Check, nenhum provedor
+anônimo.
 
 **Aceite**
 - Cenários do endpoint, com portas falsas: corpo sem desafio é `403`; travessia que não está ofertada é `409`; respostas incoerentes são `422` com a pendência certa; o feliz devolve `201` e grava **o documento** (passa pelo codec); código em uso gera outro; o `criadoEm` e o `codigo` do corpo, se alguém os mandar, são **ignorados**.
 - Cenário de segurança: nenhuma resposta do endpoint devolve dado de outra reserva, e o erro não vaza mensagem do Firestore.
-- Escrita ponta a ponta contra o **emulador** do Firestore, com as Rules do fluviapp carregadas, provando que a conta de serviço grava e que um cliente anônimo não lê.
+- Escrita ponta a ponta contra o **emulador** do Firestore e do Auth, com as Rules do `fluviapp-kmp` carregadas, provando que o usuário de serviço grava reserva e evento juntos, que não grava para outra agência, e que um cliente anônimo não lê. ✅ local (`npm run test:emulador`); no CI, depois da fase 0 do plano de ambientes.
 - **Revisão de segurança antes do deploy.** Este passo não vai a produção sem ela.
 
 **→ Análise do próximo passo:** a reserva está gravada e o código na mão; falta entregá-la a um humano.
@@ -532,37 +572,61 @@ Mais os índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.js
 - Cenários sobre o construtor: acentos e `&` escapados; quebra de linha preservada; número normalizado; a mensagem sempre contém o código.
 - E2E assere o `href`, sem navegar para fora.
 
-**→ Análise do próximo passo:** o link `/r/{codigo}` precisa abrir o aplicativo — e a reserva precisa virar passagem lá.
+> **Nota de 2026-09-23.** O passo não muda com o centralizador, e pode começar já. Do outro lado, a seção
+> Reservas do painel do KMP abre a conversa no WhatsApp com o código na mensagem — o atendente acha a reserva
+> pelo código, e não depende do link. A linha "Abrir no app" leva à página `/r/{codigo}` (passo 12), que é o que
+> abre enquanto não houver app móvel do KMP para recebê-la.
+
+**→ Análise do próximo passo:** a reserva precisa virar passagem no centralizador, e o link `/r/{codigo}` precisa de um destino.
 
 ---
 
-## Passo 12 — No aplicativo: a reserva vira passagem
+## Passo 12 — No centralizador: a reserva vira passagem · 🟡 metade feita no `fluviapp-kmp`
 
-**← Análise do passo anterior:** a mensagem carrega uma URL estável e única por reserva.
+> **Reescrito em 2026-09-23.** O passo foi escrito para o aplicativo Android original, que agora é **legado e
+> referência** — nada novo nasce nele. O destino é o `fluviapp-kmp`, e boa parte do que estava aqui **já está
+> feito lá** (ADR-0011 e ADR-0013 do KMP).
 
-Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a página `/r/[codigo]`.
+**← Análise do passo anterior:** a mensagem carrega o código e uma URL estável e única por reserva.
 
-**Entrega — no fluviapp**
-- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@navegsistemas/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, moto com cilindrada, rebocado, cliente com e sem telefone), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
-- **As Rules de `reservas`** entram aqui se não tiverem entrado no passo 10: leitura para funcionário autenticado, `update` só para a conversão, `create` e `delete` negados (quem cria é a API da agência, com conta de serviço).
-- **Tela "Reservas"**: as `RESERVADA` por viagem e data. A expiração é **derivada na leitura** — `expiraEm ≤ agora` aparece como expirada sem que ninguém grave nada. Enquanto a validade for a partida, a lista do dia se limpa sozinha, e gravar `EXPIRADA` fica para uma rotina, se um dia for preciso.
-- **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** com o que define a passagem — acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários `DadosDoCliente`), natureza e classe, cilindrada. **A identificação é feita ali, no atendimento**: documento e nascimento de cada pessoa, placa do veículo — pelo caminho normal do balcão (`clientes/{chaveNatural}`, `veiculos/{placa}`). O nome e o telefone do cliente da reserva pré-preenchem o titular. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.
-- **Deeplink (Android App Links)**: o `applicationId` é **`br.com.fluviapp`** (o plano original dizia `br.com.fluviapp.android`, que é outro app). O manifest hoje só tem o `intent-filter` do launcher. Acrescentar o de `https://<domínio>/r/`, com `autoVerify`, `singleTask`, e o tratamento em `onCreate` **e** `onNewIntent`.
+**Já feito no `fluviapp-kmp`**
+- **O leitor de `reservas/`**: `ReservaDocumento.kt`, com a lista literal de chaves conferida por
+  `ReservaDocumentoTest`; do lado de cá, o teste de contrato confere as chaves do `ReservaDocumento.kt` e do
+  `EventoDocumento.kt` contra o `CAMPOS_DO_DOCUMENTO` e o `CAMPOS_DO_EVENTO`. Um nome divergente fica vermelho
+  nos dois lados — é o que os "documentos-exemplo" do plano original fariam.
+- **As Rules de `reservas` e `eventos`**, publicadas em homologação pela esteira de lá.
+- **A seção Reservas do painel**: a fila do atendimento, pela partida mais próxima; a expiração **lida**
+  (`situacaoEm`), sem gravar `EXPIRADA`; abrir a conversa no WhatsApp; **cancelar**, com o carimbo
+  `tratamento` e o `reserva.cancelada` no mesmo lote.
+
+**Falta — no `fluviapp-kmp`**
+- **"Emitir a partir desta reserva"** — chega com a emissão (F4, balcão, app móvel do KMP). O roteiro pré-preenchido
+  continua o mesmo: acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários), natureza,
+  classe, cilindrada; o nome e o telefone pré-preenchem o titular; **a identificação é feita ali**, pelo caminho
+  normal do balcão. Na mesma escrita: `CONVERTIDA`, `passagemId` de passagem existente, `tratamento` e o
+  `reserva.convertida` — é o que a Rule já exige.
+- **O deeplink (Android App Links)** vai para o **app móvel do KMP**, quando ele existir — não para o legado. O
+  `applicationId` continua `br.com.fluviapp` (ADR-0012 §6 do KMP), e o resto do desenho não muda: `intent-filter`
+  de `https://<domínio>/r/` com `autoVerify`, `singleTask`, tratamento em `onCreate` e `onNewIntent`.
 
 **Entrega — aqui**
-- `public/.well-known/assetlinks.json` com o SHA-256 de release **e** de upload; `apple-app-site-association` se o iOS entrar.
-- Página `/r/[codigo]` — mostra o código e instrui o atendente. É o que abre no desktop.
+- Página `/r/[codigo]` — **o que ela mostra é decisão do PO pendente** (P-b no plano de ambientes, §11). A
+  recomendação para a Fase 1 é **estática**: o código em destaque e a orientação ao atendente, sem consultar
+  nada. Mostrar a situação da reserva (aberta, cancelada, convertida, quem tratou) pede um `GET` público na API e
+  faz do código uma senha; se vier, é sem nome e sem telefone, e com o mesmo limite por IP do `POST`.
+- `public/.well-known/assetlinks.json` com o SHA-256 de release **e** de upload — junto com o app móvel do KMP.
 
 **Aceite**
-- `adb shell pm get-app-links br.com.fluviapp` → `verified`.
-- O link abre a reserva com o app fechado e com o app aberto; sem o app, abre a página.
-- Emitir a partir de uma reserva produz uma passagem `A_EMITIR` com os clientes do pool e deixa a reserva `CONVERTIDA`.
+- Emitir a partir de uma reserva produz uma passagem `A_EMITIR` e deixa a reserva `CONVERTIDA`, com o evento.
+- A página `/r/{codigo}` abre em qualquer navegador, sem o app.
+- Quando houver o app móvel: `adb shell pm get-app-links br.com.fluviapp` → `verified`, e o link abre a reserva
+  com o app fechado e aberto.
 
 ---
 
 ## Passo 13 — Endurecimento: acessibilidade, performance e E2E
 
-**← Análise do passo anterior:** o circuito está fechado — reserva → Firestore → WhatsApp → aplicativo → passagem.
+**← Análise do passo anterior:** o circuito está fechado — reserva → Firestore → WhatsApp → centralizador → passagem.
 
 **Entrega**
 - Playwright: jornada completa em Chromium e WebKit, mobile e desktop; só teclado; a página institucional **sem JavaScript** continua legível.
@@ -570,7 +634,7 @@ Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a p
 - Orçamento de performance no CI: JS da página institucional = 0; ilha do totem com teto declarado.
 - CSP, `Permissions-Policy`, `Referrer-Policy`. Sem `preconnect` para o Firestore: quem fala com ele é o servidor.
 - **Cenários da API** no CI (os dos passos 9 e 10, com portas falsas) e um contra o **emulador** do Firestore; varredura do `dist/` por credencial.
-- **O CI clona o fluviapp** para rodar a camada 2 do contrato — sem isso, os 21 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem.
+- **O CI clona o `fluviapp-kmp`** (e o app Android legado, enquanto houver o que não foi portado) para rodar a camada 2 do contrato — sem isso, os 24 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem. **Depende da mudança dos dois repositórios para a org `navegsistemas`** (D5, decidida): só então o CI lê o contrato com um token da org.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
 - `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
 
@@ -587,29 +651,31 @@ A · Fundação     0 monorepo+ADRs -> 1 design system -> 2 casca Astro
 B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     <- publicável aqui
 C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
 D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limite por IP]
-                 -> 11 WhatsApp -> 12 no aplicativo: reserva vira passagem + deeplink -> 13 endurecimento
+                 -> 11 WhatsApp -> 12 no centralizador (KMP): reserva vira passagem + deeplink -> 13 endurecimento
 ```
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
-**Caminho crítico:** a conta de serviço de leitura e o `NAVEG_EMPRESA_ID` (passo 9); o projeto na Vercel com os segredos (passos 9 e 10); a regra de leitura de `reservas` no repositório do fluviapp, que o **aplicativo** precisa (passo 12). Nada disso bloqueia o totem, que já roda contra o catálogo de demonstração.
+**Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). Falta: o domínio 0.5.0 publicado e a API sob as regras no ar (passo 10, "para ligar"); os segredos do Turnstile e do Upstash e o **projeto do front na Vercel**; a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, os repositórios do fluviapp na org (D5).
 
 ## Riscos registrados
 
 | risco | onde aparece | mitigação |
 |---|---|---|
-| Domínio portado divergir do aplicativo | passo 7 | Contrato contra o Kotlin do **aplicativo** sobre valores **e significados** (natureza, carga, ocupação) e chaves dos documentos; o CI clona o fluviapp (passo 13) |
+| Domínio portado divergir do centralizador | passo 7 | Contrato contra o Kotlin do **`fluviapp-kmp`** (e do app legado, no que falta portar) sobre valores **e significados** e chaves dos documentos, inclusive `reservas` e `eventos`; o CI clona os dois depois de D5 (passo 13) |
+| A API gravar algo que o centralizador não aceita | passo 10 | A API grava **sob as Rules** do KMP, como usuário de serviço: forma, dono e estado inicial são conferidos no servidor, e o evento tem de acompanhar a reserva |
+| A chave Web restringida por referenciador | passo 10 | Quem a usa é o servidor, sem `Referer`; restringir só por API (Identity Toolkit, Firestore), nunca por site |
 | Auth anônima abrir as Rules do fluviapp | passos 9–10 | Resolvido pela segunda emenda do ADR-0002: o navegador não fala com o Firestore, e nenhum provedor é ligado |
 | Totem recolher dado pessoal demais | passo 8 | Decidido: nenhum documento, nascimento ou placa — só a passagem, o nome e um telefone opcional |
 | ~~Enforcement do App Check derrubar o aplicativo~~ | — | Não se aplica: não há cliente público no Firestore para atestar |
 | Endpoint público abusado (o que o App Check faria) | passo 10 | Turnstile no envio, limite por IP, checagem de origem, e a forma fechada que o domínio já garante |
-| Conta de serviço vazar | passos 9–10 | Segredo de runtime na Vercel, nunca `PUBLIC_`; varredura do `dist/` no CI; papel só de leitura no endpoint do catálogo |
+| Conta de serviço vazar | passos 9–10 | Segredo de runtime na Vercel, nunca `PUBLIC_`; varredura do `dist/` no CI; papel só de leitura no endpoint do catálogo; a de escrita **sem papel no Firestore** depois da P3 — vazada, ela só assina um token que as Rules cercam |
 | A API cair e levar o totem junto | passos 9–10 | O catálogo tem cache na borda; a página institucional é estática e não depende da API |
 | Catálogo desatualizado | passos 9–10 | Leitura ao vivo com 60s de cache; e o `POST` reconfere a travessia contra o catálogo antes de gravar |
 | Horário errado por fuso do visitante | passos 8, 10 | `InstanteLocal.emFuso` com o fuso da operação; nunca o relógio do navegador |
 | Escrita pública abusada | passo 10 | A escrita é do servidor: o público manda respostas, não documento. Turnstile, limite por IP e revisão de segurança obrigatória |
-| Reserva e aplicativo lerem chaves diferentes | passo 12 | Documentos-exemplo gerados aqui e lidos por teste Kotlin lá |
-| App Links não verificarem | passo 12 | `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
+| Reserva e centralizador lerem chaves diferentes | passo 12 | Lista literal de chaves nos dois lados: `ReservaDocumentoTest` lá, o contrato daqui lendo o `ReservaDocumento.kt` e o `EventoDocumento.kt` |
+| App Links não verificarem | passo 12 | No app móvel do KMP, não no legado; `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
 | Laranja reprovando contraste | passo 1 | Cenário de contraste sobre os tokens; laranja é superfície, nunca tinta de texto pequeno |
 | Reserva virar expectativa de venda | passos 6, 8, 11 | "Reserva, não venda" no rodapé, no topo do totem e na mensagem do WhatsApp |
 | Dado do cliente anterior vazar no totem físico | passo 8 | Timeout de inatividade que zera respostas e travessia |

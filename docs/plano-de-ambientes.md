@@ -2,8 +2,16 @@
 
 > **Proposta de 2026-09-23.** Escrita depois de a API ir ao ar, para arrumar a casa antes que "tudo é dev" vire
 > hábito. Cobre os dois repositórios da agência — este e a [`naveg-api-vercel`](../../naveg-api-vercel) — e o
-> que eles dependem do fluviapp. As decisões que não são técnicas estão marcadas **[D1]…[D8]** e reunidas no
+> que eles dependem do fluviapp. As decisões que não são técnicas estão marcadas **[D1]…[D9]** e reunidas no
 > fim, cada uma com uma recomendação.
+>
+> **Revisão de 2026-09-23 (noite), contra as regras publicadas.** Três coisas mudaram no mesmo dia: o
+> `fluviapp-kmp` virou **o centralizador** e a fonte do contrato, e o aplicativo Android original passou a ser
+> **legado e referência** (ADR-0010 do KMP); o KMP adotou o mesmo desenho de ambientes deste plano — `master`
+> em homologação, `producao` por promoção, produção **preparada e desligada** (ADR-0012 de lá); e a API da
+> agência passa a gravar **sob as Rules**, como usuário de serviço, com um evento por reserva (ADR-0013 de lá).
+> As Rules novas já estão publicadas no `fluvi-app-dev`. D1 e D5 foram decididas; D8 mudou de custo; entrou
+> a D9. O que mudou está marcado *(revisto)*.
 
 ## 1. Onde estamos
 
@@ -17,8 +25,9 @@ Uma fotografia, conferida no GitHub, na Vercel e no Firebase no dia da proposta:
 | **Vercel** | plano **Hobby**, conta pessoal (`kurtmatheus-projects`); só a API tem projeto | o Hobby é **restrito a uso pessoal e não comercial** (fair use da Vercel) — a NAVEG é uma empresa; logs duram **1 hora** |
 | **Variáveis da API** | um conjunto, com as chaves do `fluvi-app-dev`; a proteção do envio desligada | nada separa o que um preview pode tocar do que produção toca |
 | **Firebase** | `fluvi-app-dev` (o do aplicativo) e `naveg-app-homol` (não é destino) | **não existe projeto de produção**; o próprio aplicativo distribui "produção" apontando para o `fluvi-app-dev` |
+| **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar ainda grava pelo Admin SDK, por cima delas, e sem o evento — até o PR `naveg-api-vercel#1` entrar |
 | **Org no GitHub** | `navegsistemas`, plano free, 3 membros, **2FA não obrigatório** | um token vazado de qualquer membro chega aos dois repositórios públicos |
-| **Repositórios do fluviapp** | `fluviapp` e `fluviapp-kmp` **privados, na conta pessoal** | o CI daqui não consegue clonar o contrato; a continuidade depende de uma pessoa |
+| **Repositórios do fluviapp** *(revisto)* | `fluviapp-kmp` (o centralizador) e `fluviapp` (legado e referência), **privados, na conta pessoal — em mudança para a org** (D5, decidida) | até a mudança, o CI daqui não consegue clonar o contrato |
 
 O que já está certo, e o plano preserva: segredo nenhum no repositório, a conta de leitura separada da de
 escrita, a configuração que falha na partida, e o domínio versionado por tag.
@@ -31,9 +40,9 @@ escrita, a configuração que falha na partida, e o domínio versionado por tag.
 2. **Produção só recebe o que passou por homologação.** O mesmo commit, já testado — não um parecido.
 3. **A máquina confere, a pessoa decide.** Cenário, tipo, orçamento de bundle e varredura de segredo são
    automáticos e bloqueiam o merge; ir para produção é um ato explícito, com aprovação.
-4. **Os ambientes daqui seguem os do fluviapp.** A agência lê e grava no Firestore **do aplicativo**: a reserva
-   feita no totem de homologação tem de aparecer no aplicativo de homologação. Por isso não existe "produção da
-   agência" antes de existir "produção do fluviapp" (ver §7).
+4. **Os ambientes daqui seguem os do fluviapp.** A agência lê e grava no Firestore **da plataforma**: a reserva
+   feita no totem de homologação tem de aparecer no centralizador (o painel do KMP) de homologação. Por isso não
+   existe "produção da agência" antes de existir "produção do fluviapp" (ver §7).
 5. **Tudo o que for possível sem pagar, agora; o que custa, com decisão.**
 
 ## 3. Os três ambientes
@@ -42,8 +51,9 @@ escrita, a configuração que falha na partida, e o domínio versionado por tag.
 |---|---|---|---|
 | **Para quê** | escrever e testar código | ver a mudança inteira funcionando, com dados de teste, antes de ir ao ar; é onde o PO e o atendimento aprovam | o público |
 | **Quem usa** | quem desenvolve | PO, atendimento, testadores do aplicativo de homologação | clientes da NAVEG |
-| **Firestore** | **emulador** (o do repositório do fluviapp, com as Rules de lá) | `fluvi-app-dev` | **projeto de produção do fluviapp** [D1] |
-| **Credencial do Google** | nenhuma (o emulador dispensa) | contas `naveg-api-leitura`/`-escrita` do `fluvi-app-dev` | contas próprias, **no projeto de produção** |
+| **Firestore** *(revisto)* | **emulador** do Firestore **e do Auth**, com as Rules do `fluviapp-kmp` | `fluvi-app-dev` | **projeto de produção do fluviapp**, criado pelo KMP [D1] |
+| **Credencial do Google** *(revisto)* | nenhuma (o emulador dispensa) | `naveg-api-leitura` (lê o catálogo) e `naveg-api-escrita` (**só assina o token de serviço**, sem papel no Firestore) do `fluvi-app-dev` | as mesmas duas, **no projeto de produção** |
+| **Chave Web do Firebase** *(novo)* | a do emulador (qualquer texto) | a do app Web do `fluvi-app-dev` | a do app Web de produção |
 | **Front** | `npm run dev` | domínio fixo de homologação (ex.: `homolog.agencia.naveg.com.br`) + previews de PR | `agencia.naveg.com.br` [D4] |
 | **API** | `vercel dev` / `http://localhost:3000` | domínio fixo de homologação (ex.: `api-homolog.naveg.com.br`) | `api.naveg.com.br` |
 | **Turnstile** | chaves **de teste** (sempre passam) | **widget próprio**, restrito ao domínio de homologação | widget próprio, restrito ao domínio de produção |
@@ -57,10 +67,13 @@ Pequeno, e cada item com cenário:
 
 - **A API aceita o emulador sem conta de serviço.** Hoje ela exige o JSON mesmo quando `FIRESTORE_EMULATOR_HOST`
   está definido; com o emulador, as duas contas passam a ser dispensáveis. É o que deixa desenvolver sem nenhuma
-  credencial na máquina.
+  credencial na máquina. *(revisto)* Pela metade: o PR `naveg-api-vercel#1` trouxe `npm run test:emulador`, que
+  grava de ponta a ponta contra o emulador e as Rules do KMP; falta a **API inteira** subir contra ele.
 - **A API confere, na partida, que o ambiente e o projeto combinam.** Com `VERCEL_ENV=production`, o
   `FIREBASE_PROJECT_ID` tem de ser o de produção; com `preview`, **não pode** ser. É a trava contra a variável
-  errada no ambiente errado — o erro mais provável desta configuração, e o mais caro.
+  errada no ambiente errado — o erro mais provável desta configuração, e o mais caro. *(revisto)* A mesma
+  conferência vale para a chave Web e para o projeto das duas contas: o KMP já faz o equivalente no instalador
+  do painel (`conferirAmbienteDoInstalador`, ADR-0012 de lá).
 - **O front deixa de ter a produção como padrão.** O padrão atual (`URL_DA_API_PADRAO`) foi uma boa decisão com um
   ambiente só; com três, um build sem variável apontaria para produção. Passa a ser **obrigatório** declarar
   `PUBLIC_URL_DA_API` nos builds da Vercel (o CI confere), e o padrão local vira `demonstracao`.
@@ -108,7 +121,7 @@ Actions é gratuito em repositório público.
 | job | o que faz |
 |---|---|
 | **✱ verificar** | `npm ci`, `typecheck`, `astro check`, cenários |
-| **✱ contrato com o fluviapp** | clona o fluviapp (token de leitura, §6) e roda a camada 2 do contrato — sem isso os 21 cenários que leem o Kotlin ficam pulados para sempre no CI |
+| **✱ contrato com o fluviapp** *(revisto)* | clona o **`fluviapp-kmp`** e o `fluviapp` legado (token da org, §6) e roda a camada 2 do contrato — sem isso os 24 cenários que leem o Kotlin ficam pulados para sempre no CI. Só é possível depois da mudança para a org (D5) |
 | **✱ build e orçamento** | `npm run build` com as variáveis de homologação; confere o orçamento de JavaScript (0 kB fora da ilha; teto declarado para a ilha) e **varre o `dist/`** por qualquer coisa com cara de credencial |
 | **publicar o domínio** | o que já existe: por tag `domain-v*`, depois de `verify` |
 
@@ -117,7 +130,7 @@ Actions é gratuito em repositório público.
 | job | o que faz |
 |---|---|
 | **✱ verificar** | `npm ci` (o pacote do domínio lido com o `GITHUB_TOKEN`, §6), `typecheck`, cenários |
-| **✱ emulador** | sobe o emulador do Firestore com as **Rules do fluviapp** e grava uma reserva de ponta a ponta pela conta de serviço — o item do aceite do passo 10 que falta |
+| **✱ emulador** *(revisto)* | clona o `fluviapp-kmp` e roda `npm run test:emulador`: Firestore e Auth no emulador, as **Rules do KMP**, a reserva e o `reserva.criada` gravados pelo usuário de serviço, e a recusa da reserva de outra agência. O cenário já existe; falta o job, que depende de D5 |
 | **✱ auditoria** | `npm audit --omit=dev --audit-level=high` |
 | **fumaça pós-deploy** | disparado pelo `deployment_status` da Vercel: `GET /saude` e `GET /catalogo` no ambiente que acabou de subir; em produção, falha abre uma issue |
 
@@ -136,11 +149,12 @@ Actions é gratuito em repositório público.
 | segredo | local | homologação | produção | onde |
 |---|---|---|---|---|
 | conta de leitura do Google | — (emulador) | `fluvi-app-dev` | projeto de produção | Vercel |
-| conta de escrita do Google | — (emulador) | `fluvi-app-dev` | projeto de produção | Vercel |
+| conta de escrita do Google *(revisto: só assina o token de serviço, sem papel no Firestore)* | — (emulador) | `fluvi-app-dev` | projeto de produção | Vercel |
+| `FIREBASE_WEB_API_KEY` *(novo; não é segredo, mas é por ambiente)* | qualquer texto | app Web do `fluvi-app-dev` | app Web de produção | Vercel |
 | `TURNSTILE_SECRET` | chave de teste | widget de homologação | widget de produção | Vercel |
 | `UPSTASH_*` | — | banco de homologação | banco de produção | Vercel |
 | token do pacote do domínio | `NPM_TOKEN` da pessoa | leitura por repositório (abaixo) | idem | Vercel / GitHub |
-| leitura do fluviapp no CI | — | — | — | GitHub (secret do repositório) |
+| leitura do fluviapp no CI | — | — | — | GitHub — *(revisto)* depois de D5, um token da org com leitura só de `fluviapp-kmp` e `fluviapp` |
 
 - **Sem chave JSON, em produção.** A Vercel emite um token OIDC por deploy, e o *subject* dele diz o ambiente:
   `owner:<time>:project:<projeto>:environment:production`. No Google Cloud, a *Workload Identity Federation*
@@ -148,41 +162,61 @@ Actions é gratuito em repositório público.
   **não consegue** usar a identidade de produção nem se a variável for copiada errada. É a troca da "chave
   JSON na Fase 1" registrada no README da API. Custa uma mudança pequena na conexão (`conexao.ts`) e a
   configuração no GCP; homologação pode continuar com JSON por enquanto.
+
+  *(revisto)* **Com a API sob as Rules, a conta de escrita precisa assinar o token customizado**, e assinar sem
+  chave é pedir ao IAM (`signBlob`): ela ganha *Service Account Token Creator* **sobre si mesma**, e o Admin SDK
+  é iniciado com `serviceAccountId` em vez de `cert(...)`. Continua sem chave para vazar; é um papel a mais e
+  uma segunda mudança na conexão (`servico.ts`). A leitura do catálogo segue o desenho original.
+- **Depois que a API gravar pelo token** *(novo)*: tirar o papel *Cloud Datastore User* da conta de escrita, em
+  cada projeto. Enquanto ele existir, a chave vazada ainda grava por cima das Rules. Em produção a conta já
+  nasce sem ele (ADR-0013 §3.4 do KMP).
+- **A chave Web sem restrição por referenciador** *(novo)*: quem a usa é o servidor, que não manda `Referer`.
+  Se for restringida, que seja por API (Identity Toolkit e Firestore), nunca por site.
 - **O pacote do domínio sem PAT no CI.** No GitHub Packages, o pacote pode conceder leitura ao repositório da
   API (*Manage Actions access*); o CI lê com o `GITHUB_TOKEN`, que expira sozinho. O `NPM_TOKEN` pessoal fica
   só na Vercel e nas máquinas — e com a Vercel lendo por um token de **conta técnica**, não de uma pessoa.
 - **Rotação**: chave JSON a cada 90 dias (a primeira vence por volta de 2026-12-22); tokens do Upstash e o
   segredo do Turnstile, a cada saída de alguém com acesso.
 
-## 7. O acoplamento com o fluviapp (e o KMP)
+## 7. O acoplamento com o fluviapp (o KMP) *(revisto)*
 
-A agência não tem banco próprio: ela lê o catálogo **do aplicativo** e grava reservas que **o aplicativo**
-converte em passagens. Isso amarra os ambientes daqui aos de lá:
+A agência não tem banco próprio: ela lê o catálogo **da plataforma** e grava reservas que **o centralizador**
+trata. Isso amarra os ambientes daqui aos de lá — e, desde 2026-09-23, "lá" é o **`fluviapp-kmp`**. O
+aplicativo Android original é **legado e referência**: continua distribuindo até a paridade, e o contrato só o
+lê no que ainda não foi portado.
 
-| fluviapp | agência |
+O KMP adotou o mesmo desenho deste plano (ADR-0012 de lá):
+
+| fluviapp-kmp | agência |
 |---|---|
-| aplicativo de homologação (App Distribution, grupo `homologacao`) → `fluvi-app-dev` | homologação → `fluvi-app-dev` |
-| aplicativo de produção (grupo `producao`) → **hoje também `fluvi-app-dev`** | produção → **o mesmo projeto do aplicativo de produção** |
+| `master` → **homologação** (`fluvi-app-dev`); a esteira **publica as Rules sozinha** a cada merge | `main` → homologação (`fluvi-app-dev`) |
+| `producao`, só por PR do `master`, com trava de que o commit já está no `master` → **produção**, num projeto novo | `producao` → produção, **no mesmo projeto** |
+| produção **preparada e desligada**: o ramo, o projeto e os segredos de produção ainda não existem | idem |
 
-**Enquanto o aplicativo de produção usar o `fluvi-app-dev`, "produção da agência" não tem banco próprio para
-usar.** Há dois caminhos, e a escolha é de quem responde pelo fluviapp — o que torna a migração do KMP o
-momento natural para decidir [D1]:
+**D1 está decidida** (ADR-0012 §5 e ADR-0013 §1 do KMP): o projeto de produção é **novo**, criado quando for a
+hora de entrar em produção; o `fluvi-app-dev` fica para desenvolvimento e homologação. A ordem que isso impõe:
 
-- **o KMP nasce com um projeto de produção** (recomendado): o `fluvi-app-dev` volta a ser só de
-  desenvolvimento e homologação; a agência aponta a produção para o projeto novo, com contas novas. As Rules,
-  os índices e a regra de `reservas` passam a ser publicados **nos dois projetos** pela esteira de lá (o
-  `regras.yml` já tem o gatilho manual; ganha o projeto como parâmetro).
-- **o `fluvi-app-dev` vira oficialmente o projeto de produção** (renomear não dá; é só assumir): então é
-  homologação que precisa de um projeto novo, com cadastro de teste. Mais barato hoje, mais confuso sempre —
-  o nome mente.
+1. **o KMP liga produção primeiro** — cria o projeto, registra o app Web (é de onde sai a chave Web), cria o
+   primeiro `ADM`, abre o ramo `producao`. O primeiro push dele **publica as Rules de `reservas` e `eventos` no
+   projeto de produção**;
+2. **só então a agência** cria as duas contas lá (a de escrita **sem papel no Firestore**), põe a chave Web e o
+   projeto no escopo *Production* da Vercel e abre a sua `producao`.
 
-Dois ajustes que valem nos dois caminhos:
+Ligar a agência antes do passo 1 grava num projeto sem Rules de reserva — negado por omissão, com sorte; e sem
+o centralizador de produção para tratá-las, de qualquer jeito.
 
-- **mover `fluviapp` e `fluviapp-kmp` para a org `navegsistemas`** [D5]: o CI daqui passa a clonar o contrato
-  com um token da org, e o sistema central deixa de depender de uma conta pessoal;
-- **quando o KMP virar o centralizador**, o contrato de enums passa a apontar para ele, e se ele expuser API
-  própria de catálogo e reserva, esta API pode ser aposentada — o README dela já prevê isso, e a separação de
-  ambientes deste plano vale igual para a do KMP.
+**O contrato tem fonte no KMP** (P4 do ADR-0010 de lá): o teste de contrato daqui lê os enums, os documentos
+do catálogo, o `ReservaDocumento.kt` e o `EventoDocumento.kt` no `fluviapp-kmp`, e as coleções no
+`firestore.rules` de lá. Mover um desses arquivos lá quebra o teste aqui — de propósito.
+
+**D5 está decidida**: `fluviapp-kmp` e `fluviapp` vão para a org `navegsistemas`. Deixou de ser só
+continuidade: é o que deixa o CI daqui clonar o contrato e as Rules, e o KMP ganhar proteção de ramo e
+aprovação no PR de promoção (o que o ADR-0012 §6 de lá deixou de fora por falta de plano). **Depois da
+mudança**, o `origin` dos checkouts locais muda de endereço; os caminhos que o teste lê (`FLUVIAPP_KMP`,
+`FLUVIAPP_ORIGINAL`) não.
+
+**Esta API continua existindo.** O ADR-0010 do KMP mantém as três aplicações — centralizador, API da agência e
+agência — com o Firestore como barramento; a aposentadoria da API, que este plano cogitava, não está no desenho.
 
 ## 8. A casa do GitHub e da Vercel
 
@@ -205,27 +239,35 @@ Dois ajustes que valem nos dois caminhos:
   reserva gravada) — e nenhuma com dado pessoal, o que permite guardá-las.
 - **A linha de contagem do catálogo** vira alerta quando "ofertável depois do recorte" for 0 em produção.
 
-## 10. A ordem
+## 10. A ordem *(revisto)*
 
 | fase | o quê | depende de |
 |---|---|---|
-| **0 · a casa, hoje** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria); push protection; Dependabot; `CODEOWNERS`; a API aceitando o emulador | nada — é gratuito e não muda o que está no ar |
-| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto; o job do emulador; fumaça pós-deploy | D3, D4 (domínio de homologação) |
-| **2 · produção** | projeto Firebase de produção e contas nele (ou OIDC); widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | D1, D2, D4 |
-| **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio; o fluviapp na org com o contrato clonado no CI | D5 |
+| **A · ligar a API sob as regras, agora** *(novo)* | merge de `naveg-front#1` e tag `domain-v0.5.0`; `npm install` na API (o lock ainda aponta o 0.4.0 — é por isso que o preview do PR falha); na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; merge de `naveg-api-vercel#1`; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
+| **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
+| **0b · o fluviapp na org** *(novo, era da fase 3)* | `fluviapp-kmp` e `fluviapp` em `navegsistemas`; token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | D5 (decidida) |
+| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web); fumaça pós-deploy | D3, D4 (domínio de homologação) |
+| **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
+| **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio | — |
 
-A fase 0 cabe numa sessão e não depende de decisão nenhuma. A fase 2 é a que **não deve começar** antes de D1:
-ligar produção num banco que ainda é o de desenvolvimento só troca o nome do problema.
+A fase A e a 0 cabem em sessões curtas e não dependem de decisão nenhuma. A fase 2 **não deve começar** antes
+de o KMP criar o projeto de produção e publicar as Rules nele: ligar a agência antes grava num banco sem Rules
+de reserva e sem centralizador para tratá-las.
 
-## 11. Decisões para o PO
+## 11. Decisões para o PO *(revisto)*
 
-| | decisão | recomendação |
+| | decisão | situação |
 |---|---|---|
-| **D1** | Qual é o projeto Firebase de produção? | **Um projeto novo, criado com a migração do KMP**; o `fluvi-app-dev` fica para dev e homologação |
-| **D2** | Vercel Pro para produção? | **Sim**, num time da NAVEG. O Hobby é não comercial pelos termos da Vercel, e produção de uma empresa nele é risco de ter o deploy pausado |
-| **D3** | Trunk-based com promoção (`main` → `producao`)? | **Sim**, como no §4 |
-| **D4** | Os domínios | `agencia.naveg.com.br`/`api.naveg.com.br` em produção; `homolog.` e `api-homolog.` em homologação |
-| **D5** | Mover `fluviapp` e `fluviapp-kmp` para a org? | **Sim** — CI e continuidade |
+| **D1** | Qual é o projeto Firebase de produção? | ✅ **Decidida (2026-09-23):** um projeto novo, criado pelo KMP quando for a hora de entrar em produção; o `fluvi-app-dev` fica para dev e homologação |
+| **D2** | Vercel Pro para produção? | Aberta. Recomendação: **sim**, num time da NAVEG. O Hobby é não comercial pelos termos da Vercel, e produção de uma empresa nele é risco de ter o deploy pausado |
+| **D3** | Trunk-based com promoção (`main` → `producao`)? | Recomendação: **sim**, como no §4 — e é o que o KMP adotou (ADR-0012 de lá) |
+| **D4** | Os domínios | Aberta. Recomendação: `agencia.naveg.com.br`/`api.naveg.com.br` em produção; `homolog.` e `api-homolog.` em homologação |
+| **D5** | Mover `fluviapp` e `fluviapp-kmp` para a org? | ✅ **Decidida (2026-09-23), em andamento.** Com repositórios privados numa org free não há regra de ramo nem *Environments*: a aprovação obrigatória do PR de promoção do KMP pede o plano Team, ou continua como hoje (as três travas do ADR-0012 de lá) |
 | **D6** | Os repositórios da agência voltam a ser privados? | **Indiferente para a segurança**; só vale se a Vercel for Pro. Recomendação: manter públicos até lá |
 | **D7** | Quem aprova a promoção para produção? | O PO, com uma segunda pessoa como suplente — aprovação de uma pessoa só trava férias |
-| **D8** | Sem chave JSON em produção (OIDC) desde o início? | **Sim**: é a proteção mais forte do plano, e mais barata de fazer antes de haver produção do que depois |
+| **D8** | Sem chave JSON em produção (OIDC) desde o início? | Recomendação: **sim** — mas custa um pouco mais do que antes: a conta de escrita assina o token de serviço pelo IAM, e ganha *Token Creator* sobre si mesma (§6) |
+| **D9** *(novo)* | O que a página `/r/{codigo}` mostra? | Aberta. Recomendação: **estática na Fase 1** — o código e a orientação ao atendente. Mostrar a situação (aberta, cancelada, convertida) pede um `GET` público na API e faz do código uma senha; se vier, sem nome nem telefone e com limite por IP |
+
+**Decorrente, e registrado para não se perder:** com o app Android original como legado, o deeplink de
+`/r/{codigo}` (App Links) vai para o **app móvel do KMP**, quando ele existir — não para o legado. Até lá, a
+página abre no navegador, e o atendente acha a reserva pelo código no painel.
