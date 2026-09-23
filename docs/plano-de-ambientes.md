@@ -10,7 +10,7 @@
 > **legado e referência** (ADR-0010 do KMP); o KMP adotou o mesmo desenho de ambientes deste plano — `master`
 > em homologação, `producao` por promoção, produção **preparada e desligada** (ADR-0012 de lá); e a API da
 > agência passa a gravar **sob as Rules**, como usuário de serviço, com um evento por reserva (ADR-0013 de lá).
-> As Rules novas já estão publicadas no `fluvi-app-dev`. D1 e D5 foram decididas; D8 mudou de custo; entrou
+> As Rules novas já estão publicadas no `fluvi-app-dev`. D1 foi decidida e D5 feita; D8 mudou de custo; entrou
 > a D9. O que mudou está marcado *(revisto)*.
 
 ## 1. Onde estamos
@@ -27,7 +27,7 @@ Uma fotografia, conferida no GitHub, na Vercel e no Firebase no dia da proposta:
 | **Firebase** | `fluvi-app-dev` (o do aplicativo) e `naveg-app-homol` (não é destino) | **não existe projeto de produção**; o próprio aplicativo distribui "produção" apontando para o `fluvi-app-dev` |
 | **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar ainda grava pelo Admin SDK, por cima delas, e sem o evento — até o PR `naveg-api-vercel#1` entrar |
 | **Org no GitHub** | `navegsistemas`, plano free, 3 membros, **2FA não obrigatório** | um token vazado de qualquer membro chega aos dois repositórios públicos |
-| **Repositórios do fluviapp** *(revisto)* | `fluviapp-kmp` (o centralizador) e `fluviapp` (legado e referência), **privados, na conta pessoal — em mudança para a org** (D5, decidida) | até a mudança, o CI daqui não consegue clonar o contrato |
+| **Repositórios do fluviapp** *(revisto)* | `fluviapp-kmp` (o centralizador) e `fluviapp` (legado e referência), **privados, na org `navegsistemas` desde 2026-09-23** (D5) | o CI daqui ainda não clona o contrato: falta o token da org e os jobs (fase 0b) |
 
 O que já está certo, e o plano preserva: segredo nenhum no repositório, a conta de leitura separada da de
 escrita, a configuração que falha na partida, e o domínio versionado por tag.
@@ -121,7 +121,7 @@ Actions é gratuito em repositório público.
 | job | o que faz |
 |---|---|
 | **✱ verificar** | `npm ci`, `typecheck`, `astro check`, cenários |
-| **✱ contrato com o fluviapp** *(revisto)* | clona o **`fluviapp-kmp`** e o `fluviapp` legado (token da org, §6) e roda a camada 2 do contrato — sem isso os 24 cenários que leem o Kotlin ficam pulados para sempre no CI. Só é possível depois da mudança para a org (D5) |
+| **✱ contrato com o fluviapp** *(revisto)* | clona o **`fluviapp-kmp`** e o `fluviapp` legado (token da org, §6) e roda a camada 2 do contrato — sem isso os 24 cenários que leem o Kotlin ficam pulados para sempre no CI. Os dois já estão na org (D5); falta o token e o job |
 | **✱ build e orçamento** | `npm run build` com as variáveis de homologação; confere o orçamento de JavaScript (0 kB fora da ilha; teto declarado para a ilha) e **varre o `dist/`** por qualquer coisa com cara de credencial |
 | **publicar o domínio** | o que já existe: por tag `domain-v*`, depois de `verify` |
 
@@ -130,7 +130,7 @@ Actions é gratuito em repositório público.
 | job | o que faz |
 |---|---|
 | **✱ verificar** | `npm ci` (o pacote do domínio lido com o `GITHUB_TOKEN`, §6), `typecheck`, cenários |
-| **✱ emulador** *(revisto)* | clona o `fluviapp-kmp` e roda `npm run test:emulador`: Firestore e Auth no emulador, as **Rules do KMP**, a reserva e o `reserva.criada` gravados pelo usuário de serviço, e a recusa da reserva de outra agência. O cenário já existe; falta o job, que depende de D5 |
+| **✱ emulador** *(revisto)* | clona o `fluviapp-kmp` e roda `npm run test:emulador`: Firestore e Auth no emulador, as **Rules do KMP**, a reserva e o `reserva.criada` gravados pelo usuário de serviço, e a recusa da reserva de outra agência. O cenário já existe; falta o job |
 | **✱ auditoria** | `npm audit --omit=dev --audit-level=high` |
 | **fumaça pós-deploy** | disparado pelo `deployment_status` da Vercel: `GET /saude` e `GET /catalogo` no ambiente que acabou de subir; em produção, falha abre uma issue |
 
@@ -154,7 +154,7 @@ Actions é gratuito em repositório público.
 | `TURNSTILE_SECRET` | chave de teste | widget de homologação | widget de produção | Vercel |
 | `UPSTASH_*` | — | banco de homologação | banco de produção | Vercel |
 | token do pacote do domínio | `NPM_TOKEN` da pessoa | leitura por repositório (abaixo) | idem | Vercel / GitHub |
-| leitura do fluviapp no CI | — | — | — | GitHub — *(revisto)* depois de D5, um token da org com leitura só de `fluviapp-kmp` e `fluviapp` |
+| leitura do fluviapp no CI | — | — | — | GitHub — *(revisto)* um token da org (*fine-grained*) com leitura só de `fluviapp-kmp` e `fluviapp` |
 
 - **Sem chave JSON, em produção.** A Vercel emite um token OIDC por deploy, e o *subject* dele diz o ambiente:
   `owner:<time>:project:<projeto>:environment:production`. No Google Cloud, a *Workload Identity Federation*
@@ -209,11 +209,11 @@ o centralizador de produção para tratá-las, de qualquer jeito.
 do catálogo, o `ReservaDocumento.kt` e o `EventoDocumento.kt` no `fluviapp-kmp`, e as coleções no
 `firestore.rules` de lá. Mover um desses arquivos lá quebra o teste aqui — de propósito.
 
-**D5 está decidida**: `fluviapp-kmp` e `fluviapp` vão para a org `navegsistemas`. Deixou de ser só
+**D5 está feita** (2026-09-23): `fluviapp-kmp` e `fluviapp` estão na org `navegsistemas`, privados. Deixou de ser só
 continuidade: é o que deixa o CI daqui clonar o contrato e as Rules, e o KMP ganhar proteção de ramo e
-aprovação no PR de promoção (o que o ADR-0012 §6 de lá deixou de fora por falta de plano). **Depois da
-mudança**, o `origin` dos checkouts locais muda de endereço; os caminhos que o teste lê (`FLUVIAPP_KMP`,
-`FLUVIAPP_ORIGINAL`) não.
+aprovação no PR de promoção (o que o ADR-0012 §6 de lá deixou de fora por falta de plano — e que, privado numa
+org free, continua pedindo o plano Team). Os checkouts locais já apontam para a org; os caminhos que o teste lê (`FLUVIAPP_KMP`,
+`FLUVIAPP_ORIGINAL`) não mudam.
 
 **Esta API continua existindo.** O ADR-0010 do KMP mantém as três aplicações — centralizador, API da agência e
 agência — com o Firestore como barramento; a aposentadoria da API, que este plano cogitava, não está no desenho.
@@ -245,7 +245,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 |---|---|---|
 | **A · ligar a API sob as regras, agora** *(novo)* | merge de `naveg-front#1` e tag `domain-v0.5.0`; `npm install` na API (o lock ainda aponta o 0.4.0 — é por isso que o preview do PR falha); na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; merge de `naveg-api-vercel#1`; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
 | **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
-| **0b · o fluviapp na org** *(novo, era da fase 3)* | `fluviapp-kmp` e `fluviapp` em `navegsistemas`; token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | D5 (decidida) |
+| **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
 | **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web); fumaça pós-deploy | D3, D4 (domínio de homologação) |
 | **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
 | **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio | — |
@@ -262,7 +262,7 @@ de reserva e sem centralizador para tratá-las.
 | **D2** | Vercel Pro para produção? | Aberta. Recomendação: **sim**, num time da NAVEG. O Hobby é não comercial pelos termos da Vercel, e produção de uma empresa nele é risco de ter o deploy pausado |
 | **D3** | Trunk-based com promoção (`main` → `producao`)? | Recomendação: **sim**, como no §4 — e é o que o KMP adotou (ADR-0012 de lá) |
 | **D4** | Os domínios | Aberta. Recomendação: `agencia.naveg.com.br`/`api.naveg.com.br` em produção; `homolog.` e `api-homolog.` em homologação |
-| **D5** | Mover `fluviapp` e `fluviapp-kmp` para a org? | ✅ **Decidida (2026-09-23), em andamento.** Com repositórios privados numa org free não há regra de ramo nem *Environments*: a aprovação obrigatória do PR de promoção do KMP pede o plano Team, ou continua como hoje (as três travas do ADR-0012 de lá) |
+| **D5** | Mover `fluviapp` e `fluviapp-kmp` para a org? | ✅ **Feita (2026-09-23).** Com repositórios privados numa org free não há regra de ramo nem *Environments*: a aprovação obrigatória do PR de promoção do KMP pede o plano Team, ou continua como hoje (as três travas do ADR-0012 de lá). Atenção aos minutos de Actions: privado numa org free divide 2.000 min/mês, e o instalador do Desktop roda em Windows, que conta em dobro |
 | **D6** | Os repositórios da agência voltam a ser privados? | **Indiferente para a segurança**; só vale se a Vercel for Pro. Recomendação: manter públicos até lá |
 | **D7** | Quem aprova a promoção para produção? | O PO, com uma segunda pessoa como suplente — aprovação de uma pessoa só trava férias |
 | **D8** | Sem chave JSON em produção (OIDC) desde o início? | Recomendação: **sim** — mas custa um pouco mais do que antes: a conta de escrita assina o token de serviço pelo IAM, e ganha *Token Creator* sobre si mesma (§6) |

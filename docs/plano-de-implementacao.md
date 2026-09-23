@@ -12,7 +12,7 @@ e são pendência do passo 6 (rodapé e JSON-LD).
 > **Revisão de 2026-09-23 (terceira).** O `fluviapp-kmp` virou **o centralizador da plataforma** e a fonte do
 > contrato (ADR-0010 e ADR-0013 de lá), e o aplicativo Android original passou a ser **legado e referência**:
 > continua distribuindo até a paridade, mas nada novo nasce nele. Os dois repositórios do fluviapp estão
-> sendo movidos para a org `navegsistemas` (D5 do [plano de ambientes](plano-de-ambientes.md), decidida).
+> na org `navegsistemas` desde 2026-09-23 (D5 do [plano de ambientes](plano-de-ambientes.md)).
 
 | projeto | o que é | o que este plano herda dele |
 |---|---|---|
@@ -634,7 +634,7 @@ anônimo.
 - Orçamento de performance no CI: JS da página institucional = 0; ilha do totem com teto declarado.
 - CSP, `Permissions-Policy`, `Referrer-Policy`. Sem `preconnect` para o Firestore: quem fala com ele é o servidor.
 - **Cenários da API** no CI (os dos passos 9 e 10, com portas falsas) e um contra o **emulador** do Firestore; varredura do `dist/` por credencial.
-- **O CI clona o `fluviapp-kmp`** (e o app Android legado, enquanto houver o que não foi portado) para rodar a camada 2 do contrato — sem isso, os 24 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem. **Depende da mudança dos dois repositórios para a org `navegsistemas`** (D5, decidida): só então o CI lê o contrato com um token da org.
+- **O CI clona o `fluviapp-kmp`** (e o app Android legado, enquanto houver o que não foi portado) para rodar a camada 2 do contrato — sem isso, os 24 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem. Os dois repositórios já estão na org `navegsistemas` (D5): o CI lê o contrato com um token da org, só de leitura.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
 - `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
 
@@ -656,13 +656,13 @@ D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limi
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
-**Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). Falta: o domínio 0.5.0 publicado e a API sob as regras no ar (passo 10, "para ligar"); os segredos do Turnstile e do Upstash e o **projeto do front na Vercel**; a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, os repositórios do fluviapp na org (D5).
+**Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). Falta: o domínio 0.5.0 publicado e a API sob as regras no ar (passo 10, "para ligar"); os segredos do Turnstile e do Upstash e o **projeto do front na Vercel**; a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, o token da org e os jobs (os repositórios do fluviapp já estão na org).
 
 ## Riscos registrados
 
 | risco | onde aparece | mitigação |
 |---|---|---|
-| Domínio portado divergir do centralizador | passo 7 | Contrato contra o Kotlin do **`fluviapp-kmp`** (e do app legado, no que falta portar) sobre valores **e significados** e chaves dos documentos, inclusive `reservas` e `eventos`; o CI clona os dois depois de D5 (passo 13) |
+| Domínio portado divergir do centralizador | passo 7 | Contrato contra o Kotlin do **`fluviapp-kmp`** (e do app legado, no que falta portar) sobre valores **e significados** e chaves dos documentos, inclusive `reservas` e `eventos`; o CI clona os dois da org (passo 13) |
 | A API gravar algo que o centralizador não aceita | passo 10 | A API grava **sob as Rules** do KMP, como usuário de serviço: forma, dono e estado inicial são conferidos no servidor, e o evento tem de acompanhar a reserva |
 | A chave Web restringida por referenciador | passo 10 | Quem a usa é o servidor, sem `Referer`; restringir só por API (Identity Toolkit, Firestore), nunca por site |
 | Auth anônima abrir as Rules do fluviapp | passos 9–10 | Resolvido pela segunda emenda do ADR-0002: o navegador não fala com o Firestore, e nenhum provedor é ligado |
