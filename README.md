@@ -20,22 +20,27 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
 | 7 | `@navegsistemas/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
 | 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
-| 9 | `GET /api/catalogo` — o catálogo do fluviapp, lido pelo servidor | — |
-| 10 | `POST /api/reservas` — a escrita, com conta de serviço | — |
+| 9 | `GET /catalogo` — o catálogo do fluviapp, lido pelo servidor e recortado pela concessão | ✅ |
+| 10 | `POST /reservas` — a escrita, com conta de serviço | — |
 | 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
 ## Retomar daqui
 
-**Parei no fim do passo 8.** O totem funciona inteiro na página e em `/totem` (quiosque), contra um
-**catálogo de demonstração** que se anuncia como tal e um repositório **em memória** — nada sai do navegador.
-`npm run verify` deve dar **335 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
-ilha do totem** (ver o orçamento abaixo).
+**Parei no fim do passo 9.** O totem lê o catálogo da API quando `PUBLIC_URL_DA_API` está definida (num
+`apps/agencia/.env`, por exemplo), e o de demonstração quando não está — e a faixa diz qual dos dois. A reserva
+continua **em memória** até o passo 10: com ou sem API, nada é enviado ao atendimento, e a faixa diz isso também.
+`npm run verify` deve dar **353 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
+ilha do totem** (ver o orçamento abaixo). O lado da API está no README da
+[`naveg-api-vercel`](../naveg-api-vercel), com o que falta para vê-la lendo o `fluvi-app-dev` de verdade.
 
-Os 335 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
+O `@navegsistemas/domain` publicado é o **0.2.0**: ganhou o recorte pela concessão e a fronteira de JSON do
+catálogo, que a API e o totem usam dos dois lados do fio.
+
+Os 353 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
 ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem como **pulados**, não como verdes — em
-outra máquina, `335 passed` vira `314 passed | 21 skipped`, e isso é o esperado.
+outra máquina, `353 passed` vira `332 passed | 21 skipped`, e isso é o esperado.
 
 **Decisões de 2026-09-22, já aplicadas:**
 
@@ -67,8 +72,7 @@ fosse do mesmo domínio.
 6 cenários verdes), e o `@navegsistemas/domain` já está preparado para o GitHub Packages — ver "Publicando o
 `@navegsistemas/domain`" abaixo.
 
-**O próximo é o passo 9: `GET /catalogo`, na `naveg-api-vercel`, e ele está destravado.** O que o bloqueava não
-era código, e caiu todo em 2026-09-23:
+**O que destravou o passo 9** não era código, e caiu todo em 2026-09-23:
 
 1. ~~mover os dois repositórios para a org~~ **feito.** Os dois estão na `navegsistemas` — a `naveg-front` foi
    transferida (`github.com/kurtmatheus/naveg-front` hoje é só um redirecionamento) e a `naveg-api-vercel`
@@ -89,8 +93,11 @@ destino. As contas, as chaves e as variáveis da Vercel nascem ali, com nome de 
 produção, **nada disto migra**: contas novas, chaves novas, variáveis novas — e as de dev nunca vão para o
 ambiente de produção.
 
-Nada disso bloqueia a tela: o totem continua rodando contra o catálogo de demonstração, e `npm run dev` sem
-variável de ambiente nenhuma usa ele, com a faixa de demonstração à mostra.
+**O próximo é o passo 10: `POST /reservas`.** A decisão que ele pede antes de começar: publicar também o
+`@navegsistemas/dados`, ou mover o `enviarReserva` para o domínio, que já é publicado.
+
+Nada disso bloqueia a tela: sem variável de ambiente nenhuma, `npm run dev` usa o catálogo de demonstração, com
+a faixa à mostra.
 
 O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimentos, URLs das redes, identificação
 da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo

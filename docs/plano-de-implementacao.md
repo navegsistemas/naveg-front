@@ -428,7 +428,14 @@ viagem/hora-do-dia           formatarHora
 > **O que aparece**, e é o que o passo 10 tem de resolver de verdade: sem App Check, o endpoint aberto precisa
 > de desafio e de limite por IP.
 
-## Passo 9 — A API do catálogo
+## Passo 9 — A API do catálogo ✅
+
+> **Feito em 2026-09-23.** Os nomes abaixo são os do plano; os arquivos de verdade são `src/rotas/catalogo.ts`,
+> `src/firestore/catalogo-firestore.ts` e `src/firestore/conexao.ts` na API, e `packages/domain/src/catalogo/recorte.ts`
+> e `serializacao.ts` aqui (`@navegsistemas/domain` 0.2.0). Duas diferenças do que estava escrito: o **recorte** virou
+> função do domínio (`recortarPelaConcessao`), porque é regra, e a API não é dona de regra; e a faixa de demonstração
+> do `Totem` deixou de ser booleano — com a API, as saídas são reais e só o envio é de mentira, e a faixa diz isso.
+> **Falta ver contra o `fluvi-app-dev` de verdade**: os cenários usam portas falsas, e a API ainda não subiu na Vercel.
 
 **← Análise do passo anterior:** o totem funciona inteiro contra o catálogo de demonstração e a porta em memória. Revalidar que `ilhas/TotemDaAgencia.tsx` é **o único** arquivo que precisa mudar para trocar as fontes — se outro precisar, a fronteira do passo 8 vazou.
 
