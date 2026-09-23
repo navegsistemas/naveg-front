@@ -499,18 +499,31 @@ viagem/hora-do-dia           formatarHora
 > **emulador** existe — `npm run test:emulador` na API, com as Rules do `fluviapp-kmp`, inclusive a recusa da
 > reserva de outra agência —, mas roda só onde os dois repositórios estão lado a lado.
 >
-> **Para ligar, nesta ordem:**
-> 1. merge do naveg-front#1 e a tag `domain-v0.5.0`;
-> 2. na API, `npm install` (o `package-lock.json` ainda aponta o 0.4.0, e é por isso que o preview da Vercel do
->    PR falha) e push;
-> 3. na Vercel da API: `FIREBASE_WEB_API_KEY` (a `apiKey` do app Web do Firebase — **sem restrição por
+> **Para ligar, nesta ordem** — *situação às 20:35 de 2026-09-23 (Belém):*
+> 1. ✅ merge do naveg-front#1 e a tag `domain-v0.5.0`, publicada;
+> 2. ✅ na API, o lock no 0.5.0, e ✅ merge do naveg-api-vercel#1 — que **derrubou a API** (ver o incidente
+>    abaixo) — e ✅ do naveg-api-vercel#2, que a trouxe de volta: `/saude` e `/catalogo` respondem `200`, e o
+>    `POST` responde `503` "envio não configurado", que é o esperado enquanto o item 3 não entra;
+> 3. ⏳ na Vercel da API — **é aqui que paramos**; o log da partida lista o que falta: `FIREBASE_WEB_API_KEY` (a `apiKey` do app Web do Firebase — **sem restrição por
 >    referenciador**, porque quem a usa é o servidor, que não manda `Referer`), e o que o passo já pedia:
 >    `TURNSTILE_SECRET`, `UPSTASH_REDIS_REST_URL`/`_TOKEN`, `ORIGENS_PERMITIDAS`;
-> 4. **o projeto do front na Vercel**, que ainda não existe: `PUBLIC_URL_DA_API` e a chave pública do Turnstile;
-> 5. merge do naveg-api-vercel#1; a prova é uma reserva feita no totem aparecer na seção Reservas do painel de
->    homologação do KMP, e ser cancelada lá;
-> 6. no IAM, **tirar o papel *Cloud Datastore User* da `naveg-api-escrita`** — é o que tira de uma chave vazada o
->    poder de gravar por cima das Rules.
+> 4. ⏳ **o projeto do front na Vercel**, que ainda não existe: `PUBLIC_URL_DA_API` e a chave pública do Turnstile;
+> 5. ⏳ **a prova**: uma reserva feita no totem aparecer na seção Reservas do painel de homologação do KMP, e ser
+>    cancelada lá. É também a primeira vez que o token de serviço é conferido de verdade — o emulador do Auth
+>    **não confere a assinatura**, então só o Identity Toolkit real prova que a chave assina certo;
+> 6. ⏳ no IAM, **tirar o papel *Cloud Datastore User* da `naveg-api-escrita`** — só depois do item 5; é o que
+>    tira de uma chave vazada o poder de gravar por cima das Rules.
+>
+> **Incidente de 2026-09-23, 23:07–23:19 UTC: a API fora do ar.** O naveg-api-vercel#1 passou a importar o
+> `firebase-admin/auth` para assinar o token de serviço; ele puxa o `jwks-rsa` 4, que faz `require()` do `jose` 6
+> (só-ESM). O Node local aceita, **o runtime da Vercel não** (`ERR_REQUIRE_ESM` no carregador dela), e a função
+> caía na partida — até o `/saude`. Nenhum cenário local pegaria: 56 verdes e o emulador verde. A correção
+> (naveg-api-vercel#2) assina o JWT com `node:crypto`, e um cenário impede o import de voltar. **A lição vai para
+> a esteira:** o job de fumaça pós-deploy (plano de ambientes, §5) teria transformado 12 minutos de queda
+> silenciosa num check vermelho no próprio PR, porque o preview da Vercel já caía do mesmo jeito. Não foi escolhido
+> o *Instant Rollback* porque ninguém dependia da API ainda, e o rollback suspende a promoção automática dos
+> deploys seguintes. Pendência miúda: o comentário de `token-customizado.ts` cita `test/estrutura.spec.ts`, e o
+> cenário está em `test/token-customizado.spec.ts`.
 
 **← Análise do passo anterior:** o totem mostra saídas reais, e nenhuma credencial chegou ao navegador.
 

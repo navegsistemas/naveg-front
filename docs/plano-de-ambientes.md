@@ -25,7 +25,7 @@ Uma fotografia, conferida no GitHub, na Vercel e no Firebase no dia da proposta:
 | **Vercel** | plano **Hobby**, conta pessoal (`kurtmatheus-projects`); só a API tem projeto | o Hobby é **restrito a uso pessoal e não comercial** (fair use da Vercel) — a NAVEG é uma empresa; logs duram **1 hora** |
 | **Variáveis da API** | um conjunto, com as chaves do `fluvi-app-dev`; a proteção do envio desligada | nada separa o que um preview pode tocar do que produção toca |
 | **Firebase** | `fluvi-app-dev` (o do aplicativo) e `naveg-app-homol` (não é destino) | **não existe projeto de produção**; o próprio aplicativo distribui "produção" apontando para o `fluvi-app-dev` |
-| **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar ainda grava pelo Admin SDK, por cima delas, e sem o evento — até o PR `naveg-api-vercel#1` entrar |
+| **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar já grava **sob elas**, com o evento (`naveg-api-vercel#1` e #2); o envio só está desligado enquanto faltarem as variáveis do Turnstile, do Upstash e a chave Web |
 | **Org no GitHub** | `navegsistemas`, plano free, 3 membros, **2FA não obrigatório** | um token vazado de qualquer membro chega aos dois repositórios públicos |
 | **Repositórios do fluviapp** *(revisto)* | `fluviapp-kmp` (o centralizador) e `fluviapp` (legado e referência), **privados, na org `navegsistemas` desde 2026-09-23** (D5) | o CI daqui ainda não clona o contrato: falta o token da org e os jobs (fase 0b) |
 
@@ -132,7 +132,7 @@ Actions é gratuito em repositório público.
 | **✱ verificar** | `npm ci` (o pacote do domínio lido com o `GITHUB_TOKEN`, §6), `typecheck`, cenários |
 | **✱ emulador** *(revisto)* | clona o `fluviapp-kmp` e roda `npm run test:emulador`: Firestore e Auth no emulador, as **Rules do KMP**, a reserva e o `reserva.criada` gravados pelo usuário de serviço, e a recusa da reserva de outra agência. O cenário já existe; falta o job |
 | **✱ auditoria** | `npm audit --omit=dev --audit-level=high` |
-| **fumaça pós-deploy** | disparado pelo `deployment_status` da Vercel: `GET /saude` e `GET /catalogo` no ambiente que acabou de subir; em produção, falha abre uma issue |
+| **✱ fumaça pós-deploy** *(revisto: obrigatório, e já na fase 0)* | disparado pelo `deployment_status` da Vercel: `GET /saude` e `GET /catalogo` no ambiente que acabou de subir — **inclusive o preview do PR, e aí bloqueia o merge**; em produção, falha abre uma issue. O incidente de 2026-09-23 (a API caída na partida, com todos os cenários verdes) é exatamente o que ele pega |
 
 ### Nos dois
 
@@ -243,10 +243,10 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 
 | fase | o quê | depende de |
 |---|---|---|
-| **A · ligar a API sob as regras, agora** *(novo)* | merge de `naveg-front#1` e tag `domain-v0.5.0`; `npm install` na API (o lock ainda aponta o 0.4.0 — é por isso que o preview do PR falha); na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; merge de `naveg-api-vercel#1`; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
-| **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
+| **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). **Falta:** na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
+| **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
 | **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
-| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web); fumaça pós-deploy | D3, D4 (domínio de homologação) |
+| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
 | **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
 | **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio | — |
 
