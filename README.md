@@ -32,8 +32,10 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 `apps/agencia/.env`, por exemplo), e o de demonstração quando não está — e a faixa diz qual dos dois. A reserva
 continua **em memória** até o passo 10: com ou sem API, nada é enviado ao atendimento, e a faixa diz isso também.
 `npm run verify` deve dar **353 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
-ilha do totem** (ver o orçamento abaixo). O lado da API está no README da
-[`naveg-api-vercel`](../naveg-api-vercel), com o que falta para vê-la lendo o `fluvi-app-dev` de verdade.
+ilha do totem** (ver o orçamento abaixo). A API está no ar em
+`https://naveg-api-vercel.vercel.app` e lê o `fluvi-app-dev` de verdade — com `PUBLIC_URL_DA_API` apontando
+para ela, o totem mostra as duas viagens cadastradas lá. Os detalhes estão no README da
+[`naveg-api-vercel`](../naveg-api-vercel).
 
 O `@navegsistemas/domain` publicado é o **0.2.0**: ganhou o recorte pela concessão e a fronteira de JSON do
 catálogo, que a API e o totem usam dos dois lados do fio.

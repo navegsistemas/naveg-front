@@ -435,7 +435,8 @@ viagem/hora-do-dia           formatarHora
 > e `serializacao.ts` aqui (`@navegsistemas/domain` 0.2.0). Duas diferenças do que estava escrito: o **recorte** virou
 > função do domínio (`recortarPelaConcessao`), porque é regra, e a API não é dona de regra; e a faixa de demonstração
 > do `Totem` deixou de ser booleano — com a API, as saídas são reais e só o envio é de mentira, e a faixa diz isso.
-> **Falta ver contra o `fluvi-app-dev` de verdade**: os cenários usam portas falsas, e a API ainda não subiu na Vercel.
+> **Visto contra o `fluvi-app-dev` de verdade** no mesmo dia: a API no ar devolve as duas viagens cadastradas, e o
+> caminho do totem (`catalogoHttp` → `travessiasOfertadas`) as oferta.
 
 **← Análise do passo anterior:** o totem funciona inteiro contra o catálogo de demonstração e a porta em memória. Revalidar que `ilhas/TotemDaAgencia.tsx` é **o único** arquivo que precisa mudar para trocar as fontes — se outro precisar, a fronteira do passo 8 vazou.
 
