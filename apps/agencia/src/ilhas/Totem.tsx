@@ -6,14 +6,13 @@
  * "voltar" de `voltar()`, a conferência de `montarReserva`. Não há pilha de telas, não há lista de passos
  * guardada — dois registros da mesma coisa divergem, e aqui só existe um.
  *
- * As dependências entram por propriedade (fonte do catálogo, repositório, relógio), e é isso que deixa os
+ * As dependências entram por propriedade (fonte do catálogo, envio, relógio), e é isso que deixa os
  * cenários dirigirem o totem inteiro sem rede e sem esperar o relógio. A ilha da página
  * (`TotemDaAgencia.tsx`) é quem as constrói.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import {
-  enviarReserva,
   InstanteLocal,
   montarReserva,
   roteiroDaReserva,
@@ -22,11 +21,10 @@ import {
   type CatalogoDoFluviapp,
   type PendenciaDaReserva,
   type Reserva,
-  type ReservaRepositorio,
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
-import type { FonteDoCatalogo } from '@navegsistemas/dados'
+import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
   Conferencia,
@@ -42,7 +40,8 @@ export type Demonstracao = 'SAIDAS_E_ENVIO' | 'ENVIO'
 
 export interface PropsDoTotem {
   readonly fonte: FonteDoCatalogo
-  readonly repositorio: ReservaRepositorio
+  /** Para onde a reserva vai: a API, ou — na demonstração e nos cenários — a memória. */
+  readonly envio: EnvioDaReserva
   /** O fuso da operação — ver `conteudo/operacao.ts`. */
   readonly fuso: string
   /** `null` desliga o zerar por inatividade (fora do quiosque). */
@@ -76,7 +75,7 @@ const CODIGO_DA_PREVIA = 'NVG-000000'
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, repositorio, fuso, inatividadeMs, demonstracao, quiosque = false, relogio = relogioDoSistema }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, relogio = relogioDoSistema }: PropsDoTotem) {
   const lerAgora = useCallback(() => InstanteLocal.emFuso(relogio(), fuso), [relogio, fuso])
 
   const [catalogo, setCatalogo] = useState<CatalogoDoFluviapp | null>(null)
@@ -168,12 +167,7 @@ export function Totem({ fonte, repositorio, fuso, inatividadeMs, demonstracao, q
   async function confirmar() {
     if (travessia === null) return
     setEnvio({ estado: 'ENVIANDO' })
-    const resultado = await enviarReserva({
-      respostas,
-      contexto: travessia.contexto,
-      criadoEm: lerAgora(),
-      repositorio,
-    })
+    const resultado = await envioDaReserva.enviar({ travessia, respostas, criadoEm: lerAgora() })
     switch (resultado.caso) {
       case 'ENVIADA':
         setEnvio({ estado: 'ENVIADA', reserva: resultado.reserva, travessia })

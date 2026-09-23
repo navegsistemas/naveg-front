@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { fonteConfigurada, URL_DA_API_PADRAO, UrlDaApiInvalida } from '../src/conteudo/api'
+import { envioConfigurado, fonteConfigurada, URL_DA_API_PADRAO, UrlDaApiInvalida } from '../src/conteudo/api'
 
 describe('a fonte do catálogo', () => {
   it('sem configuração, é a API de produção — o site publicado não mostra saídas fictícias por esquecimento', () => {
@@ -26,5 +26,22 @@ describe('a fonte do catálogo', () => {
     for (const torto of ['naveg-api-vercel.vercel.app', 'http://naveg-api-vercel.vercel.app', 'demonstração', 'ftp://x']) {
       expect(() => fonteConfigurada(torto), torto).toThrow(UrlDaApiInvalida)
     }
+  })
+})
+
+describe('para onde a reserva vai', () => {
+  const API = fonteConfigurada(undefined)
+
+  it('para a API só com o catálogo dela e a chave do desafio', () => {
+    expect(envioConfigurado(API, '0x4AAAAAAA')).toEqual({ tipo: 'API', url: URL_DA_API_PADRAO, chaveDoDesafio: '0x4AAAAAAA' })
+  })
+
+  it('sem a chave, fica em memória — a API recusaria todo envio sem desafio', () => {
+    expect(envioConfigurado(API, undefined)).toEqual({ tipo: 'MEMORIA' })
+    expect(envioConfigurado(API, '  ')).toEqual({ tipo: 'MEMORIA' })
+  })
+
+  it('na demonstração, nunca para a API — mesmo com a chave', () => {
+    expect(envioConfigurado({ tipo: 'DEMONSTRACAO' }, '0x4AAAAAAA')).toEqual({ tipo: 'MEMORIA' })
   })
 })

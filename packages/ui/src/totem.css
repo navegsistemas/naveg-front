@@ -34,6 +34,22 @@
   font-size: 0.95rem;
 }
 
+/* O desafio do Turnstile, quando a Cloudflare pede interação: fixo no rodapé, acima de tudo, e vazio — sem
+   ocupar espaço — no caso comum, em que ele resolve sozinho. */
+.totem-desafio {
+  position: fixed;
+  inset-inline: 0;
+  bottom: var(--espaco-3);
+  display: flex;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.totem-desafio > * {
+  pointer-events: auto;
+}
+
 .totem-demonstracao {
   margin: 0;
   padding: var(--espaco-3);

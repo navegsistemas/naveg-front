@@ -139,3 +139,13 @@ export type {
   ResultadoDaGravacao,
   ResultadoDoEnvio,
 } from './reserva/envio-da-reserva.js'
+export {
+  LIMITE_DA_CILINDRADA,
+  LIMITE_DE_PESSOAS,
+  LIMITE_DO_DESAFIO,
+  LIMITE_DO_NOME,
+  LIMITE_DO_TELEFONE,
+  pedidoDeReservaDoJson,
+  respostasDoJson,
+} from './reserva/pedido-http.js'
+export type { PedidoDeReserva, PedidoDeReservaJson, ReservaCriadaJson } from './reserva/pedido-http.js'

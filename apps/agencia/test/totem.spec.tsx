@@ -11,7 +11,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { catalogoFixo, ReservaEmMemoria } from '@navegsistemas/dados'
+import { catalogoFixo, envioLocal, ReservaEmMemoria } from '@navegsistemas/dados'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO } from '../src/conteudo/operacao'
@@ -30,7 +30,7 @@ function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date; d
   render(
     <Totem
       fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
-      repositorio={repositorio}
+      envio={envioLocal(repositorio)}
       fuso={FUSO_DA_OPERACAO}
       inatividadeMs={opcoes.inatividadeMs ?? null}
       demonstracao={opcoes.demonstracao === undefined ? 'SAIDAS_E_ENVIO' : opcoes.demonstracao}

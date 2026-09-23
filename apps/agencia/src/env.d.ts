@@ -8,6 +8,8 @@ interface ImportMetaEnv {
    * catálogo de demonstração. Ver `conteudo/api.ts`.
    */
   readonly PUBLIC_URL_DA_API?: string
+  /** A chave **pública** do widget do Turnstile. Ausente: a reserva fica em memória. Ver `conteudo/api.ts`. */
+  readonly PUBLIC_TURNSTILE_SITE_KEY?: string
 }
 
 interface ImportMeta {

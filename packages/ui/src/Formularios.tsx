@@ -11,7 +11,7 @@
  */
 import { useId, useState, type FormEvent } from 'react'
 
-import { normalizarWhatsapp, type RascunhoDoCliente } from '@navegsistemas/domain'
+import { LIMITE_DO_NOME, LIMITE_DO_TELEFONE, normalizarWhatsapp, type RascunhoDoCliente } from '@navegsistemas/domain'
 
 export interface PropsDoFormularioDoCliente {
   readonly inicial: RascunhoDoCliente | undefined
@@ -42,6 +42,7 @@ export function FormularioDoCliente({ inicial, aoConfirmar }: PropsDoFormularioD
           id={`${id}-nome`}
           name="nome"
           autoComplete="name"
+          maxLength={LIMITE_DO_NOME}
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           aria-invalid={tentou && nomeVazio}
@@ -65,6 +66,7 @@ export function FormularioDoCliente({ inicial, aoConfirmar }: PropsDoFormularioD
           inputMode="tel"
           autoComplete="tel"
           placeholder="(91) 98888-7777"
+          maxLength={LIMITE_DO_TELEFONE}
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
           aria-invalid={tentou && telefoneInvalido}
