@@ -1,5 +1,5 @@
 /**
- * **`@naveg/domain`** — o domínio da reserva.
+ * **`@navegsistemas/domain`** — o domínio da reserva.
  *
  * Três partes, e as fronteiras entre elas são o que importa:
  *

@@ -15,7 +15,7 @@
  * a revisão de segurança do passo 9 ([ADR-0002]). A Fase 1 sai com a vitrine; o formulário entra depois do
  * totem, reaproveitando a fronteira que já terá sido montada e revisada, em vez de abrir uma segunda.
  */
-import type { SlugIcone } from '@naveg/design-system'
+import type { SlugIcone } from '@navegsistemas/design-system'
 
 export interface Depoimento {
   readonly id: string

@@ -11,14 +11,14 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | passo | o que é | estado |
 |---|---|---|
 | 0 | Esqueleto do monorepo e ADRs | ✅ |
-| 1 | `@naveg/design-system` — tokens, base, marca, ícones | ✅ |
+| 1 | `@navegsistemas/design-system` — tokens, base, marca, ícones | ✅ |
 | 2 | `apps/agencia` — casca Astro da single page | ✅ |
 | 3 | Seção Capa — proposta, credenciais e a vitrine da flotilha | ✅ |
 | 4 | Seção Atendimento — o argumento e quem atende | ✅ |
 | 5 | Seção Avaliações — a vitrine e as redes da Meta | ✅ |
 | 6 | Rodapé — identificação, contatos, endereços e o que a lei exige | ✅ |
 | — | **A página institucional está completa e publicável, sem uma linha de Firebase** | 🏁 |
-| 7 | `@naveg/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
+| 7 | `@navegsistemas/domain` — a reserva, o roteiro do totem, o catálogo do fluviapp, o código `NVG-` e o codec | ✅ |
 | 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
 | 9 | `GET /api/catalogo` — o catálogo do fluviapp, lido pelo servidor | — |
 | 10 | `POST /api/reservas` — a escrita, com conta de serviço | — |
@@ -64,16 +64,18 @@ institucional continua **inteiramente estática**; em compensação, aparece **C
 fosse do mesmo domínio.
 
 **O esqueleto da API já existe** (Hono, configuração que falha na partida, CORS, forma do erro, `GET /saude`,
-6 cenários verdes), e o `@naveg/domain` já está preparado para o GitHub Packages — ver "Publicando o
-`@naveg/domain`" abaixo.
+6 cenários verdes), e o `@navegsistemas/domain` já está preparado para o GitHub Packages — ver "Publicando o
+`@navegsistemas/domain`" abaixo.
 
 **O próximo é o passo 9: `GET /catalogo`, na `naveg-api-vercel`.** Ele está bloqueado por coisas que não são
 código:
 
-1. **mover os dois repositórios para a org `naveg`.** O GitHub Packages só aceita `@naveg/…` de repositório da
-   org de mesmo nome; hoje o remoto é `github.com/kurtmatheus/naveg-front`;
+1. ~~mover os dois repositórios para a org~~ **feito.** Os dois estão na `navegsistemas` — a `naveg-front` foi
+   transferida (`github.com/kurtmatheus/naveg-front` hoje é só um redirecionamento) e a `naveg-api-vercel`
+   subiu em 2026-09-23. **O escopo do pacote passou a ser `@navegsistemas`**, porque o GitHub Packages exige
+   que ele seja o nome da org, e a org que existe é a `navegsistemas`, não uma `naveg`;
 2. **um PAT clássico com `read:packages`** como `NPM_TOKEN`, na Vercel e na máquina de quem desenvolve;
-3. **publicar o `@naveg/domain` 0.1.0** (tag `domain-v0.1.0`, o workflow faz o resto);
+3. **publicar o `@navegsistemas/domain` 0.1.0** (tag `domain-v0.1.0`, o workflow faz o resto);
 4. **a conta de serviço** do projeto do fluviapp (uma de leitura, uma de escrita) e o **`NAVEG_EMPRESA_ID`**,
    para achar a concessão `empresas/{id}/atuacoes/AGENCIAMENTO`.
 
@@ -100,10 +102,10 @@ npm run verify      # typecheck + astro check + cenários
 npm test            # só os cenários
 
 npm run publicar:domain -- --ensaio   # monta o pacote publicável, sem publicar
-npm run publicar:domain               # publica o @naveg/domain no GitHub Packages
+npm run publicar:domain               # publica o @navegsistemas/domain no GitHub Packages
 ```
 
-### Publicando o `@naveg/domain`
+### Publicando o `@navegsistemas/domain`
 
 O domínio é consumido de dois jeitos, e eles pedem coisas diferentes:
 
@@ -121,7 +123,7 @@ para conferir o que vai.
 **Para publicar uma versão:**
 
 ```bash
-npm version --workspace @naveg/domain patch --no-git-tag-version   # ou minor/major
+npm version --workspace @navegsistemas/domain patch --no-git-tag-version   # ou minor/major
 git commit -am "domain 0.1.1"
 git tag domain-v0.1.1
 git push && git push --tags
@@ -132,9 +134,10 @@ A tag dispara [`.github/workflows/publicar-domain.yml`](.github/workflows/public
 workflow. Publicar da máquina também funciona (`npm run publicar:domain`), desde que o `~/.npmrc` tenha um
 token com `write:packages`.
 
-> **O escopo precisa ser o dono do repositório.** O GitHub Packages publica `@naveg/domain` **se** o
-> `naveg-front` pertencer à organização `naveg`. Enquanto o remoto for `github.com/kurtmatheus/naveg-front`, o
-> publish é recusado — e o conserto é mover o repositório para a org, não renomear o pacote.
+> **O escopo precisa ser o dono do repositório.** O GitHub Packages publica `@navegsistemas/domain` porque o
+> `naveg-front` pertence à organização `navegsistemas`. Foi essa regra que decidiu o nome do escopo: não existe
+> org `naveg`, e inventar uma só para casar com um escopo mais curto custaria mover os repositórios de novo e
+> deixar para trás o resto do que a empresa já tem lá.
 
 ### O orçamento
 

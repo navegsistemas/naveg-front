@@ -12,7 +12,7 @@
  * Com [quadrosDaVitrine] a regra passa a ser uma função pura, com cenário próprio: acrescentar uma embarcação à
  * lista acerta a animação sozinho.
  */
-import type { SlugIcone } from '@naveg/design-system'
+import type { SlugIcone } from '@navegsistemas/design-system'
 
 export interface Embarcacao {
   readonly id: string

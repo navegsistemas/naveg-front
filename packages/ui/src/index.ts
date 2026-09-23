@@ -1,8 +1,8 @@
 /**
- * **`@naveg/ui`** — as telas do totem, controladas e sem estado de aplicação.
+ * **`@navegsistemas/ui`** — as telas do totem, controladas e sem estado de aplicação.
  *
  * Cada componente recebe o que mostrar e devolve o gesto. As opções vêm dos nós do roteiro; os textos, de
- * `textos.ts`, que o compilador obriga a acompanhar o domínio. A folha de estilo é `@naveg/ui/totem.css`, e
+ * `textos.ts`, que o compilador obriga a acompanhar o domínio. A folha de estilo é `@navegsistemas/ui/totem.css`, e
  * só consome tokens.
  */
 export { EscolhaEmCartoes } from './EscolhaEmCartoes.js'

@@ -23,8 +23,8 @@ import {
   type Reserva,
   type RespostasDaReserva,
   type TravessiaOfertada,
-} from '@naveg/domain'
-import { enviarReserva, type FonteDoCatalogo, type ReservaRepositorio } from '@naveg/dados'
+} from '@navegsistemas/domain'
+import { enviarReserva, type FonteDoCatalogo, type ReservaRepositorio } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
   Conferencia,
@@ -34,7 +34,7 @@ import {
   ReservaConcluida,
   TEXTO_DO_PASSO,
   resumoDaReserva,
-} from '@naveg/ui'
+} from '@navegsistemas/ui'
 
 export interface PropsDoTotem {
   readonly fonte: FonteDoCatalogo

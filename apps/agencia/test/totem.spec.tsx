@@ -11,7 +11,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { catalogoFixo, ReservaEmMemoria } from '@naveg/dados'
+import { catalogoFixo, ReservaEmMemoria } from '@navegsistemas/dados'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO } from '../src/conteudo/operacao'

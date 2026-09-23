@@ -138,7 +138,7 @@ Ordem geral: **fundação → seções de exibição → domínio da reserva →
 
 ## Passo 2 — `apps/agencia`: casca da single page · ✅ concluído em 2026-09-22
 
-**← Análise do passo anterior:** tokens publicados por subcaminho (`@naveg/design-system/tokens.css`), cenário de contraste verde.
+**← Análise do passo anterior:** tokens publicados por subcaminho (`@navegsistemas/design-system/tokens.css`), cenário de contraste verde.
 
 > **Ajuste feito na entrada deste passo.** `<meta name="theme-color">` precisa de cor literal, e o lint do passo 1 proíbe. A saída foi `src/marca.ts` — uma **segunda e última** casa para valor de cor, fechada por cenário que a amarra aos tokens. Sem esse cenário seria exatamente o problema que a regra existe para impedir; com ele, divergir é build vermelho.
 >
@@ -209,7 +209,7 @@ Nada de `aria-roledescription="carrossel"`: esse papel promete controles de slid
 **Dados recebidos do cliente:** agência é a própria NAVEG (uma só); "Atendente" é a função; nome fica como placeholder; horário **24 h**; por ora **um atendente com um WhatsApp**, com potencial de expansão; e a seção deve argumentar que do outro lado há quem entende do negócio.
 
 **Entregue**
-- `conteudo/whatsapp.ts` — `normalizarTelefone` e `linkDeWhatsApp`, puros. **Antecipados do passo 10**, porque esta seção já precisa da metade que não depende da reserva. No passo 10 mudam de casa para `@naveg/domain`; a assinatura não muda, porque o que a reserva acrescenta é o texto, não o mecanismo.
+- `conteudo/whatsapp.ts` — `normalizarTelefone` e `linkDeWhatsApp`, puros. **Antecipados do passo 10**, porque esta seção já precisa da metade que não depende da reserva. No passo 10 mudam de casa para `@navegsistemas/domain`; a assinatura não muda, porque o que a reserva acrescenta é o texto, não o mecanismo.
 - `conteudo/atendimento.ts` — os três pontos do argumento e a lista de atendentes.
 - `Atendimento.astro` — duas colunas: o argumento à esquerda, quem o cumpre à direita.
 - `public/atendentes/LEIA-ME.md`.
@@ -389,7 +389,7 @@ viagem/hora-do-dia           formatarHora
 - Ergonomia de totem: alvos ≥56px, um passo por vez, sem scroll dentro do passo, `inputmode` correto, e **timeout de inatividade que zera respostas e travessia** — o dado do próximo cliente não nasce com o do anterior.
 - Aviso permanente no topo da seção: **reserva, não venda** — e que ela vale até a partida.
 - Modo quiosque: `id="totem"` na seção e `/totem` como página cheia.
-- `apps/agencia` passa a depender de `@naveg/domain`: consolidar `conteudo/cnpj.ts` em `TipoDocumento.validar('CNPJ', …)` e `conteudo/telefone.ts` em `normalizarWhatsapp` (que decide pelo comprimento e não erra o DDD 55).
+- `apps/agencia` passa a depender de `@navegsistemas/domain`: consolidar `conteudo/cnpj.ts` em `TipoDocumento.validar('CNPJ', …)` e `conteudo/telefone.ts` em `normalizarWhatsapp` (que decide pelo comprimento e não erra o DDD 55).
 
 **Aceite**
 - Fluxo completo só por teclado; `aria-live` anuncia a troca de passo.
@@ -419,8 +419,8 @@ viagem/hora-do-dia           formatarHora
 >
 > **A API é repositório próprio** (decisão de 2026-09-22), e daí duas consequências para este plano: o
 > `apps/agencia` **continua inteiramente estático** — sem adaptador, sem rota sob demanda — e aparece **CORS**,
-> que não existiria se a API fosse do mesmo domínio. O `@naveg/domain` passa a ser **publicado** no GitHub
-> Packages para que os dois repositórios usem a mesma regra; ver "Publicando o `@naveg/domain`" no README.
+> que não existiria se a API fosse do mesmo domínio. O `@navegsistemas/domain` passa a ser **publicado** no GitHub
+> Packages para que os dois repositórios usem a mesma regra; ver "Publicando o `@navegsistemas/domain`" no README.
 >
 > **O que sobra do lado do fluviapp** é uma mudança pequena e do feitio das que já existem lá: o **aplicativo**
 > precisa ler `reservas` e marcá-las `CONVERTIDA` (passo 12). Nada público.
@@ -434,11 +434,11 @@ viagem/hora-do-dia           formatarHora
 
 **Entrega — na `naveg-api-vercel`**
 - `src/rotas/catalogo.ts` — `GET /catalogo`, devolve o `CatalogoDoFluviapp` **já recortado pela concessão** da NAVEG: só as viagens de rota ativa que a atuação cobre, e só os portos, localidades e embarcações que elas citam. Minimização: o pool das outras empresas não sai do servidor.
-- `src/firestore/CatalogoFirestore.ts` — o adaptador de leitura: lê as seis coleções com o Admin SDK e decodifica com `@naveg/domain` (`viagemDoDocumento` e companhia, que já leem como o aplicativo lê). O endpoint é fino: chama a porta, serializa, responde.
-- **A fronteira de serialização**, em `@naveg/domain/catalogo`: `catalogoParaJson` / `catalogoDoJson`. A concessão é `ReadonlySet`, que não sobrevive a `JSON.stringify` — e um `Set` que chega como `{}` vazio faz o totem não ofertar nada, em silêncio. O par tem cenário de ida e volta.
+- `src/firestore/CatalogoFirestore.ts` — o adaptador de leitura: lê as seis coleções com o Admin SDK e decodifica com `@navegsistemas/domain` (`viagemDoDocumento` e companhia, que já leem como o aplicativo lê). O endpoint é fino: chama a porta, serializa, responde.
+- **A fronteira de serialização**, em `@navegsistemas/domain/catalogo`: `catalogoParaJson` / `catalogoDoJson`. A concessão é `ReadonlySet`, que não sobrevive a `JSON.stringify` — e um `Set` que chega como `{}` vazio faz o totem não ofertar nada, em silêncio. O par tem cenário de ida e volta.
 **Entrega — no `naveg-front`**
 - `packages/dados` ganha `catalogoHttp(url)`, implementando a `FonteDoCatalogo` que o totem já consome. `TotemDaAgencia.tsx` troca `catalogoFixo(CATALOGO_DE_DEMONSTRACAO)` por ele — e é a única linha de ilha que muda. A URL da API entra como `PUBLIC_URL_DA_API` (pública de propósito: é um endereço, não um segredo).
-- O `@naveg/domain` publicado, para a API consumir a mesma regra.
+- O `@navegsistemas/domain` publicado, para a API consumir a mesma regra.
 - **Cache na borda**: `Cache-Control: public, s-maxage=60, stale-while-revalidate=600`. O catálogo muda quando alguém cadastra uma viagem, não a cada pedido; um minuto de cache derruba a leitura do Firestore a quase nada e mantém a lista fresca. **A disponibilidade continua sendo calculada no navegador**, a cada minuto, sobre o catálogo em mãos — por isso o cache não faz saída vencida aparecer.
 - **O catálogo de demonstração fica**, como recurso de desenvolvimento e dos cenários: sem as variáveis de ambiente, `npm run dev` usa ele e a faixa de demonstração continua aparecendo. É o que mantém o totem rodável sem credencial.
 
@@ -470,7 +470,7 @@ viagem/hora-do-dia           formatarHora
   3. `montarReserva(respostas, contexto, { codigo: gerarCodigoDaReserva(), criadoEm: InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO) })`;
   4. `INCOERENTE` vira `422` com as pendências **tipadas** — o totem já tem texto para cada uma;
   5. `paraDocumento` e `create` com o Admin SDK. Documento existente derruba a gravação (`ALREADY_EXISTS`): gera outro código e monta de novo, até cinco vezes. É o `enviarReserva` que já existe, com a porta do Firestore no lugar da de memória.
-- Na `naveg-api-vercel`, `src/firestore/ReservaFirestore.ts` — a `ReservaRepositorio` de verdade: `create` que devolve `CODIGO_EM_USO` no `ALREADY_EXISTS`. O caso de uso (`enviarReserva`) é o mesmo do `@naveg/dados`… que vive no front. **Decisão a tomar no passo 10:** publicar também o `@naveg/dados`, ou mover `enviarReserva` para o domínio, que já é publicado.
+- Na `naveg-api-vercel`, `src/firestore/ReservaFirestore.ts` — a `ReservaRepositorio` de verdade: `create` que devolve `CODIGO_EM_USO` no `ALREADY_EXISTS`. O caso de uso (`enviarReserva`) é o mesmo do `@navegsistemas/dados`… que vive no front. **Decisão a tomar no passo 10:** publicar também o `@navegsistemas/dados`, ou mover `enviarReserva` para o domínio, que já é publicado.
 - No front, `packages/dados` ganha `reservaHttp(url)`: implementa a mesma porta, mandando o `POST` e traduzindo `409`/`422` nos casos que o totem já trata. **O `Totem.tsx` não muda.**
 - **O desafio**: Cloudflare Turnstile no passo de conferência. A chave pública é do bundle; a secreta, do servidor. Sem desafio válido, `403`.
 - **O limite por IP**: contador em Upstash Redis (plano gratuito), por janela curta. Passou do teto, `429`. É o substituto do App Check, e é o único lugar onde a API é mais frágil do que a porta do Firestore com App Check ligado — por isso ele é entrega, e não "depois".
@@ -529,7 +529,7 @@ Mais os índices `(status, data)` e `(agenciaId, data)` no `firestore.indexes.js
 Todo este passo é no repositório do fluviapp, exceto o `assetlinks.json` e a página `/r/[codigo]`.
 
 **Entrega — no fluviapp**
-- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@naveg/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, moto com cilindrada, rebocado, cliente com e sem telefone), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
+- **O leitor de `reservas/`**: porte Kotlin do codec, com as mesmas recusas. O contrato ganha a direção inversa: `@navegsistemas/domain` publica **documentos-exemplo** gerados por `paraDocumento` (um por forma: rede, suíte para três, gratuidade, moto com cilindrada, rebocado, cliente com e sem telefone), e um teste Kotlin os lê. Se um lado mudar uma chave, o outro fica vermelho.
 - **As Rules de `reservas`** entram aqui se não tiverem entrado no passo 10: leitura para funcionário autenticado, `update` só para a conversão, `create` e `delete` negados (quem cria é a API da agência, com conta de serviço).
 - **Tela "Reservas"**: as `RESERVADA` por viagem e data. A expiração é **derivada na leitura** — `expiraEm ≤ agora` aparece como expirada sem que ninguém grave nada. Enquanto a validade for a partida, a lista do dia se limpa sozinha, e gravar `EXPIRADA` fica para uma rotina, se um dia for preciso.
 - **"Emitir a partir desta reserva"**: abre o roteiro de emissão **pré-preenchido** com o que define a passagem — acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários `DadosDoCliente`), natureza e classe, cilindrada. **A identificação é feita ali, no atendimento**: documento e nascimento de cada pessoa, placa do veículo — pelo caminho normal do balcão (`clientes/{chaveNatural}`, `veiculos/{placa}`). O nome e o telefone do cliente da reserva pré-preenchem o titular. A cota de gratuidade é conferida ali, como em qualquer emissão. Na mesma escrita, a reserva recebe `CONVERTIDA` e o `passagemId`.

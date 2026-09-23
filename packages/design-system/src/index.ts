@@ -1,5 +1,5 @@
 /**
- * **`@naveg/design-system`** — os primitivos visuais da agência virtual da NAVEG.
+ * **`@navegsistemas/design-system`** — os primitivos visuais da agência virtual da NAVEG.
  *
  * O pacote tem duas metades, e a divisão é intencional:
  *

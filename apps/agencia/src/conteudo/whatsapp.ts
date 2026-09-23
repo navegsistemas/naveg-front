@@ -12,7 +12,7 @@
  *
  * ### Ele vai mudar de casa
  *
- * No passo 10 este arquivo vira `@naveg/domain/reserva/link-de-atendimento`, porque lá a mensagem passa a ser
+ * No passo 10 este arquivo vira `@navegsistemas/domain/reserva/link-de-atendimento`, porque lá a mensagem passa a ser
  * montada a partir da reserva — código, travessia, quem viaja. O que está aqui é a metade que já é necessária
  * agora, e a assinatura não muda: o que a reserva acrescenta é o texto, não o mecanismo.
  */

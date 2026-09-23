@@ -5,7 +5,7 @@
  * O repositório guarda **o documento**, não a reserva: passa por `paraDocumento` exatamente como o adaptador
  * do Firestore passará. Assim um defeito no codec aparece aqui, e não só no dia em que a escrita for real.
  */
-import { paraDocumento, type CatalogoDoFluviapp, type Reserva, type ReservaDocumento } from '@naveg/domain'
+import { paraDocumento, type CatalogoDoFluviapp, type Reserva, type ReservaDocumento } from '@navegsistemas/domain'
 
 import type { FonteDoCatalogo, ReservaRepositorio, ResultadoDaGravacao } from './portas.js'
 

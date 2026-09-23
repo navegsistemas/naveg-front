@@ -10,7 +10,7 @@
  * Há saída **todo dia**, para que a janela de sete dias nunca fique vazia — e um navio e uma lancha além do
  * ferry, para que os três cascos possam ser vistos recortando o roteiro.
  */
-import { DIAS_DA_SEMANA, type CatalogoDoFluviapp, type Viagem } from '@naveg/domain'
+import { DIAS_DA_SEMANA, type CatalogoDoFluviapp, type Viagem } from '@navegsistemas/domain'
 
 const TODO_DIA = DIAS_DA_SEMANA
 

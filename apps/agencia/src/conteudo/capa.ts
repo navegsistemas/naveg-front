@@ -8,7 +8,7 @@
  * não tem o que fazer no resto da página, e descobrir isso no terceiro item seria fazê-lo ler três vezes mais
  * para chegar a um "não".
  */
-import type { SlugIcone } from '@naveg/design-system'
+import type { SlugIcone } from '@navegsistemas/design-system'
 
 export interface Credencial {
   readonly icone: SlugIcone

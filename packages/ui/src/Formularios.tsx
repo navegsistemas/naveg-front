@@ -11,7 +11,7 @@
  */
 import { useId, useState, type FormEvent } from 'react'
 
-import { normalizarWhatsapp, type RascunhoDoCliente } from '@naveg/domain'
+import { normalizarWhatsapp, type RascunhoDoCliente } from '@navegsistemas/domain'
 
 export interface PropsDoFormularioDoCliente {
   readonly inicial: RascunhoDoCliente | undefined

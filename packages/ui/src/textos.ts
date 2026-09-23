@@ -7,7 +7,7 @@
  *
  * O texto é de tela, e a tela é de quem **não** trabalha no rio: nenhuma sigla interna, nenhum nome de enum.
  */
-import type { PassoDaReserva, PendenciaDaReserva } from '@naveg/domain'
+import type { PassoDaReserva, PendenciaDaReserva } from '@navegsistemas/domain'
 
 export interface TextoDoPasso {
   readonly pergunta: string

@@ -19,7 +19,7 @@
  * Aquele arquivo confere **o CNPJ da NAVEG** no rodapé, em tempo de build, e nasceu no passo 6, antes
  * deste pacote existir. Este confere **o documento de quem reserva**, em tempo de execução. A conta é a
  * mesma e a consolidação é real — mas ela pertence ao passo 8, que é quando `apps/agencia` passa a
- * depender de `@naveg/domain`. Fazê-la agora mexeria numa seção já fechada e verificada por outro motivo.
+ * depender de `@navegsistemas/domain`. Fazê-la agora mexeria numa seção já fechada e verificada por outro motivo.
  *
  * > **Atenção ao contrato:** `TipoDocumento` **ainda não existe no `fluviapp-kmp`**. Ver a nota em
  * > `passagem/classe-veiculo.ts` e o cenário `test/contrato-kmp.spec.ts`.

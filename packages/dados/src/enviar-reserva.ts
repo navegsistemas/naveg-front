@@ -16,7 +16,7 @@ import {
   type MontagemIncompleta,
   type Reserva,
   type RespostasDaReserva,
-} from '@naveg/domain'
+} from '@navegsistemas/domain'
 
 import type { ReservaRepositorio } from './portas.js'
 

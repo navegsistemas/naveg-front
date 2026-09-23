@@ -11,11 +11,11 @@
  *
  * ### O celular é a regra do domínio
  *
- * Desde o passo 8, [normalizarCelular] é `normalizarWhatsapp` do `@naveg/domain` — a mesma regra que o totem
+ * Desde o passo 8, [normalizarCelular] é `normalizarWhatsapp` do `@navegsistemas/domain` — a mesma regra que o totem
  * aplica ao telefone do cliente. Duas cópias da regra do celular é a duplicação que este arquivo nasceu para
  * evitar, e ela tinha se formado de novo.
  */
-import { normalizarWhatsapp } from '@naveg/domain'
+import { normalizarWhatsapp } from '@navegsistemas/domain'
 
 /** Brasil. O único país que este atendimento cobre — melhor explícito que um `55` solto no meio do código. */
 export const CODIGO_DO_PAIS = '55'

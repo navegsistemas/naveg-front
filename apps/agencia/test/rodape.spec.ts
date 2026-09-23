@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { TipoDocumento } from '@naveg/domain'
+import { TipoDocumento } from '@navegsistemas/domain'
 import {
   CONTATO,
   ENCARREGADO_LGPD,

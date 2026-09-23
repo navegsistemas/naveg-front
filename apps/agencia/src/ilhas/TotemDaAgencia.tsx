@@ -8,8 +8,8 @@
  */
 import { useMemo } from 'react'
 
-import { catalogoFixo, ReservaEmMemoria } from '@naveg/dados'
-import '@naveg/ui/totem.css'
+import { catalogoFixo, ReservaEmMemoria } from '@navegsistemas/dados'
+import '@navegsistemas/ui/totem.css'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO, INATIVIDADE_DO_QUIOSQUE_MS } from '../conteudo/operacao'

@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { DataCalendario, InstanteLocal, type ContextoDaReserva, type RespostasDaReserva } from '@naveg/domain'
+import { DataCalendario, InstanteLocal, type ContextoDaReserva, type RespostasDaReserva } from '@navegsistemas/domain'
 
 import { ReservaEmMemoria } from '../src/em-memoria.js'
 import { enviarReserva, TENTATIVAS_DE_CODIGO } from '../src/enviar-reserva.js'

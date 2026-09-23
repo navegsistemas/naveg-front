@@ -5,7 +5,7 @@
  * memória, os cenários rodarem sem emulador, e o passo 10 trocar só o adaptador de escrita — sem que a ilha
  * saiba que alguma coisa mudou.
  */
-import type { CatalogoDoFluviapp, Reserva } from '@naveg/domain'
+import type { CatalogoDoFluviapp, Reserva } from '@navegsistemas/domain'
 
 /**
  * O resultado de tentar gravar. `CODIGO_EM_USO` é caso próprio, e não uma falha genérica, porque é o único que

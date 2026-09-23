@@ -1,11 +1,11 @@
-# **Publica o `@naveg/domain` no GitHub Packages.**
+# **Publica o `@navegsistemas/domain` no GitHub Packages.**
 #
 # Dispara por tag (`domain-v0.1.0`) ou à mão. A tag existe para que a versão publicada tenha um ponto no
 # histórico: "que código está no 0.1.0" se responde com `git show domain-v0.1.0`, e não com memória.
 #
 # O `GITHUB_TOKEN` do próprio workflow basta para publicar no registro do mesmo dono — não é preciso PAT aqui.
 # Quem **consome** de outro repositório (a `naveg-api`) precisa de um token de leitura; ver o README.
-name: publicar @naveg/domain
+name: publicar @navegsistemas/domain
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22
           registry-url: https://npm.pkg.github.com
-          scope: '@naveg'
+          scope: '@navegsistemas'
 
       - run: npm ci
 

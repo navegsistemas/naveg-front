@@ -1,5 +1,5 @@
 {
-  "name": "@naveg/ui",
+  "name": "@navegsistemas/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "./totem.css": "./src/totem.css"
   },
   "dependencies": {
-    "@naveg/domain": "*"
+    "@navegsistemas/domain": "*"
   },
   "peerDependencies": {
     "react": "^19"

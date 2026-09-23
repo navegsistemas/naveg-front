@@ -26,6 +26,6 @@ export default defineConfig({
   vite: {
     /* Os pacotes do monorepo chegam como TypeScript-fonte por symlink de workspace. Sem isso o Vite tentaria
        tratá-los como dependência pré-compilada e não acharia o `.js` que o `exports` promete. */
-    ssr: { noExternal: ['@naveg/design-system', '@naveg/domain', '@naveg/dados', '@naveg/ui'] },
+    ssr: { noExternal: ['@navegsistemas/design-system', '@navegsistemas/domain', '@navegsistemas/dados', '@navegsistemas/ui'] },
   },
 })

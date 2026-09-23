@@ -20,7 +20,7 @@
  * fotos das embarcações. É melhor que um nome inventado: nome de mentira numa página institucional é o tipo de
  * coisa que vai para produção porque parecia pronta.
  */
-import type { SlugIcone } from '@naveg/design-system'
+import type { SlugIcone } from '@navegsistemas/design-system'
 
 export interface PontoDoAtendimento {
   readonly icone: SlugIcone

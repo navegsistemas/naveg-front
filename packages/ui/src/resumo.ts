@@ -14,7 +14,7 @@ import {
   casoImpossivel,
   type Reserva,
   type TravessiaOfertada,
-} from '@naveg/domain'
+} from '@navegsistemas/domain'
 
 export interface LinhaDoResumo {
   readonly rotulo: string

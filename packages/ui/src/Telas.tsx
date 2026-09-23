@@ -5,7 +5,7 @@
  */
 import { useState, type ReactNode } from 'react'
 
-import type { PendenciaDaReserva, TravessiaOfertada } from '@naveg/domain'
+import type { PendenciaDaReserva, TravessiaOfertada } from '@navegsistemas/domain'
 
 import type { LinhaDoResumo } from './resumo.js'
 import { TEXTO_DA_PENDENCIA } from './textos.js'

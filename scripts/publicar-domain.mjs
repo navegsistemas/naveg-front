@@ -1,5 +1,5 @@
 /**
- * **Publica o `@naveg/domain` no GitHub Packages.**
+ * **Publica o `@navegsistemas/domain` no GitHub Packages.**
  *
  * O pacote é consumido de dois jeitos que pedem coisas diferentes:
  *

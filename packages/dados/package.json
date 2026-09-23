@@ -1,5 +1,5 @@
 {
-  "name": "@naveg/dados",
+  "name": "@navegsistemas/dados",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@naveg/domain": "*"
+    "@navegsistemas/domain": "*"
   }
 }

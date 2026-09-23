@@ -1,5 +1,5 @@
 {
-  "name": "@naveg/agencia",
+  "name": "@navegsistemas/agencia",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
-    "@naveg/dados": "*",
-    "@naveg/design-system": "*",
-    "@naveg/domain": "*",
-    "@naveg/ui": "*",
+    "@navegsistemas/dados": "*",
+    "@navegsistemas/design-system": "*",
+    "@navegsistemas/domain": "*",
+    "@navegsistemas/ui": "*",
     "astro": "^5.2.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

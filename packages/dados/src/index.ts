@@ -1,5 +1,5 @@
 /**
- * **`@naveg/dados`** — as portas do totem e os adaptadores.
+ * **`@navegsistemas/dados`** — as portas do totem e os adaptadores.
  *
  * O totem depende das portas (`ReservaRepositorio`, `FonteDoCatalogo`), nunca de um banco. No passo 8 só existem
  * os adaptadores em memória; o do Firestore entra no passo 10, e o do catálogo gerado no build, no passo 9.

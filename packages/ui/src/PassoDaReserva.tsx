@@ -15,7 +15,7 @@ import {
   casoImpossivel,
   type NoDoRoteiro,
   type RespostasDaReserva,
-} from '@naveg/domain'
+} from '@navegsistemas/domain'
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 import { CampoDeCilindrada, FormularioDoCliente } from './Formularios.js'

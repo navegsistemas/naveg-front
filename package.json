@@ -9,9 +9,9 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=@naveg/agencia",
-    "build": "npm run build --workspace=@naveg/agencia",
-    "check": "npm run check --workspace=@naveg/agencia",
+    "dev": "npm run dev --workspace=@navegsistemas/agencia",
+    "build": "npm run build --workspace=@navegsistemas/agencia",
+    "check": "npm run check --workspace=@navegsistemas/agencia",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --build --force",

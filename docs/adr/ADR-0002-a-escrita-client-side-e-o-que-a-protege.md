@@ -65,7 +65,7 @@
 >
 > E a leitura do catálogo pelo público (rotas, viagens) **não deve depender de autenticação anônima** pelo
 > mesmo motivo. A alternativa que o plano já listava — o catálogo **gerado no build** a partir do fluviapp —
-> passa a ser a recomendada: `@naveg/domain/catalogo` já lê os documentos como o aplicativo lê, e roda igual
+> passa a ser a recomendada: `@navegsistemas/domain/catalogo` já lê os documentos como o aplicativo lê, e roda igual
 > num script de build.
 >
 > **Dois fatos a mais, achados na mesma revisão, que mudam onde as camadas 2 e 3 vivem:**
