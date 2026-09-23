@@ -5,20 +5,36 @@
  * pura, então a segunda reserva é a primeira com outro código, e mais nada muda. Tudo o que decide *se* há
  * reserva é do domínio (`montarReserva`); o que mora aqui é só a ordem e a nova tentativa.
  *
- * Mora em `dados`, e não no domínio, porque fala com uma porta — e o domínio não fala com ninguém.
+ * ### Por que mora no domínio
+ *
+ * Morava no `@navegsistemas/dados`, porque fala com uma porta. Veio para cá no passo 10 (decisão de 2026-09-23)
+ * porque **o servidor também o executa**: a `naveg-api-vercel` grava pelo mesmo caso de uso que o totem usava,
+ * e o domínio é o único pacote publicado. Duas cópias da nova tentativa divergiriam.
+ *
+ * O domínio continua sem falar com ninguém: a **porta** (`ReservaRepositorio`) é só uma interface declarada
+ * aqui, e quem a implementa — em memória, Firestore, HTTP — mora fora. É o domínio dizendo do que precisa, e
+ * não sabendo quem entrega.
  */
-import {
-  gerarCodigoDaReserva,
-  montarReserva,
-  type ContextoDaReserva,
-  type InstanteLocal,
-  type MontagemIncoerente,
-  type MontagemIncompleta,
-  type Reserva,
-  type RespostasDaReserva,
-} from '@navegsistemas/domain'
+import type { InstanteLocal } from '../primitivos/calendario.js'
+import { gerarCodigoDaReserva } from './codigo-da-reserva.js'
+import { montarReserva, type MontagemIncoerente, type MontagemIncompleta } from './montagem-da-reserva.js'
+import type { Reserva } from './reserva.js'
+import type { ContextoDaReserva, RespostasDaReserva } from './roteiro-da-reserva.js'
 
-import type { ReservaRepositorio } from './portas.js'
+/**
+ * O resultado de tentar gravar. `CODIGO_EM_USO` é caso próprio, e não uma falha genérica, porque é o único que
+ * se resolve **tentando de novo com outro código** — é o `create` recusado porque o documento já existe
+ * (ADR-0002, camada 4).
+ */
+export type ResultadoDaGravacao =
+  | { readonly caso: 'GRAVADA' }
+  | { readonly caso: 'CODIGO_EM_USO' }
+  | { readonly caso: 'FALHA'; readonly motivo: string }
+
+/** Onde a reserva é gravada. Só criar: o público não lê, não altera, não apaga. */
+export interface ReservaRepositorio {
+  criar(reserva: Reserva): Promise<ResultadoDaGravacao>
+}
 
 export type ResultadoDoEnvio =
   | { readonly caso: 'ENVIADA'; readonly reserva: Reserva }

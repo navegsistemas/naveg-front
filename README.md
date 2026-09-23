@@ -28,21 +28,24 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**Parei no fim do passo 9.** O totem lê o catálogo da API quando `PUBLIC_URL_DA_API` está definida (num
-`apps/agencia/.env`, por exemplo), e o de demonstração quando não está — e a faixa diz qual dos dois. A reserva
-continua **em memória** até o passo 10: com ou sem API, nada é enviado ao atendimento, e a faixa diz isso também.
-`npm run verify` deve dar **353 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
+**Parei no fim do passo 9, com o começo do 10 adiantado.** O totem lê o catálogo **da API, por padrão** — o
+site publicado não depende de ninguém lembrar de uma variável. O catálogo de demonstração só entra quando
+pedido: `PUBLIC_URL_DA_API=demonstracao`. A mesma variável aponta para outra API (`https://…`, ou
+`http://localhost…`), e qualquer outro valor **quebra o build** (`conteudo/api.ts`). A faixa diz qual dos dois
+catálogos está na tela. A reserva continua **em memória** até o passo 10: nada é enviado ao atendimento, e a
+faixa diz isso também. `npm run verify` deve dar **357 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
 ilha do totem** (ver o orçamento abaixo). A API está no ar em
-`https://naveg-api-vercel.vercel.app` e lê o `fluvi-app-dev` de verdade — com `PUBLIC_URL_DA_API` apontando
-para ela, o totem mostra as duas viagens cadastradas lá. Os detalhes estão no README da
+`https://naveg-api-vercel.vercel.app` e lê o `fluvi-app-dev` de verdade — o totem mostra as duas viagens
+cadastradas lá. **Quando o front subir na Vercel**, o endereço dele precisa entrar em `ORIGENS_PERMITIDAS` da
+API (e um redeploy dela), ou o navegador recusa a resposta por CORS. Os detalhes estão no README da
 [`naveg-api-vercel`](../naveg-api-vercel).
 
-O `@navegsistemas/domain` publicado é o **0.2.0**: ganhou o recorte pela concessão e a fronteira de JSON do
+O `@navegsistemas/domain` publicado é o **0.3.0**: o 0.2.0 trouxe o recorte pela concessão e a fronteira de JSON do
 catálogo, que a API e o totem usam dos dois lados do fio.
 
-Os 353 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
+Os 357 incluem 21 que **leem o Kotlin do aplicativo** fluviapp (`~/Documents/AndroidStudioProjects/fluviapp`,
 ou o que estiver em `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem como **pulados**, não como verdes — em
-outra máquina, `353 passed` vira `332 passed | 21 skipped`, e isso é o esperado.
+outra máquina, `357 passed` vira `336 passed | 21 skipped`, e isso é o esperado.
 
 **Decisões de 2026-09-22, já aplicadas:**
 
@@ -95,11 +98,12 @@ destino. As contas, as chaves e as variáveis da Vercel nascem ali, com nome de 
 produção, **nada disto migra**: contas novas, chaves novas, variáveis novas — e as de dev nunca vão para o
 ambiente de produção.
 
-**O próximo é o passo 10: `POST /reservas`.** A decisão que ele pede antes de começar: publicar também o
-`@navegsistemas/dados`, ou mover o `enviarReserva` para o domínio, que já é publicado.
+**O próximo é o passo 10: `POST /reservas`.** A decisão que ele pedia já foi tomada (2026-09-23): o
+`enviarReserva` e a porta `ReservaRepositorio` **mudaram-se para o `@navegsistemas/domain`**, o único pacote
+publicado — a API grava pelo mesmo caso de uso que o totem. O `@navegsistemas/dados` fica só com o que é do
+front: a `FonteDoCatalogo`, o `catalogoHttp` e os adaptadores em memória.
 
-Nada disso bloqueia a tela: sem variável de ambiente nenhuma, `npm run dev` usa o catálogo de demonstração, com
-a faixa à mostra.
+Sem rede, `PUBLIC_URL_DA_API=demonstracao npm run dev` roda o totem inteiro contra o catálogo de demonstração.
 
 O que está pendente de dado — fotos, nome e WhatsApp do atendente, depoimentos, URLs das redes, identificação
 da empresa — continua sendo conteúdo, entra em arquivo de `conteudo/` e **não bloqueia nenhum passo

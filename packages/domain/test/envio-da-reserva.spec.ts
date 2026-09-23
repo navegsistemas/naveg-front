@@ -4,11 +4,39 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { DataCalendario, InstanteLocal, type ContextoDaReserva, type RespostasDaReserva } from '@navegsistemas/domain'
+import { DataCalendario, InstanteLocal } from '../src/primitivos/calendario.js'
+import { paraDocumento, type ReservaDocumento } from '../src/reserva/documento.js'
+import {
+  enviarReserva,
+  TENTATIVAS_DE_CODIGO,
+  type ReservaRepositorio,
+  type ResultadoDaGravacao,
+} from '../src/reserva/envio-da-reserva.js'
+import type { Reserva } from '../src/reserva/reserva.js'
+import type { ContextoDaReserva, RespostasDaReserva } from '../src/reserva/roteiro-da-reserva.js'
 
-import { ReservaEmMemoria } from '../src/em-memoria.js'
-import { enviarReserva, TENTATIVAS_DE_CODIGO } from '../src/enviar-reserva.js'
-import type { ReservaRepositorio } from '../src/portas.js'
+/**
+ * A porta, em memória, para o cenário. Guarda **o documento** (passa pelo codec, como o Firestore) e recusa o
+ * código que já existe — a semântica do `create`. O `ReservaEmMemoria` do front faz o mesmo, mas o domínio não
+ * importa o front.
+ */
+class ReservaEmMemoria implements ReservaRepositorio {
+  private readonly documentos = new Map<string, ReservaDocumento | null>()
+
+  constructor(ocupados: readonly string[] = []) {
+    for (const codigo of ocupados) this.documentos.set(codigo, null)
+  }
+
+  async criar(reserva: Reserva): Promise<ResultadoDaGravacao> {
+    if (this.documentos.has(reserva.codigo)) return { caso: 'CODIGO_EM_USO' }
+    this.documentos.set(reserva.codigo, paraDocumento(reserva))
+    return { caso: 'GRAVADA' }
+  }
+
+  documento(codigo: string): ReservaDocumento | null | undefined {
+    return this.documentos.get(codigo)
+  }
+}
 
 const CONTEXTO: ContextoDaReserva = {
   ocorrencia: { viagemId: 'v1', data: DataCalendario.de('2026-10-14') as DataCalendario },

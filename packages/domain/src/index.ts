@@ -132,3 +132,10 @@ export type {
 } from './reserva/montagem-da-reserva.js'
 export { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio } from './reserva/documento.js'
 export type { ClienteDocumento, ReservaDocumento } from './reserva/documento.js'
+export { enviarReserva, TENTATIVAS_DE_CODIGO } from './reserva/envio-da-reserva.js'
+export type {
+  PedidoDeEnvio,
+  ReservaRepositorio,
+  ResultadoDaGravacao,
+  ResultadoDoEnvio,
+} from './reserva/envio-da-reserva.js'

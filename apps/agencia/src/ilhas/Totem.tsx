@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import {
+  enviarReserva,
   InstanteLocal,
   montarReserva,
   roteiroDaReserva,
@@ -21,10 +22,11 @@ import {
   type CatalogoDoFluviapp,
   type PendenciaDaReserva,
   type Reserva,
+  type ReservaRepositorio,
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
-import { enviarReserva, type FonteDoCatalogo, type ReservaRepositorio } from '@navegsistemas/dados'
+import type { FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
   Conferencia,
