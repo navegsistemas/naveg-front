@@ -61,6 +61,31 @@ escrita, a configuração que falha na partida, e o domínio versionado por tag.
 | **Deploy** | — | automático, a cada merge na `main` | **promoção explícita**, com aprovação |
 | **Acesso** | — | aberto só a quem tem o link; `noindex` (padrão da Vercel em preview) | público |
 
+### Como está hoje: a homologação provisória *(novo, 2026-09-24)*
+
+Até existir o domínio de homologação da API, **o deploy de produção da API faz as vezes de homologação**. Não é
+produção de verdade: aponta para o `fluvi-app-dev`, como a homologação, e nenhum cliente o usa — o domínio
+oficial do front ainda não aponta para a Vercel.
+
+| | front | API |
+|---|---|---|
+| **homologação** | `naveg-front-agencia.vercel.app`, fixo na `main`; atrás do login da Vercel (só o time vê) | **provisório:** `naveg-api-vercel.vercel.app`, o deploy de *produção*, sobre o `fluvi-app-dev` |
+| **produção** | `gruponaveg.com.br` e `www`, já no projeto; o DNS aponta no lançamento | ainda não existe |
+
+- **Por que a API não pode ficar atrás do login da Vercel**, como o front: o totem chama a API **do navegador
+  de quem abre a página**, e essa chamada não leva o login. O front é aberto por uma pessoa, que pode entrar; a
+  API é chamada pela página, que não pode. E o login da Vercel não cobre domínio `*.vercel.app` de preview
+  (`naveg-api-homol.vercel.app`, criado e fixo na `main`, pede login) — só domínio próprio escapa dele.
+- **As variáveis que sustentam isso:** no front, `PUBLIC_URL_DA_API` = `https://naveg-api-vercel.vercel.app`
+  no escopo *Preview*; na API, `ORIGENS_PERMITIDAS` com `https://naveg-front-agencia.vercel.app` nos escopos
+  *Preview* e *Production*.
+- **O próximo domínio comprado é o da API de homologação** (ex.: `api-homolog.<domínio>`), fixo na `main` da
+  API. Com ele: a `PUBLIC_URL_DA_API` do *Preview* do front passa para ele; a origem do front de homologação sai
+  da `ORIGENS_PERMITIDAS` de *Production*; e o `naveg-api-vercel.vercel.app` fica fechado (regra no Firewall da
+  Vercel) até a produção de verdade (fase 2).
+- **Atenção à trava ambiente × projeto** (abaixo): enquanto durar o provisório, produção aponta para o
+  `fluvi-app-dev` de propósito. A trava só entra junto com o fim do provisório, ou nasce com essa exceção.
+
 ### O que muda no código para isso funcionar
 
 Pequeno, e cada item com cenário:
@@ -228,7 +253,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 | **Visibilidade** | públicos (por causa do Hobby) | podem voltar a **privados** se a Vercel for Pro; senão, continuam públicos — o código não tem segredo, e o plano não depende disso [D6] | — |
 | **Dono do deploy** | conta pessoal na Vercel | um **time da NAVEG** na Vercel, com os dois projetos | ver D2 |
 | **Plano da Vercel** | Hobby (não comercial) | **Pro para produção** [D2] — resolve o termo de uso, dá 1 dia de logs, *log drains* e um ambiente customizado | US$ 20/mês por assento de desenvolvedor |
-| **Domínio** | `*.vercel.app` | `agencia.naveg.com.br` e `api.naveg.com.br`, com os de homologação ao lado [D4] | o domínio |
+| **Domínio** | *(2026-09-24)* `gruponaveg.com.br` comprado e no projeto do front, sem DNS ainda; o resto em `*.vercel.app` (§3, homologação provisória) | `agencia.naveg.com.br` e `api.naveg.com.br`, com os de homologação ao lado [D4] | o domínio |
 
 ## 9. Observabilidade
 
@@ -246,7 +271,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 | **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). **Falta:** na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
 | **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
 | **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
-| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch* — *(2026-09-24: criada nos dois repositórios, com o ruleset; Production Branch apontada para ela na Vercel, na API e no front (`naveg-front-agencia`, com `naveg-front-agencia.vercel.app` fixo na `main`); o domínio oficial entra no lançamento de produção)*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
+| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch* — *(2026-09-24: criada nos dois repositórios, com o ruleset; Production Branch apontada para ela na Vercel, na API e no front (`naveg-front-agencia`, com `naveg-front-agencia.vercel.app` fixo na `main`); o domínio oficial entra no lançamento de produção)*; domínios fixos de homologação *(o do front é o `naveg-front-agencia.vercel.app`; o da API é o próximo domínio comprado — até lá, a homologação provisória do §3)*; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
 | **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
 | **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio | — |
 
@@ -261,7 +286,7 @@ de reserva e sem centralizador para tratá-las.
 | **D1** | Qual é o projeto Firebase de produção? | ✅ **Decidida (2026-09-23):** um projeto novo, criado pelo KMP quando for a hora de entrar em produção; o `fluvi-app-dev` fica para dev e homologação |
 | **D2** | Vercel Pro para produção? | Aberta. Recomendação: **sim**, num time da NAVEG. O Hobby é não comercial pelos termos da Vercel, e produção de uma empresa nele é risco de ter o deploy pausado |
 | **D3** | Trunk-based com promoção (`main` → `producao`)? | Recomendação: **sim**, como no §4 — e é o que o KMP adotou (ADR-0012 de lá) |
-| **D4** | Os domínios | Aberta. Recomendação: `agencia.naveg.com.br`/`api.naveg.com.br` em produção; `homolog.` e `api-homolog.` em homologação |
+| **D4** | Os domínios | *(2026-09-24)* Em parte: produção do front em `gruponaveg.com.br` (DNS no lançamento); homologação do front em `naveg-front-agencia.vercel.app`; **o próximo domínio comprado é o da API de homologação**, e até lá vale a homologação provisória (§3). A API de produção ganha domínio no lançamento. Recomendação original: Recomendação: `agencia.naveg.com.br`/`api.naveg.com.br` em produção; `homolog.` e `api-homolog.` em homologação |
 | **D5** | Mover `fluviapp` e `fluviapp-kmp` para a org? | ✅ **Feita (2026-09-23).** Com repositórios privados numa org free não há regra de ramo nem *Environments*: a aprovação obrigatória do PR de promoção do KMP pede o plano Team, ou continua como hoje (as três travas do ADR-0012 de lá). Atenção aos minutos de Actions: privado numa org free divide 2.000 min/mês, e o instalador do Desktop roda em Windows, que conta em dobro |
 | **D6** | Os repositórios da agência voltam a ser privados? | **Indiferente para a segurança**; só vale se a Vercel for Pro. Recomendação: manter públicos até lá |
 | **D7** | Quem aprova a promoção para produção? | O PO, com uma segunda pessoa como suplente — aprovação de uma pessoa só trava férias |
