@@ -97,7 +97,7 @@ feat/xyz ──PR──▶ main ──────────────▶ ho
 |---|---|---|---|
 | `feat/*`, `fix/*` | uma mudança; vive horas ou dias | quem desenvolve | nenhuma; gera um **preview de PR** |
 | `main` | o que está em homologação | **só por PR** | PR obrigatório, checks obrigatórios (§5), histórico linear (squash), sem force-push, sem apagar |
-| `producao` | o que está em produção | **só por PR vindo da `main`** | tudo o que a `main` tem + **aprovação obrigatória** + só fast-forward da `main` |
+| `producao` | o que está em produção | **só por PR vindo da `main`** | tudo o que a `main` tem + **aprovação obrigatória**; a promoção entra com o **commit de merge** do PR |
 
 - **Na Vercel**, a *Production Branch* de cada projeto passa a ser `producao`; a `main` vira um preview com
   **domínio fixo atribuído à branch** — o recurso que a Vercel documenta como *staging por branch de preview*, e
@@ -109,7 +109,7 @@ feat/xyz ──PR──▶ main ──────────────▶ ho
   **exata** (sem `^`): uma versão nova do domínio só chega a produção pelo mesmo caminho de promoção. O
   Dependabot abre o PR de atualização na API.
 - **Por que não `develop` + `main` (git-flow):** duas branches longas divergem, e a divergência aparece na hora
-  do merge de release — exatamente quando menos se quer surpresa. Aqui `producao` nunca tem commit próprio.
+  do merge de release — exatamente quando menos se quer surpresa. Aqui `producao` só tem, além do que veio da `main`, os **commits de merge das promoções** — um por release, e nada escrito direto nela *(decidido em 2026-09-24: o GitHub não faz fast-forward por PR, e o commit de merge marca cada ida a produção)*.
 
 ## 5. A esteira: CI no GitHub Actions
 
@@ -223,7 +223,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 | o quê | hoje | proposta | custo |
 |---|---|---|---|
 | **2FA na org** | não obrigatório | **obrigatório** | — |
-| **Rulesets** | nenhum | `main` e `producao` como no §4 | — |
+| **Rulesets** | *(2026-09-24)* um só, em `main` e `producao`: PR obrigatório, sem force-push, sem apagar | `main` e `producao` como no §4 | — |
 | **Secret scanning + push protection** | padrão | ligado e conferido nos dois repositórios | — (público) |
 | **Visibilidade** | públicos (por causa do Hobby) | podem voltar a **privados** se a Vercel for Pro; senão, continuam públicos — o código não tem segredo, e o plano não depende disso [D6] | — |
 | **Dono do deploy** | conta pessoal na Vercel | um **time da NAVEG** na Vercel, com os dois projetos | ver D2 |
@@ -246,7 +246,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 | **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). **Falta:** na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
 | **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
 | **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
-| **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch*; domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
+| **1 · homologação estável** | ~~branch `producao` criada a partir da `main` e configurada como *Production Branch*~~ (feito em 2026-09-24, com o ruleset e a primeira promoção, #3); domínios fixos de homologação; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
 | **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
 | **3 · endurecimento** | OIDC sem chave em homologação também; *log drain*; alerta de catálogo vazio | — |
 
