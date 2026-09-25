@@ -1,11 +1,12 @@
 # **Os checks de cada pull request** — o que tem de estar verde antes de algo entrar na `main`.
 #
 # A `main` vai sozinha para a homologação, e dali para produção só por promoção (plano de ambientes, §4). Então
-# a conferência acontece aqui, no PR, e não depois do merge. Os dois jobs viram checks obrigatórios no ruleset
-# da `main` e da `producao`.
+# a conferência acontece aqui, no PR, e não depois do merge. Os jobs viram checks obrigatórios no ruleset da
+# `main` e da `producao`.
 #
-# O contrato com o fluviapp (camada 2) ainda fica pulado: o CI não clona o `fluviapp-kmp` até existir o token
-# da org (fase 0b).
+# O job `contrato` clona o `fluviapp-kmp` e o `fluviapp`, privados, com um token *fine-grained* da org só de
+# leitura deles (`FLUVIAPP_LEITURA_TOKEN`, nos segredos de Actions **e** de Dependabot — os PRs do Dependabot
+# só enxergam os segredos de lá).
 name: verificar
 
 on:
@@ -50,3 +51,32 @@ jobs:
           PUBLIC_URL_DA_API: https://naveg-api-vercel.vercel.app
           PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       - run: npm run conferir:build
+
+  contrato:
+    name: contrato com o fluviapp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # O centralizador, a fonte do contrato, no ramo que está em homologação; e o app Android legado, para o
+      # que o KMP ainda não portou.
+      - uses: actions/checkout@v7
+        with:
+          repository: navegsistemas/fluviapp-kmp
+          token: ${{ secrets.FLUVIAPP_LEITURA_TOKEN }}
+          path: fluviapp-kmp
+      - uses: actions/checkout@v7
+        with:
+          repository: navegsistemas/fluviapp
+          token: ${{ secrets.FLUVIAPP_LEITURA_TOKEN }}
+          path: fluviapp
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Com CONTRATO_OBRIGATORIO, a camada 2 falha em vez de pular se um checkout faltar.
+      - run: npx vitest run packages/domain/test/contrato-fluviapp.spec.ts
+        env:
+          FLUVIAPP_KMP: ${{ github.workspace }}/fluviapp-kmp
+          FLUVIAPP_ORIGINAL: ${{ github.workspace }}/fluviapp
+          CONTRATO_OBRIGATORIO: '1'

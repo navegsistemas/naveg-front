@@ -404,6 +404,15 @@ describe('o leitor de enum Kotlin', () => {
 
 const ausente = (fonte: Fonte) => (fonte.presente ? '' : ` — PULADO: checkout ausente em ${fonte.raiz}`)
 
+/* No job `contrato` do CI os dois checkouts **têm** de estar lá. Sem esta trava, um clone que falhasse em
+   silêncio deixaria a camada 2 pulada — e o job verde, conferindo nada. */
+describe.runIf(process.env['CONTRATO_OBRIGATORIO'] === '1')('camada 2 · obrigatória', () => {
+  it('os dois checkouts estão presentes', () => {
+    expect(KMP.presente, `fluviapp-kmp ausente em ${KMP.raiz}`).toBe(true)
+    expect(ORIGINAL.presente, `fluviapp ausente em ${ORIGINAL.raiz}`).toBe(true)
+  })
+})
+
 describe(`camada 2 · a tabela bate com o fluviapp-kmp${ausente(KMP)}`, () => {
   for (const clausula of ENUMS.filter((c) => c.fonte === KMP)) {
     it.skipIf(!KMP.presente)(`${clausula.enum} em ${clausula.arquivo}`, () => {
