@@ -23,9 +23,9 @@ Uma fotografia, conferida no GitHub, na Vercel e no Firebase no dia da proposta:
 | **Branches** | só `main`, nos dois repositórios, **sem proteção** | qualquer push vai direto ao ar (a API deploia a cada push na `main`) |
 | **CI** | só a publicação do domínio, por tag; **nenhum cenário roda em pull request**; a API não tem CI | o que garante a qualidade é alguém lembrar de rodar `npm run verify` |
 | **Vercel** | plano **Hobby**, conta pessoal (`kurtmatheus-projects`); só a API tem projeto | o Hobby é **restrito a uso pessoal e não comercial** (fair use da Vercel) — a NAVEG é uma empresa; logs duram **1 hora** |
-| **Variáveis da API** | um conjunto, com as chaves do `fluvi-app-dev`; a proteção do envio desligada | nada separa o que um preview pode tocar do que produção toca |
+| **Variáveis da API** | um conjunto, com as chaves do `fluvi-app-dev`; a proteção do envio ligada *(2026-09-25)* | nada separa o que um preview pode tocar do que produção toca |
 | **Firebase** | `fluvi-app-dev` (o do aplicativo) e `naveg-app-homol` (não é destino) | **não existe projeto de produção**; o próprio aplicativo distribui "produção" apontando para o `fluvi-app-dev` |
-| **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar já grava **sob elas**, com o evento (`naveg-api-vercel#1` e #2); o envio só está desligado enquanto faltarem as variáveis do Turnstile, do Upstash e a chave Web |
+| **Rules** *(revisto)* | as do `fluviapp-kmp`, publicadas **automaticamente** no `fluvi-app-dev` a cada merge no `master` de lá; já cercam `reservas` e `eventos` | a API no ar grava **sob elas**, com o evento (`naveg-api-vercel#1` e #2); o envio está **ligado desde 2026-09-25**, e a conta de escrita, sem papel nenhum |
 | **Org no GitHub** | `navegsistemas`, plano free, 3 membros, **2FA não obrigatório** | um token vazado de qualquer membro chega aos dois repositórios públicos |
 | **Repositórios do fluviapp** *(revisto)* | `fluviapp-kmp` (o centralizador) e `fluviapp` (legado e referência), **privados, na org `navegsistemas` desde 2026-09-23** (D5) | o CI daqui ainda não clona o contrato: falta o token da org e os jobs (fase 0b) |
 
@@ -194,13 +194,14 @@ Actions é gratuito em repositório público.
   uma segunda mudança na conexão (`servico.ts`). A leitura do catálogo segue o desenho original.
 - **Depois que a API gravar pelo token** *(novo)*: tirar o papel *Cloud Datastore User* da conta de escrita, em
   cada projeto. Enquanto ele existir, a chave vazada ainda grava por cima das Rules. Em produção a conta já
-  nasce sem ele (ADR-0013 §3.4 do KMP).
+  nasce sem ele (ADR-0013 §3.4 do KMP). *(Feito no `fluvi-app-dev` em 2026-09-25, e conferido: sem papel
+  nenhum, a conta assina o token e a reserva grava.)*
 - **A chave Web sem restrição por referenciador** *(novo)*: quem a usa é o servidor, que não manda `Referer`.
   Se for restringida, que seja por API (Identity Toolkit e Firestore), nunca por site.
 - **O pacote do domínio sem PAT no CI.** No GitHub Packages, o pacote pode conceder leitura ao repositório da
   API (*Manage Actions access*); o CI lê com o `GITHUB_TOKEN`, que expira sozinho. O `NPM_TOKEN` pessoal fica
   só na Vercel e nas máquinas — e com a Vercel lendo por um token de **conta técnica**, não de uma pessoa.
-- **Rotação**: chave JSON a cada 90 dias (a primeira vence por volta de 2026-12-22); tokens do Upstash e o
+- **Rotação**: chave JSON a cada 90 dias (a de leitura vence por volta de 2026-12-22; a de escrita, refeita em 2026-09-25, por volta de 2026-12-24); tokens do Upstash e o
   segredo do Turnstile, a cada saída de alguém com acesso.
 
 ## 7. O acoplamento com o fluviapp (o KMP) *(revisto)*
@@ -268,7 +269,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 
 | fase | o quê | depende de |
 |---|---|---|
-| **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). **Falta:** na Vercel da API, `FIREBASE_WEB_API_KEY`, `TURNSTILE_SECRET`, `UPSTASH_*`, `ORIGENS_PERMITIDAS`; **o projeto do front na Vercel**, que ainda não existe; a prova (reserva do totem aparece e é cancelada no painel de homologação do KMP); tirar o *Cloud Datastore User* da conta de escrita | nada — as Rules já estão no ar |
+| **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). ~~As variáveis da API; o projeto do front na Vercel; a prova no painel de homologação do KMP; a conta de escrita sem papel~~ — ✅ **ligada em 2026-09-25** (passo 10 do plano de implementação) | nada — as Rules já estão no ar |
 | **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
 | **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
 | **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch* — *(2026-09-24: criada nos dois repositórios, com o ruleset; Production Branch apontada para ela na Vercel, na API e no front (`naveg-front-agencia`, com `naveg-front-agencia.vercel.app` fixo na `main`); o domínio oficial entra no lançamento de produção)*; domínios fixos de homologação *(o do front é o `naveg-front-agencia.vercel.app`; o da API é o próximo domínio comprado — até lá, a homologação provisória do §3)*; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |

@@ -485,7 +485,7 @@ viagem/hora-do-dia           formatarHora
 
 ---
 
-## Passo 10 — A API da reserva ✅ código · ✅ sob as regras (PR) · ⏳ ligar
+## Passo 10 — A API da reserva ✅ código · ✅ sob as regras (PR) · ✅ ligada
 
 > **Código feito em 2026-09-23**, com a revisão de segurança antes do deploy. Diferenças do que estava escrito:
 > a rota mora na `naveg-api-vercel` (e não em `apps/agencia/src/pages/api`); a porta do totem passou a ser
@@ -499,20 +499,31 @@ viagem/hora-do-dia           formatarHora
 > **emulador** existe — `npm run test:emulador` na API, com as Rules do `fluviapp-kmp`, inclusive a recusa da
 > reserva de outra agência —, mas roda só onde os dois repositórios estão lado a lado.
 >
-> **Para ligar, nesta ordem** — *situação às 20:35 de 2026-09-23 (Belém):*
+> **Para ligar, nesta ordem** — *✅ ligado em 2026-09-25:*
 > 1. ✅ merge do naveg-front#1 e a tag `domain-v0.5.0`, publicada;
 > 2. ✅ na API, o lock no 0.5.0, e ✅ merge do naveg-api-vercel#1 — que **derrubou a API** (ver o incidente
->    abaixo) — e ✅ do naveg-api-vercel#2, que a trouxe de volta: `/saude` e `/catalogo` respondem `200`, e o
->    `POST` responde `503` "envio não configurado", que é o esperado enquanto o item 3 não entra;
-> 3. ⏳ na Vercel da API — **é aqui que paramos**; o log da partida lista o que falta: `FIREBASE_WEB_API_KEY` (a `apiKey` do app Web do Firebase — **sem restrição por
->    referenciador**, porque quem a usa é o servidor, que não manda `Referer`), e o que o passo já pedia:
->    `TURNSTILE_SECRET`, `UPSTASH_REDIS_REST_URL`/`_TOKEN`, `ORIGENS_PERMITIDAS`;
-> 4. ⏳ **o projeto do front na Vercel**, que ainda não existe: `PUBLIC_URL_DA_API` e a chave pública do Turnstile;
-> 5. ⏳ **a prova**: uma reserva feita no totem aparecer na seção Reservas do painel de homologação do KMP, e ser
->    cancelada lá. É também a primeira vez que o token de serviço é conferido de verdade — o emulador do Auth
->    **não confere a assinatura**, então só o Identity Toolkit real prova que a chave assina certo;
-> 6. ⏳ no IAM, **tirar o papel *Cloud Datastore User* da `naveg-api-escrita`** — só depois do item 5; é o que
->    tira de uma chave vazada o poder de gravar por cima das Rules.
+>    abaixo) — e ✅ do naveg-api-vercel#2, que a trouxe de volta;
+> 3. ✅ na Vercel da API, `FIREBASE_WEB_API_KEY` (a `apiKey` do app Web do `fluvi-app-dev`, **sem restrição por
+>    referenciador**, porque quem a usa é o servidor, que não manda `Referer`), `TURNSTILE_SECRET`,
+>    `UPSTASH_REDIS_REST_URL`/`_TOKEN` e `ORIGENS_PERMITIDAS`, nos escopos *Production* e *Preview* —
+>    *Production* porque é o deploy de produção da API que faz as vezes de homologação (plano de ambientes, §3);
+> 4. ✅ o projeto do front na Vercel (`naveg-front-agencia`), com `PUBLIC_URL_DA_API` e
+>    `PUBLIC_TURNSTILE_SITE_KEY` no escopo *Preview*;
+> 5. ✅ **a prova**: a `NVG-T7WG72`, feita no totem de homologação e gravada às 12:40 (Belém), apareceu no painel
+>    de homologação do KMP. Foi a primeira vez que o token de serviço foi conferido de verdade — o emulador do
+>    Auth **não confere a assinatura**;
+> 6. ✅ no IAM, a `naveg-api-escrita` **sem papel nenhum**, e a `NVG-KX1NK1` gravada às 13:23 — só pelas Rules.
+>
+> **Duas lições da ligação:**
+> - **A variável `PUBLIC_…` do front só entra num build novo do Preview da `main`.** O redeploy de *Production*
+>   não serve: o domínio de homologação (`naveg-front-agencia.vercel.app`) é o preview da `main`, e a chave do
+>   Turnstile só existe em *Preview*. Sem ela o totem cai no modo "guardada em memória" sem erro nenhum — só a
+>   faixa avisa, e a API não recebe `POST`. Para refazer o build: *Deployments* → o preview da `main` mais
+>   recente → **⋯ → Redeploy**, ou `vercel redeploy <url> --target preview`.
+> - **Ao tirar o papel, a conta foi apagada por engano** (13:13–13:23): o login do serviço passou a falhar com
+>   `auth/invalid-custom-token`, que o log mostra como "o banco recusou a gravação". A conta foi recriada **sem
+>   papel**, com chave nova na `FIREBASE_CONTA_DE_ESCRITA`, e a gravação voltou — o que confirma que assinar o
+>   token não pede papel de IAM. A rotação de 90 dias passa a contar desta chave: vence por volta de 2026-12-24.
 >
 > **Incidente de 2026-09-23, 23:07–23:19 UTC: a API fora do ar.** O naveg-api-vercel#1 passou a importar o
 > `firebase-admin/auth` para assinar o token de serviço; ele puxa o `jwks-rsa` 4, que faz `require()` do `jose` 6
@@ -669,7 +680,7 @@ D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limi
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
-**Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). Falta: o domínio 0.5.0 publicado e a API sob as regras no ar (passo 10, "para ligar"); os segredos do Turnstile e do Upstash e o **projeto do front na Vercel**; a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, o token da org e os jobs (os repositórios do fluviapp já estão na org).
+**Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). ~~O domínio 0.5.0 publicado, a API sob as regras no ar, os segredos do Turnstile e do Upstash e o projeto do front na Vercel~~ (ligados em 2026-09-25, passo 10). Falta: a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, o token da org e os jobs (os repositórios do fluviapp já estão na org).
 
 ## Riscos registrados
 
