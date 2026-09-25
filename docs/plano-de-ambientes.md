@@ -201,7 +201,7 @@ Actions é gratuito em repositório público.
 - **O pacote do domínio sem PAT no CI.** No GitHub Packages, o pacote pode conceder leitura ao repositório da
   API (*Manage Actions access*); o CI lê com o `GITHUB_TOKEN`, que expira sozinho. O `NPM_TOKEN` pessoal fica
   só na Vercel e nas máquinas — e com a Vercel lendo por um token de **conta técnica**, não de uma pessoa.
-- **Rotação**: chave JSON a cada 90 dias (a de leitura vence por volta de 2026-12-22; a de escrita, refeita em 2026-09-25, por volta de 2026-12-24); tokens do Upstash e o
+- **Rotação**: chave JSON a cada 90 dias (as duas refeitas em 2026-09-25: vencem por volta de 2026-12-24); tokens do Upstash e o
   segredo do Turnstile, a cada saída de alguém com acesso.
 
 ## 7. O acoplamento com o fluviapp (o KMP) *(revisto)*
@@ -270,7 +270,7 @@ agência — com o Firestore como barramento; a aposentadoria da API, que este p
 | fase | o quê | depende de |
 |---|---|---|
 | **A · ligar a API sob as regras, agora** *(novo)* | ~~merge de `naveg-front#1` e tag `domain-v0.5.0`; o lock da API no 0.5.0; merge de `naveg-api-vercel#1` e #2~~ (feitos em 2026-09-23 — o #1 derrubou a API por 12 minutos, ver o incidente no passo 10 do plano de implementação). ~~As variáveis da API; o projeto do front na Vercel; a prova no painel de homologação do KMP; a conta de escrita sem papel~~ — ✅ **ligada em 2026-09-25** (passo 10 do plano de implementação) | nada — as Rules já estão no ar |
-| **0 · a casa** | 2FA; rulesets na `main`; CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); push protection; Dependabot; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
+| **0 · a casa** | 2FA; rulesets na `main`; ~~CI de PR nos dois repositórios (verificar, build, auditoria, **fumaça no preview**); Dependabot~~ *(2026-09-25: naveg-api-vercel#6 e naveg-front#7; a fumaça roda em todo deploy da API, e já pegou uma chave morta no Preview; falta marcá-los como obrigatórios nos rulesets, e o token do Dependabot para o npm da API)*; push protection; `CODEOWNERS`; a API inteira subindo contra o emulador | nada — é gratuito e não muda o que está no ar |
 | **0b · o contrato no CI** *(novo, era da fase 3)* | ~~`fluviapp-kmp` e `fluviapp` em `navegsistemas`~~ (feito em 2026-09-23); token da org só de leitura; os jobs **contrato** e **emulador** no CI daqui e da API | nada |
 | **1 · homologação estável** | branch `producao` criada a partir da `main` e configurada como *Production Branch* — *(2026-09-24: criada nos dois repositórios, com o ruleset; Production Branch apontada para ela na Vercel, na API e no front (`naveg-front-agencia`, com `naveg-front-agencia.vercel.app` fixo na `main`); o domínio oficial entra no lançamento de produção)*; domínios fixos de homologação *(o do front é o `naveg-front-agencia.vercel.app`; o da API é o próximo domínio comprado — até lá, a homologação provisória do §3)*; widget de homologação do Turnstile; Upstash de homologação; `ORIGENS_PERMITIDAS` e `PUBLIC_URL_DA_API` por ambiente; a trava ambiente × projeto (e chave Web) | D3, D4 (domínio de homologação) |
 | **2 · produção** | **depois que o KMP ligar a produção dele** (§7); contas no projeto novo, a de escrita sem papel no Firestore (ou OIDC com *Token Creator*); chave Web de produção; widget e Upstash de produção; domínio; Vercel Pro; ruleset de `producao` com aprovação; o primeiro PR de promoção | produção do KMP, D2, D4, D8 |
