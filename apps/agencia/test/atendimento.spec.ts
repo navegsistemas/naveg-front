@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { ATENDENTES, ATENDIMENTO, NOME_PROVISORIO } from '../src/conteudo/atendimento.js'
-import { linkDeWhatsApp } from '../src/conteudo/whatsapp.js'
+import { linkDeWhatsApp } from '@navegsistemas/domain'
 import { normalizarCelular } from '../src/conteudo/telefone.js'
 
 describe('o celular, normalizado', () => {

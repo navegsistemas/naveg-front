@@ -103,7 +103,7 @@ export interface PropsDaConclusao {
   readonly codigo: string
   readonly linhas: readonly LinhaDoResumo[]
   readonly aoRecomecar: () => void
-  /** O que leva ao atendimento — o botão do WhatsApp entra no passo 11. */
+  /** O que leva ao atendimento: o botão do WhatsApp com a reserva escrita, ou a orientação sem ele (passo 11). */
   readonly atendimento?: ReactNode
 }
 

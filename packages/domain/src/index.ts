@@ -86,6 +86,8 @@ export {
 export type { FonteDeAleatoriedade } from './reserva/codigo-da-reserva.js'
 export { formatarWhatsapp, normalizarWhatsapp, whatsappValido } from './reserva/contato.js'
 export { validadeDaReserva } from './reserva/validade-da-reserva.js'
+export { linkDaReserva, linkDeWhatsApp, mensagemDaReserva } from './reserva/link-de-atendimento.js'
+export type { RotulosDaMensagem } from './reserva/link-de-atendimento.js'
 export {
   ORIGENS_DA_RESERVA,
   PENDENCIAS_DA_RESERVA,
