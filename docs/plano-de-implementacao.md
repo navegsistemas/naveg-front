@@ -581,7 +581,21 @@ anônimo.
 
 ---
 
-## Passo 11 — Handoff para o WhatsApp
+## Passo 11 — Handoff para o WhatsApp · ✅ concluído em 2026-09-25
+
+> **Feito em 2026-09-25.** `packages/domain/src/reserva/link-de-atendimento.ts` tem `linkDeWhatsApp`,
+> `mensagemDaReserva` e `linkDaReserva`; a cópia do app (`conteudo/whatsapp.ts`) saiu, e a seção de atendimento
+> usa a do domínio. A conclusão do totem mostra **"Enviar ao atendimento"** quando há número, e a orientação em
+> texto quando não há — nunca um botão que não abre nada; na demonstração, o botão não aparece. Diferenças do que
+> estava escrito:
+> - **Sem a linha "Abrir no app"**: sem domínio de produção, o link seria o da homologação, atrás do login da
+>   Vercel. Entra junto com o domínio e a página `/r/{codigo}` (D9).
+> - **O número do atendimento** é `(91) 98244-3130`, em `conteudo/atendimento.ts`; `WHATSAPP_DAS_RESERVAS` é o
+>   do atendente, e liga o botão no totem e na seção de atendimento de uma vez.
+> - **O QR do quiosque fica para depois**: um gerador de QR custa alguns kB na ilha, que está a 17,4 de 20 kB do
+>   teto, e o quiosque ainda não tem data. Entra com ele.
+> - O "E2E assere o `href`" é, por ora, o cenário do totem com Testing Library (`totem.spec.tsx`), que lê a
+>   mensagem de volta do link; o E2E de verdade é do passo 13.
 
 **← Análise do passo anterior:** gravação confirmada; o código devolvido é o id real do documento.
 

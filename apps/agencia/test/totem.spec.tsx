@@ -25,7 +25,14 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date; demonstracao?: Demonstracao | null } = {}) {
+function montar(
+  opcoes: {
+    inatividadeMs?: number | null
+    relogio?: () => Date
+    demonstracao?: Demonstracao | null
+    atendimento?: string | null
+  } = {},
+) {
   const repositorio = new ReservaEmMemoria()
   render(
     <Totem
@@ -34,6 +41,7 @@ function montar(opcoes: { inatividadeMs?: number | null; relogio?: () => Date; d
       fuso={FUSO_DA_OPERACAO}
       inatividadeMs={opcoes.inatividadeMs ?? null}
       demonstracao={opcoes.demonstracao === undefined ? 'SAIDAS_E_ENVIO' : opcoes.demonstracao}
+      atendimento={opcoes.atendimento ?? null}
       relogio={opcoes.relogio ?? (() => TERCA_8H)}
     />,
   )
@@ -267,5 +275,50 @@ describe('o tempo', () => {
       vi.advanceTimersByTime(80_000)
     })
     expect(pergunta()).toBe('O que vai embarcar?')
+  })
+})
+
+describe('o handoff para o WhatsApp (passo 11)', () => {
+  async function reservarRede(usuario: ReturnType<typeof userEvent.setup>) {
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    await usuario.type(screen.getByLabelText('Nome'), 'Maria Souza')
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
+    return (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
+  }
+
+  it('com o número do atendimento, a conclusão abre a conversa já com a reserva escrita', async () => {
+    montar({ demonstracao: null, atendimento: '(91) 98888-7777' })
+    const codigo = await reservarRede(userEvent.setup())
+
+    const botao = screen.getByRole('link', { name: 'Enviar ao atendimento' })
+    const href = botao.getAttribute('href') ?? ''
+    expect(href.startsWith('https://wa.me/5591988887777?text=')).toBe(true)
+    expect(botao.getAttribute('target')).toBe('_blank')
+
+    const mensagem = new URL(href).searchParams.get('text') ?? ''
+    expect(mensagem.split('\n')[0]).toBe(`Reserva ${codigo}`)
+    expect(mensagem).toContain('Rede · 1 pessoa · Maria Souza')
+    /* O código continua na tela, em texto: o redirecionamento pode falhar. */
+    expect(screen.getByText(codigo)).toBeTruthy()
+  })
+
+  it('sem o número, nenhum botão que não abre nada: o código e a orientação', async () => {
+    montar({ demonstracao: null, atendimento: null })
+    await reservarRede(userEvent.setup())
+
+    expect(screen.queryByRole('link', { name: 'Enviar ao atendimento' })).toBeNull()
+    expect(screen.getByText('Fale com o atendimento pelo WhatsApp informando este código.')).toBeTruthy()
+  })
+
+  it('na demonstração, o botão não aparece — a reserva não foi enviada a ninguém', async () => {
+    montar({ demonstracao: 'SAIDAS_E_ENVIO', atendimento: '(91) 98888-7777' })
+    await reservarRede(userEvent.setup())
+
+    expect(screen.queryByRole('link', { name: 'Enviar ao atendimento' })).toBeNull()
+    expect(screen.getByText(/Nesta demonstração a reserva não é enviada/)).toBeTruthy()
   })
 })

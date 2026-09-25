@@ -82,7 +82,7 @@ export const ATENDENTES: readonly Atendente[] = [
     nome: null,
     funcao: 'Atendente',
     horario: '24 horas, todos os dias',
-    whatsapp: null,
+    whatsapp: '(91) 98244-3130',
     foto: null,
     alt: null,
   },
@@ -90,3 +90,12 @@ export const ATENDENTES: readonly Atendente[] = [
 
 /** O que o cartão mostra enquanto o nome não chega. */
 export const NOME_PROVISORIO = 'Atendimento NAVEG'
+
+/**
+ * **O WhatsApp que recebe as reservas do totem** (passo 11). Com um canal só, é o dele; quando houver o segundo
+ * atendente, quem recebe as reservas passa a ser uma escolha escrita aqui, e não "o primeiro da lista".
+ *
+ * `null` enquanto o número não chega: a conclusão do totem mostra o código e orienta a informá-lo, em vez de
+ * um botão que não abre nada.
+ */
+export const WHATSAPP_DAS_RESERVAS: string | null = ATENDENTES[0]?.whatsapp ?? null

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import {
   InstanteLocal,
+  linkDaReserva,
   montarReserva,
   roteiroDaReserva,
   travessiasOfertadas,
@@ -57,6 +58,11 @@ export interface PropsDoTotem {
    */
   readonly demonstracao: Demonstracao | null
   readonly quiosque?: boolean
+  /**
+   * O WhatsApp do atendimento, como se escreve — `(91) 98888-7777`. Com ele, a conclusão abre a conversa já com
+   * a reserva escrita (passo 11); `null` enquanto o número não chega, e a conclusão orienta a informar o código.
+   */
+  readonly atendimento?: string | null
   /** O relógio. Os cenários passam um fixo; a página, o do sistema. */
   readonly relogio?: () => Date
 }
@@ -75,7 +81,7 @@ const CODIGO_DA_PREVIA = 'NVG-000000'
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, relogio = relogioDoSistema }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, relogio = relogioDoSistema }: PropsDoTotem) {
   const lerAgora = useCallback(() => InstanteLocal.emFuso(relogio(), fuso), [relogio, fuso])
 
   const [catalogo, setCatalogo] = useState<CatalogoDoFluviapp | null>(null)
@@ -198,11 +204,28 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         linhas={resumoDaReserva(envio.reserva, envio.travessia)}
         aoRecomecar={recomecar}
         atendimento={
-          <p className="totem-aviso">
-            {demonstracao !== null
-              ? 'Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o atendimento pelo WhatsApp, já com o código.'
-              : 'Fale com o atendimento pelo WhatsApp informando este código.'}
-          </p>
+          demonstracao !== null ? (
+            <p className="totem-aviso">
+              Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o
+              atendimento pelo WhatsApp, já com o código.
+            </p>
+          ) : atendimento !== null ? (
+            <>
+              <a
+                className="acao"
+                href={linkDaReserva(atendimento, envio.reserva, envio.travessia.rotulos)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Enviar ao atendimento
+              </a>
+              <p className="totem-aviso">
+                Abre o WhatsApp com a reserva escrita. Se não abrir, fale com o atendimento informando o código.
+              </p>
+            </>
+          ) : (
+            <p className="totem-aviso">Fale com o atendimento pelo WhatsApp informando este código.</p>
+          )
         }
       />
     )
