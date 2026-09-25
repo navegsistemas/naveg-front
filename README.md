@@ -182,13 +182,18 @@ A página institucional entrega **0 kB de JavaScript até alguém rolar até o t
 com `client:visible`: o código dele só desce quando a seção entra na tela. No quiosque (`/totem`) ele é
 `client:load`, porque lá o totem **é** a página. Sem JavaScript, a seção diz para falar com o atendimento.
 
-Medido no build do passo 9 (o `catalogoHttp` e o decodificador do JSON somaram 0,2 kB):
+Medido em 2026-09-25, com o envio pela API e o Turnstile (no passo 9, a ilha tinha 10,9 kB de gzip):
 
-| o quê | bruto | gzip |
-|---|---|---|
-| a ilha — domínio, telas e o totem | 31,9 kB | 10,9 kB |
-| o runtime do React 19 (`react-dom`) | 215,6 kB | 67,0 kB |
-| o carregador de ilhas do Astro | 8,2 kB | 3,2 kB |
+| o quê | bruto | gzip | teto (gzip) |
+|---|---|---|---|
+| a ilha — domínio, telas e o totem | 41,4 kB | 13,9 kB | 20 kB, somada ao carregador |
+| o carregador de ilhas do Astro | 8,2 kB | 3,2 kB | ↑ |
+| o runtime do React 19 (`react-dom`) | 215,6 kB | 67,1 kB | 70 kB |
+
+**O CI confere os tetos em todo pull request** (`npm run conferir:build`, em
+[`scripts/conferir-build.mjs`](scripts/conferir-build.mjs)), junto com duas outras coisas: nenhum
+`<script src>` no HTML, e nada com cara de credencial no `dist/`. Subir um teto é decisão: muda-se o número no
+script, com o motivo no commit.
 
 O que pesa é o runtime, não o totem: a ilha sozinha fica perto da referência do totem do fluviapp web
 (15 kB / 5,4 kB, sem o React). Se os 67 kB incomodarem no celular de quem rola até a seção, a troca por
