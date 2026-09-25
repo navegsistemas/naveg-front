@@ -1,14 +1,19 @@
-# Atualizações semanais, agrupadas: um PR por ecossistema, e não um por pacote. Cada PR passa pelos mesmos
-# checks de qualquer outro (`verificar.yml`).
+# Atualizações semanais. As pequenas (minor e patch) vêm juntas, num PR só; as majors, uma por PR — cada uma é
+# uma migração que se decide e se faz separada (TypeScript, Vitest e Astro mudando juntos não se revisam). Cada
+# PR passa pelos mesmos checks de qualquer outro (`verificar.yml`).
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Os tipos acompanham o Node do runtime (22), não o mais novo.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       npm:
-        patterns: ['*']
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
