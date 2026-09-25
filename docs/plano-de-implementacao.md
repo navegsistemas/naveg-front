@@ -514,7 +514,7 @@ viagem/hora-do-dia           formatarHora
 >    Auth **não confere a assinatura**;
 > 6. ✅ no IAM, a `naveg-api-escrita` **sem papel nenhum**, e a `NVG-KX1NK1` gravada às 13:23 — só pelas Rules.
 >
-> **Duas lições da ligação:**
+> **Três lições da ligação:**
 > - **A variável `PUBLIC_…` do front só entra num build novo do Preview da `main`.** O redeploy de *Production*
 >   não serve: o domínio de homologação (`naveg-front-agencia.vercel.app`) é o preview da `main`, e a chave do
 >   Turnstile só existe em *Preview*. Sem ela o totem cai no modo "guardada em memória" sem erro nenhum — só a
@@ -524,6 +524,12 @@ viagem/hora-do-dia           formatarHora
 >   `auth/invalid-custom-token`, que o log mostra como "o banco recusou a gravação". A conta foi recriada **sem
 >   papel**, com chave nova na `FIREBASE_CONTA_DE_ESCRITA`, e a gravação voltou — o que confirma que assinar o
 >   token não pede papel de IAM. A rotação de 90 dias passa a contar desta chave: vence por volta de 2026-12-24.
+> - **Trocar uma chave é: colar a nova, refazer os builds, e só então apagar a antiga.** Variável nova na Vercel
+>   só vale num build novo, em cada ambiente. A primeira fumaça (naveg-api-vercel#6) achou a
+>   `FIREBASE_CONTA_DE_LEITURA` do *Preview* com uma chave morta — todo preview da API sem catálogo, e ninguém
+>   tinha visto. Na correção, as chaves antigas foram apagadas antes do redeploy de *Production*, e o catálogo da
+>   homologação caiu (`UNAUTHENTICATED`, ~15:48–16:00) até o redeploy. A de leitura também foi refeita: vence
+>   por volta de 2026-12-24.
 >
 > **Incidente de 2026-09-23, 23:07–23:19 UTC: a API fora do ar.** O naveg-api-vercel#1 passou a importar o
 > `firebase-admin/auth` para assinar o token de serviço; ele puxa o `jwks-rsa` 4, que faz `require()` do `jose` 6
