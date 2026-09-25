@@ -1,0 +1,52 @@
+# **Os checks de cada pull request** — o que tem de estar verde antes de algo entrar na `main`.
+#
+# A `main` vai sozinha para a homologação, e dali para produção só por promoção (plano de ambientes, §4). Então
+# a conferência acontece aqui, no PR, e não depois do merge. Os dois jobs viram checks obrigatórios no ruleset
+# da `main` e da `producao`.
+#
+# O contrato com o fluviapp (camada 2) ainda fica pulado: o CI não clona o `fluviapp-kmp` até existir o token
+# da org (fase 0b).
+name: verificar
+
+on:
+  pull_request:
+  push:
+    branches: [main, producao]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # typecheck, astro check e os cenários
+      - run: npm run verify
+
+  build:
+    name: build e orçamento
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # As variáveis de homologação, que são públicas: a URL da API e a chave pública **de teste** do Turnstile
+      # (a que sempre passa). Com as duas, o build monta o totem no modo que envia — o mesmo que vai ao ar.
+      - run: npm run build
+        env:
+          PUBLIC_URL_DA_API: https://naveg-api-vercel.vercel.app
+          PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      - run: npm run conferir:build

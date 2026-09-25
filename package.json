@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --build --force",
     "verify": "npm run typecheck && npm run check && npm run test",
+    "conferir:build": "node scripts/conferir-build.mjs",
     "publicar:domain": "node scripts/publicar-domain.mjs"
   },
   "devDependencies": {
