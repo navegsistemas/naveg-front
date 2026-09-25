@@ -82,7 +82,7 @@ export const ATENDENTES: readonly Atendente[] = [
     nome: null,
     funcao: 'Atendente',
     horario: '24 horas, todos os dias',
-    whatsapp: '(91) 98244-3130',
+    whatsapp: '(91) 99203-5322',
     foto: null,
     alt: null,
   },

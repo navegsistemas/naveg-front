@@ -590,7 +590,7 @@ anônimo.
 > estava escrito:
 > - **Sem a linha "Abrir no app"**: sem domínio de produção, o link seria o da homologação, atrás do login da
 >   Vercel. Entra junto com o domínio e a página `/r/{codigo}` (D9).
-> - **O número do atendimento** é `(91) 98244-3130`, em `conteudo/atendimento.ts`; `WHATSAPP_DAS_RESERVAS` é o
+> - **O número do atendimento** é `(91) 99203-5322` (corrigido no mesmo dia; o primeiro, `(91) 98244-3130`, não era o do atendimento), em `conteudo/atendimento.ts`; `WHATSAPP_DAS_RESERVAS` é o
 >   do atendente, e liga o botão no totem e na seção de atendimento de uma vez.
 > - **O QR do quiosque fica para depois**: um gerador de QR custa alguns kB na ilha, que está a 17,4 de 20 kB do
 >   teto, e o quiosque ainda não tem data. Entra com ele.
