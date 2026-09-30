@@ -22,39 +22,52 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 | 8 | Seção Totem — a ilha React, com catálogo de demonstração e porta em memória | ✅ |
 | 9 | `GET /catalogo` — o catálogo do fluviapp, lido pelo servidor e recortado pela concessão | ✅ |
 | 10 | `POST /reservas` — a escrita, com conta de serviço, Turnstile e limite por IP | ✅ código · ⏳ ligar |
-| 11–13 | WhatsApp; no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
+| 11–13 | WhatsApp (✅ 2026-09-25); no aplicativo, a reserva vira passagem + deeplink; endurecimento | — |
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
 ## Retomar daqui
 
-**Parei no fim do código do passo 10.** O totem **envia** a reserva à API quando tem a chave pública do
-Turnstile (`PUBLIC_TURNSTILE_SITE_KEY`): manda a ocorrência, as respostas e o desafio, e mostra o código que o
-**servidor** gerou. Sem a chave, a reserva fica em memória, como antes, e a faixa diz isso. Para ligar em dev
-— chaves de teste da Cloudflare e um Upstash gratuito — ver "Para ligar" no README da
-[`naveg-api-vercel`](../naveg-api-vercel), junto das decisões do passo que pedem confirmação.
+**2026-09-25: parei no fim do passo 11, com o caminho inteiro funcionando.** O cliente reserva no totem de
+homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
+da NAVEG, `(91) 99203-5322`, com a reserva escrita. O atendente acha a reserva pelo código no painel do KMP.
+Provado de ponta a ponta nesse dia.
 
-O resto deste parágrafo é do passo 9, e continua valendo. O totem lê o catálogo **da API, por padrão** — o
-site publicado não depende de ninguém lembrar de uma variável. O catálogo de demonstração só entra quando
-pedido: `PUBLIC_URL_DA_API=demonstracao`. A mesma variável aponta para outra API (`https://…`, ou
-`http://localhost…`), e qualquer outro valor **quebra o build** (`conteudo/api.ts`). A faixa diz qual dos dois
-catálogos está na tela. `npm run verify` deve dar **377 cenários verdes**, `astro check` sem nada, e o `dist/` com JavaScript **só na
-ilha do totem** (ver o orçamento abaixo). A API está no ar em
-`https://naveg-api-vercel.vercel.app` e lê o `fluvi-app-dev` de verdade — o totem mostra as duas viagens
-cadastradas lá. **Quando o front subir na Vercel**, o endereço dele precisa entrar em `ORIGENS_PERMITIDAS` da
-API (e um redeploy dela), ou o navegador recusa a resposta por CORS. Os detalhes estão no README da
-[`naveg-api-vercel`](../naveg-api-vercel).
+**Como está no ar** (plano de ambientes, §3):
 
-O `@navegsistemas/domain` vai para o **0.5.0** (a publicar): o carimbo `tratamento` da reserva e os
-**eventos** da plataforma (`evento/`), que a API grava junto com a reserva desde que passou a gravar sob as
-Rules do fluviapp (ADR-0013 do `fluviapp-kmp`). Antes, o contrato HTTP da reserva (o corpo do `POST` e o
-decodificador estrito dele) entrou no 0.4.0, o `enviarReserva` no 0.3.0, e o 0.2.0 trouxe o recorte pela concessão e a fronteira de JSON do
-catálogo, que a API e o totem usam dos dois lados do fio.
+- **Homologação do front:** `naveg-front-agencia.vercel.app`, o preview da `main`, atrás do login da Vercel.
+- **A API:** `naveg-api-vercel.vercel.app`, o deploy de *produção*, sobre o `fluvi-app-dev`. Faz as vezes de
+  homologação até o lançamento, por decisão (D4). Os domínios entram juntos, um por ambiente.
+- **Variável `PUBLIC_…` nova no front:** só vale num build novo **do preview da `main`**. Chave nova na API: só
+  vale num build novo de cada ambiente. Trocar uma chave é colar a nova, refazer os builds, e só então apagar a
+  antiga.
 
-Os 390 incluem 24 que **leem o Kotlin do fluviapp**: 19 do `fluviapp-kmp`, que é a fonte do contrato
-(`~/AndroidStudioProjects/fluviapp-kmp`, ou `FLUVIAPP_KMP`), e 5 do aplicativo Android, para o que o KMP ainda
-não tem (`~/Documents/AndroidStudioProjects/fluviapp`, ou `FLUVIAPP_ORIGINAL`). Sem o checkout eles aparecem
-como **pulados**, não como verdes — e isso é o esperado em outra máquina e no CI.
+**O que confere cada PR:** `verificar`, `build e orçamento` e `contrato com o fluviapp` (44 cenários contra o
+Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` dá **402 cenários
+verdes** e um pulado nesta máquina, e o orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
+(`npm run conferir:build`).
+
+**O próximo passo é o 13, endurecimento**, começando pelo **E2E do fluxo de reserva** num navegador de verdade:
+o totem, o Turnstile, a chamada à API e o `href` do WhatsApp. O passo 12 é do lado do KMP (a reserva vira
+passagem), e já está pela metade lá.
+
+**Pendências, registradas nos planos:**
+
+- **Na org, a fazer por quem administra:** 2FA obrigatório, push protection, e o `CODEOWNERS`, que espera saber
+  quem responde por segurança.
+- **Na API:** a trava ambiente × projeto, com a exceção da homologação provisória.
+- **Esperando o domínio de produção:** a linha "Abrir no app" na mensagem, e a página `/r/{codigo}` (D9).
+- **Esperando a data do quiosque:** o QR do link na conclusão.
+- **PRs de major do Dependabot** (Astro 7, TypeScript 7, Vitest 5, jsdom 30, `@astrojs/react` 7; na API, Hono 2,
+  TypeScript 7, Vitest 5): cada um é uma migração a decidir, não um merge.
+- **Vencimentos:** as chaves das contas `naveg-api-leitura` e `naveg-api-escrita`, por volta de 2026-12-24; o
+  `FLUVIAPP_LEITURA_TOKEN` (segredo da org) e o `DEPENDABOT_NPM_TOKEN` da API, por volta de 2026-12-24 também
+  (90 dias).
+
+Os cenários que leem o Kotlin do fluviapp procuram o `fluviapp-kmp` em `~/AndroidStudioProjects/fluviapp-kmp`
+(ou `FLUVIAPP_KMP`) e o app Android em `~/Documents/AndroidStudioProjects/fluviapp` (ou `FLUVIAPP_ORIGINAL`).
+Sem o checkout eles aparecem como **pulados** na máquina; no job `contrato` do CI, a ausência é **falha**.
 
 **Decisões de 2026-09-22, já aplicadas:**
 
