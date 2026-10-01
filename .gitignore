@@ -14,3 +14,7 @@ firebase.config.json
 
 .DS_Store
 Thumbs.db
+
+# O E2E: relatórios e traços do Playwright.
+test-results/
+playwright-report/

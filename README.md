@@ -28,7 +28,8 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-09-25: parei no fim do passo 11, com o caminho inteiro funcionando.** O cliente reserva no totem de
+**2026-10-01: o passo 12 fechou no KMP, e o 13 começou pelo E2E da reserva.** Em 2026-09-25 o passo 11 tinha
+fechado com o caminho inteiro funcionando: O cliente reserva no totem de
 homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
 da NAVEG, `(91) 99203-5322`, com a reserva escrita. O atendente acha a reserva pelo código no painel do KMP.
 Provado de ponta a ponta nesse dia.
@@ -42,22 +43,27 @@ Provado de ponta a ponta nesse dia.
   vale num build novo de cada ambiente. Trocar uma chave é colar a nova, refazer os builds, e só então apagar a
   antiga.
 
-**O que confere cada PR:** `verificar`, `build e orçamento` e `contrato com o fluviapp` (44 cenários contra o
+**O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` e `contrato com o fluviapp` (44 cenários contra o
 Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` dá **402 cenários
 verdes** e um pulado nesta máquina, e o orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
-(`npm run conferir:build`).
+(`npm run conferir:build`). `npm run e2e` dá 5 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
+na primeira vez, `npx playwright install chromium webkit`.
 
-**O próximo passo é o 13, endurecimento**, começando pelo **E2E do fluxo de reserva** num navegador de verdade:
-o totem, o Turnstile, a chamada à API e o `href` do WhatsApp. O passo 12 é do lado do KMP (a reserva vira
-passagem), e já está pela metade lá.
+**O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
+celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
+
+**O passo 13, endurecimento, está em andamento.** Feito: o **E2E da reserva** (`e2e/`), com o Turnstile de
+verdade e a API respondida pelo teste. Falta: só teclado, a página sem JavaScript, o axe, os cabeçalhos de
+segurança, meta e `RUNBOOK`, e o Lighthouse.
 
 **Pendências, registradas nos planos:**
 
 - **Na org, a fazer por quem administra:** 2FA obrigatório, push protection, e o `CODEOWNERS`, que espera saber
   quem responde por segurança.
 - **Na API:** a trava ambiente × projeto, com a exceção da homologação provisória.
-- **Esperando o domínio de produção:** a linha "Abrir no app" na mensagem, e a página `/r/{codigo}` (D9).
+- **Esperando o domínio de produção, sem urgência:** a linha "Abrir no app" na mensagem, a página `/r/{codigo}`
+  (D9), e o App Link no app móvel do KMP com o `assetlinks.json`.
 - **Esperando a data do quiosque:** o QR do link na conclusão.
 - **PRs de major do Dependabot** (Astro 7, TypeScript 7, Vitest 5, jsdom 30, `@astrojs/react` 7; na API, Hono 2,
   TypeScript 7, Vitest 5): cada um é uma migração a decidir, não um merge.

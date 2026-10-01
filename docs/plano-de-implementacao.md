@@ -625,7 +625,17 @@ anônimo.
 
 ---
 
-## Passo 12 — No centralizador: a reserva vira passagem · 🟡 metade feita no `fluviapp-kmp`
+## Passo 12 — No centralizador: a reserva vira passagem ✅ (o que não espera o domínio)
+
+> **Feito em 2026-09-28 no `fluviapp-kmp`** (fluviapp-kmp#11, ADR-0014 §5), e no celular em 2026-09-30
+> (fluviapp-kmp#22). O botão **Emitir** da seção Reservas abre a emissão com o que o cliente pediu no totem, e o
+> nome e o telefone no titular; a passagem, a reserva `CONVERTIDA` e o `reserva.convertida` vão num lote só, e
+> as Rules exigem que a passagem seja da mesma saída da reserva. O contrato daqui seguiu verde.
+>
+> **O que sobrou espera o domínio de produção, e não tem urgência** (decisão do PO, 2026-10-01: o caminho
+> reserva → conversão → WhatsApp está estável, e é o que importa): o App Link no app móvel do KMP, a página
+> `/r/{codigo}` e o `assetlinks.json`. O app móvel já existe (ADR-0016 do KMP); o que falta para o link é o
+> endereço.
 
 > **Reescrito em 2026-09-23.** O passo foi escrito para o aplicativo Android original, que agora é **legado e
 > referência** — nada novo nasce nele. O destino é o `fluviapp-kmp`, e boa parte do que estava aqui **já está
@@ -643,13 +653,14 @@ anônimo.
   (`situacaoEm`), sem gravar `EXPIRADA`; abrir a conversa no WhatsApp; **cancelar**, com o carimbo
   `tratamento` e o `reserva.cancelada` no mesmo lote.
 
-**Falta — no `fluviapp-kmp`**
-- **"Emitir a partir desta reserva"** — chega com a emissão (F4, balcão, app móvel do KMP). O roteiro pré-preenchido
+**Feito depois — no `fluviapp-kmp`**
+- ~~**"Emitir a partir desta reserva"**~~ **feito** (fluviapp-kmp#11 no Desktop, #22 no celular). O roteiro pré-preenchido
   continua o mesmo: acomodação, tipo, subtipo, quantidade de pessoas (que vira o número de formulários), natureza,
   classe, cilindrada; o nome e o telefone pré-preenchem o titular; **a identificação é feita ali**, pelo caminho
   normal do balcão. Na mesma escrita: `CONVERTIDA`, `passagemId` de passagem existente, `tratamento` e o
   `reserva.convertida` — é o que a Rule já exige.
-- **O deeplink (Android App Links)** vai para o **app móvel do KMP**, quando ele existir — não para o legado. O
+**Falta — esperando o domínio**
+- **O deeplink (Android App Links)** vai para o **app móvel do KMP**, que já existe — não para o legado. O
   `applicationId` continua `br.com.fluviapp` (ADR-0012 §6 do KMP), e o resto do desenho não muda: `intent-filter`
   de `https://<domínio>/r/` com `autoVerify`, `singleTask`, tratamento em `onCreate` e `onNewIntent`.
 
@@ -668,7 +679,15 @@ anônimo.
 
 ---
 
-## Passo 13 — Endurecimento: acessibilidade, performance e E2E
+## Passo 13 — Endurecimento: acessibilidade, performance e E2E · 🟡 começado
+
+> **2026-10-01: o E2E da reserva.** Playwright em `e2e/`, no job `e2e da reserva` do CI: Chromium e WebKit,
+> desktop e celular, sobre o build estático no modo que envia. O Turnstile é o de verdade (chave de teste, script
+> da Cloudflare); a API é respondida pelo próprio teste (`e2e/api-falsa.ts`), montando a resposta com o mesmo
+> domínio que a `naveg-api-vercel` usa. Os cenários: a jornada até o `href` do WhatsApp (com o token e o corpo
+> que atravessam), a saída que partiu (`409`), a API fora do ar (e o token novo a cada tentativa), o catálogo que
+> não carrega, e a ilha da página hidratando ao rolar. **Falta do passo:** só teclado, a página sem JavaScript, o
+> axe, os cabeçalhos (CSP e companhia), meta e `RUNBOOK`, e o Lighthouse.
 
 **← Análise do passo anterior:** o circuito está fechado — reserva → Firestore → WhatsApp → centralizador → passagem.
 
