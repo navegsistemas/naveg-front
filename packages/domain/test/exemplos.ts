@@ -10,6 +10,7 @@ import type { TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
 import type { ContextoDaReserva, RespostasDaReserva } from '../src/reserva/roteiro-da-reserva.js'
 import type { IdentidadeDaReserva } from '../src/reserva/montagem-da-reserva.js'
 import type { CatalogoDoFluviapp } from '../src/catalogo/travessias.js'
+import type { RespostasDaEncomenda } from '../src/encomenda/roteiro-da-encomenda.js'
 
 /** CPFs com dígito verificador correto — números de exemplo de documentação, não de pessoas. */
 export const CPFS_VALIDOS = ['52998224725', '11144477735', '39053344705'] as const
@@ -47,6 +48,25 @@ export const REDE_COMPLETA: RespostasDaReserva = {
   acomodacao: 'REDE',
   tipo: 'INTEIRA',
   cliente: CLIENTE,
+}
+
+/** Três caixas de 5 a 20 kg, que outra pessoa retira. O caminho mais longo da encomenda. */
+export const ENCOMENDA_PARA_OUTRA: RespostasDaEncomenda = {
+  tipoVolume: 'CAIXA',
+  quantidadeVolumes: 3,
+  faixaPeso: 'DE_5_A_20',
+  retirada: 'OUTRA_PESSOA',
+  destinatario: { nome: 'João Lima', telefone: '(96) 98888-7777' },
+  cliente: CLIENTE,
+}
+
+/** Um saco, até 5 kg, que o próprio motorista despacha e retira no destino. */
+export const ENCOMENDA_DO_PROPRIO: RespostasDaEncomenda = {
+  tipoVolume: 'SACO_FARDO',
+  quantidadeVolumes: 1,
+  faixaPeso: 'ATE_5',
+  retirada: 'REMETENTE',
+  cliente: { nome: 'Carlos Melo', telefone: '(91) 98888-1234' },
 }
 
 /**

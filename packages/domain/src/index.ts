@@ -153,6 +153,34 @@ export {
 } from './reserva/pedido-http.js'
 export type { PedidoDeReserva, PedidoDeReservaJson, ReservaCriadaJson } from './reserva/pedido-http.js'
 
+// --- a encomenda (docs/plano-da-reserva-de-encomenda.md): o roteiro, a montagem e a mensagem; o codec vem na entrega 6 ---
+export {
+  FAIXAS_DE_PESO,
+  FaixaPeso,
+  FORMAS_DE_RETIRADA,
+  LIMITE_DE_VOLUMES,
+  LIMITE_DO_COMPLEMENTO,
+  Retirada,
+  TIPOS_DE_VOLUME,
+  TipoVolume,
+} from './encomenda/volume.js'
+export {
+  respondidoNaEncomenda,
+  retiradaEmVigor,
+  roteiroDaEncomenda,
+  semRespostaNaEncomenda,
+  voltarNaEncomenda,
+} from './encomenda/roteiro-da-encomenda.js'
+export type { NoDaEncomenda, PassoDaEncomenda, RespostasDaEncomenda, RoteiroDaEncomenda } from './encomenda/roteiro-da-encomenda.js'
+export { montarEncomenda, PENDENCIAS_DA_ENCOMENDA, pendenciasDaEncomenda } from './encomenda/montagem-da-encomenda.js'
+export type {
+  DestinatarioDaEncomenda,
+  PendenciaDaEncomenda,
+  ReservaDeEncomenda,
+  ResultadoDaMontagemDaEncomenda,
+} from './encomenda/montagem-da-encomenda.js'
+export { linkDaEncomenda, mensagemDaEncomenda, oQueVai, quemRetira } from './encomenda/mensagem-da-encomenda.js'
+
 // --- a plataforma: os eventos (ADR-0013 do fluviapp-kmp) ---
 export {
   CAMPOS_DO_EVENTO,
