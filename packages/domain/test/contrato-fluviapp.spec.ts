@@ -446,13 +446,17 @@ describe(`camada 2 · a tabela bate com o fluviapp-kmp${ausente(KMP)}`, () => {
     }
   })
 
-  /* O KMP só diz se o casco leva veículo; a lista do navio vem do aplicativo (abaixo), até a emissão chegar lá. */
-  it.skipIf(!KMP.presente)('quais cascos levam veículo, lido do TipoEmbarcacao.kt', () => {
+  /*
+   * Desde a emissão no Desktop (fluviapp-kmp, 2026-09-28) o KMP descreve a carga como o aplicativo, com o
+   * `CargaAdmitida`, e `levaVeiculo` virou derivado. A tabela inteira confere aqui, e não só "leva ou não leva".
+   */
+  it.skipIf(!KMP.presente)('carga admitida de cada casco, lida do TipoEmbarcacao.kt', () => {
     const entradas = entradasDoEnum(kotlin(KMP, `${KMP.dominio}/viagem/TipoEmbarcacao.kt`), 'TipoEmbarcacao') ?? []
     expect(entradas.length).toBeGreaterThan(0)
     for (const { nome, argumentos } of entradas) {
-      const levaVeiculo = /levaVeiculo\s*=\s*true/.test(argumentos)
-      expect(levaVeiculo, nome).toBe(CARGA_NO_KOTLIN[nome] !== 'Nenhuma')
+      const forma = /CargaAdmitida\.(Todas|Nenhuma|Apenas)/.exec(argumentos)?.[1]
+      const classes = [...argumentos.matchAll(/ClasseVeiculo\.([A-Z_]+)/g)].map((m) => m[1]).join(',')
+      expect(forma === 'Apenas' ? `Apenas(${classes})` : forma, nome).toBe(CARGA_NO_KOTLIN[nome])
     }
   })
 
