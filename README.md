@@ -57,6 +57,10 @@ celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o 
 verdade e a API respondida pelo teste. Falta: só teclado, a página sem JavaScript, o axe, os cabeçalhos de
 segurança, meta e `RUNBOOK`, e o Lighthouse.
 
+**A reserva de encomenda** (a carga do plano do ERP do KMP, E3 e M6) tem plano próprio, em
+[docs/plano-da-reserva-de-encomenda.md](docs/plano-da-reserva-de-encomenda.md): uma seção à parte, com item na
+barra superior e botão na capa, que vai ao ar já com a reserva gravada, depois das entregas 4 e 5 do ERP no KMP.
+
 **Pendências, registradas nos planos:**
 
 - **Na org, a fazer por quem administra:** 2FA obrigatório, push protection, e o `CODEOWNERS`, que espera saber
