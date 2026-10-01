@@ -1,7 +1,7 @@
 # Plano da reserva de encomenda — a carga na agência virtual
 
 **Data:** 2026-10-01
-**Situação:** C1, C3, C4, C5 e C9 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta. Nenhuma
+**Situação:** C1, C3, C4, C5, C9, C11 e C12 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta. Nenhuma
 entrega começou.
 **De onde vem:** o [plano do ERP do `fluviapp-kmp`](https://github.com/navegsistemas/fluviapp-kmp/blob/master/docs/plano-do-erp.md)
 (`docs/plano-do-erp.md` lá), decisões **E3** (a carga entra, começando pela encomenda) e **M6** (o transporte de
@@ -40,6 +40,8 @@ seção Reservas do painel e o mesmo WhatsApp no fim. O que muda é a categoria 
 | **C4** | O peso | **faixa**: até 5 kg, 5 a 20, 20 a 50, acima de 50 (PO, 2026-10-01) |
 | **C5** | O celular do destinatário | **obrigatório**: é como o destino avisa que a encomenda chegou (PO, 2026-10-01) |
 | **C9** | O quiosque (`/totem`) oferece encomenda? | **Não**, só o site (PO, 2026-10-01). No saguão quem chega quer passagem |
+| **C11** | O nome para o público: "Encomendas" ou "Cargas"? | **"Encomendas"** (PO, 2026-10-01). É como se diz no rio para o volume que alguém manda e outro retira, e é o que esta etapa aceita; "carga" sugere frete grande, que é a onda 4 do ERP. Quando a carga geral entrar, a seção pode virar "Cargas e encomendas". Por dentro, a categoria é `ENCOMENDA` |
+| **C12** | E quando quem manda é quem retira (o motorista ou transportador que despacha o volume e o pega no destino)? | **É um caso do roteiro** (PO, 2026-10-01): a pergunta "Quem retira no destino?" tem **"Eu mesmo"** e **"Outra pessoa"**. Com "Eu mesmo", não há destinatário, e o celular de quem manda passa a ser **obrigatório** — é por ele que o destino avisa (a razão da C5) |
 
 **Ainda como proposta** — não mudam o que se constrói antes da entrega 5, e podem ser decididas no PR dela:
 
@@ -49,7 +51,6 @@ seção Reservas do painel e o mesmo WhatsApp no fim. O que muda é a categoria 
 | **C7** | Toda saída aceita encomenda? | **sim**, por enquanto. O plano do ERP deixa a capacidade de carga de fora (§6.1 lá); se a lancha não leva, entra como regra do tipo de embarcação |
 | **C8** | O mesmo WhatsApp do atendimento de passagem, `(91) 99203-5322`? | **sim**, até haver um atendente só de carga |
 | **C10** | O texto da capa, que hoje diz "para passageiros e veículos" | passa a citar a encomenda: "passageiros, veículos e encomendas" |
-| **C11** | O nome para o público: **"Encomendas"** ou **"Cargas"**? (menu, botão, título, mensagem) | **"Encomendas"**. É como se diz no rio para o volume que alguém manda e outro retira, e é o que esta etapa aceita. "Carga" sugere frete grande (caminhão, carga geral), que é a onda 4 do ERP e não cabe aqui: chamaria pedidos que o atendente teria de recusar. Quando a carga geral entrar, a seção pode virar "Cargas e encomendas". **Por dentro**, a categoria é `ENCOMENDA` de qualquer jeito, a do plano do ERP |
 
 ## 3. O que o cliente vê
 
@@ -72,11 +73,16 @@ trocar "Encomenda" por "Carga") foi feito para a análise da C11, em 2026-10-01.
 | 1 | Escolha a saída | a mesma lista de saídas do totem |
 | 2 | O que vai mandar? | tipo do volume (C3) e quantidade de volumes (1 a 20); complemento opcional |
 | 3 | Quanto pesa, mais ou menos? | faixa de peso (C4) |
-| 4 | Para quem vai? | nome e celular do destinatário (C5) |
-| 5 | Quem está mandando? | nome e celular opcional do remetente, como no totem de passagem |
-| 6 | Confira a encomenda | resumo, e o botão **Confirmar** |
+| 4 | Quem retira no destino? | **Eu mesmo** ou **Outra pessoa** (C12) |
+| 5 | Para quem vai? | **só com "Outra pessoa":** nome e celular do destinatário (C5) |
+| 6 | Quem está mandando? | nome, e celular — **opcional** se outra pessoa retira, como no totem de passagem; **obrigatório** se é a mesma pessoa (C12) |
+| 7 | Confira a encomenda | resumo, e o botão **Confirmar** |
 
-No fim, a mesma tela de conclusão: o código e **"Enviar ao atendimento"**, com a mensagem (portos e nomes de exemplo):
+O total de passos muda com a resposta do passo 4 (7 com outra pessoa, 6 com "Eu mesmo"), como o passo da
+gratuidade já faz no totem de passagem: o indicador "Passo X de Y" acompanha.
+
+No fim, a mesma tela de conclusão: o código e **"Enviar ao atendimento"**, com a mensagem (portos e nomes de exemplo).
+Quando outra pessoa retira:
 
 ```
 Encomenda NVG-7K3QP2
@@ -85,6 +91,19 @@ Porto do Sal · Belém/PA → Porto de Santana · Santana/AP · Qua, 14/10 · 18
 De Maria Souza para João Lima, (96) 98888-7777
 Entregue no porto antes da partida.
 ```
+
+Quando quem manda retira:
+
+```
+Encomenda NVG-7K3QP2
+Porto do Sal · Belém/PA → Porto de Santana · Santana/AP · Qua, 14/10 · 18:00
+3 volumes · Caixa · 5 a 20 kg
+Carlos Melo envia e retira no destino, (91) 98888-1234
+Entregue no porto antes da partida.
+```
+
+**Se o motorista também viaja na mesma saída**, a passagem dele (ou a do veículo) é outra reserva, pelo totem
+de passagem. Juntar as duas num pedido só é desenho para quando a carga acompanhada entrar (onda 4 do ERP).
 
 ### 3.3 O que **não** se pede, de propósito
 
@@ -127,10 +146,11 @@ API publica o deploy que aponta para a homologação.
   cruzam, e misturá-las faria a reserva de passagem pagar pela de encomenda em cada cenário. O que se
   reaproveita é o que já é comum: a ocorrência, o cliente, o código, a validade, o link de WhatsApp. Na entrega 6,
   `Reserva` ganha o terceiro caso, `ReservaDeEncomenda` (`categoria: 'ENCOMENDA'`), e o codec ganha as chaves
-  `destinatario`, `volumes`, `tipoVolume`, `complemento` e `faixaPeso`.
+  `retirada` (`REMETENTE` ou `OUTRA_PESSOA`), `destinatario` (presente **só** com `OUTRA_PESSOA`, e obrigatório nesse
+  caso, como a gratuidade com o tipo `GRATUIDADE`), `volumes`, `tipoVolume`, `complemento` e `faixaPeso`.
 - **Interface** — as telas do totem (`ListaDeTravessias`, `Conferencia`, `ReservaConcluida`) já recebem o que
   mostram por propriedade; a encomenda passa as dela. Os passos novos (tipo do volume, faixa de peso,
-  destinatário) seguem o padrão de cartões e formulários de `packages/ui`.
+  destinatário, quem retira) seguem o padrão de cartões e formulários de `packages/ui`.
 - **Página** — uma segunda ilha, `client:visible`, na seção nova, só na `/`: o quiosque fica só com passagem
   (C9). As duas ilhas dividem o React e o domínio, que o build separa num pedaço comum.
 - **Orçamento** — a ilha e o carregador estão em 17,5 kB de um teto de 20. Uma segunda ilha provavelmente passa
