@@ -52,6 +52,30 @@ jobs:
           PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       - run: npm run conferir:build
 
+  e2e:
+    name: e2e da reserva
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Os dois motores, com as bibliotecas de sistema que cada um pede.
+      - run: npx playwright install --with-deps chromium webkit
+      # O build e a pré-visualização sobem pelo `webServer` do playwright.config.ts, com a API falsa e a chave de
+      # teste do Turnstile — que carrega da Cloudflare de verdade.
+      - run: npm run e2e
+        env:
+          CI: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-do-e2e
+          path: playwright-report/
+          retention-days: 14
+
   contrato:
     name: contrato com o fluviapp
     runs-on: ubuntu-latest
