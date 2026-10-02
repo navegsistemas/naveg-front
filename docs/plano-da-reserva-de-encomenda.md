@@ -1,8 +1,9 @@
 # Plano da reserva de encomenda — a carga na agência virtual
 
 **Data:** 2026-10-01
-**Situação:** C1, C3, C4, C5, C9, C11 e C12 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta. Nenhuma
-entrega começou.
+**Situação:** C1, C3, C4, C5, C9, C11 e C12 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta.
+Aqui, a entrega 2 (o roteiro no domínio) está em PR. No KMP, a entrega 4 do ERP (o fim do compartilhamento) e a 5
+(a encomenda no balcão) estão no `master` desde 2026-10-02, e o balcão se alinha a este plano (§4.1).
 **De onde vem:** o [plano do ERP do `fluviapp-kmp`](https://github.com/navegsistemas/fluviapp-kmp/blob/master/docs/plano-do-erp.md)
 (`docs/plano-do-erp.md` lá), decisões **E3** (a carga entra, começando pela encomenda) e **M6** (o transporte de
 carga chega ao front como **reserva com redirecionamento ao atendente**, igual à de passageiro), §6.3 e entrega 6.
@@ -122,6 +123,18 @@ e a parte KMP da 6 (as regras de `reservas` aceitando `ENCOMENDA` e as chaves no
 lendo; a conversão abrindo "Receber encomenda" preenchido). A ordem é a de sempre: **KMP → API → front**, e o
 teste de contrato daqui confere as chaves novas contra o Kotlin.
 
+### 4.1 O que o balcão do KMP espera da reserva (2026-10-02)
+
+A encomenda no balcão (entrega 5 do ERP) foi conferida contra este plano, e o KMP se alinha a ele:
+
+- **o mesmo tipo do volume** (`CAIXA`, `SACO_FARDO`, `ELETRODOMESTICO`, `MOVEL`, `OUTRO`) e a mesma
+  **retirada** (`REMETENTE` ou `OUTRA_PESSOA`), gravados com esses nomes — a conversão leva os dois sem traduzir;
+- **o celular do destinatário obrigatório** também no balcão (C5);
+- **o peso**: a faixa daqui é estimativa; no balcão o volume é pesado, e o peso exato substitui a faixa;
+- **o documento de quem retira** continua **obrigatório no balcão** (PO, 2026-10-02): a web não o pede (§3.3), e
+  na conversão o atendente o pede ao remetente pelo WhatsApp antes de receber. É ele que se confere na entrega
+  sem o QR.
+
 **O que dá para adiantar aqui sem esperar**, e sem nada aparecer na página: o roteiro e a mensagem no domínio
 (entrega 2) e a ilha com as telas, testada com o envio em memória (entrega 3). Nenhum dos dois toca o codec do
 documento — é isso que deixa o teste de contrato verde enquanto o KMP não tem as chaves novas.
@@ -147,7 +160,7 @@ API publica o deploy que aponta para a homologação.
   reaproveita é o que já é comum: a ocorrência, o cliente, o código, a validade, o link de WhatsApp. Na entrega 6,
   `Reserva` ganha o terceiro caso, `ReservaDeEncomenda` (`categoria: 'ENCOMENDA'`), e o codec ganha as chaves
   `retirada` (`REMETENTE` ou `OUTRA_PESSOA`), `destinatario` (presente **só** com `OUTRA_PESSOA`, e obrigatório nesse
-  caso, como a gratuidade com o tipo `GRATUIDADE`), `volumes`, `tipoVolume`, `complemento` e `faixaPeso`.
+  caso, como a gratuidade com o tipo `GRATUIDADE`), `quantidadeVolumes`, `tipoVolume`, `complemento` e `faixaPeso`.
 - **Interface** — as telas do totem (`ListaDeTravessias`, `Conferencia`, `ReservaConcluida`) já recebem o que
   mostram por propriedade; a encomenda passa as dela. Os passos novos (tipo do volume, faixa de peso,
   destinatário, quem retira) seguem o padrão de cartões e formulários de `packages/ui`.
