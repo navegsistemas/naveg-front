@@ -28,8 +28,9 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-01: o passo 12 fechou no KMP, e o 13 começou pelo E2E da reserva.** Em 2026-09-25 o passo 11 tinha
-fechado com o caminho inteiro funcionando: O cliente reserva no totem de
+**2026-10-01: parei na reserva de encomenda, com o plano e o roteiro no domínio prontos para merge, esperando o
+KMP.** No mesmo dia o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
+fechado com o caminho inteiro funcionando: o cliente reserva no totem de
 homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
 da NAVEG, `(91) 99203-5322`, com a reserva escrita. O atendente acha a reserva pelo código no painel do KMP.
 Provado de ponta a ponta nesse dia.
@@ -43,8 +44,8 @@ Provado de ponta a ponta nesse dia.
   vale num build novo de cada ambiente. Trocar uma chave é colar a nova, refazer os builds, e só então apagar a
   antiga.
 
-**O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` e `contrato com o fluviapp` (44 cenários contra o
-Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
+**O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
+fluviapp` (44 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` dá **402 cenários
 verdes** e um pulado nesta máquina, e o orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
 (`npm run conferir:build`). `npm run e2e` dá 5 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
@@ -56,6 +57,22 @@ celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o 
 **O passo 13, endurecimento, está em andamento.** Feito: o **E2E da reserva** (`e2e/`), com o Turnstile de
 verdade e a API respondida pelo teste. Falta: só teclado, a página sem JavaScript, o axe, os cabeçalhos de
 segurança, meta e `RUNBOOK`, e o Lighthouse.
+
+**A reserva de encomenda** (a carga do plano do ERP do KMP, E3 e M6) tem plano próprio, em
+[docs/plano-da-reserva-de-encomenda.md](docs/plano-da-reserva-de-encomenda.md): uma seção à parte, com item na
+barra superior e botão na capa, que vai ao ar já com a reserva gravada, depois das entregas 4 e 5 do ERP no KMP.
+Decidido pelo PO: o nome é "Encomendas"; tipo do volume por lista e peso por faixa; celular do destinatário
+obrigatório; quem manda pode ser quem retira (o motorista), e aí o celular dele é obrigatório; o quiosque fica só
+com passagem. Há um wireframe para análise (privado do PO, em claude.ai).
+
+- **Entregas 1 e 2, em PR:** o plano (#24) e o roteiro, a montagem e a mensagem no domínio (#25, 433 cenários
+  verdes). A reserva de encomenda ainda não entra no codec: entra na entrega 6, junto com as regras do KMP.
+- **Próxima aqui, a 3:** a ilha da encomenda, com as telas do totem e o envio em memória, **fora da página**.
+- **No KMP, com o PO:** as entregas 4 e 5 do ERP e a reserva de encomenda nas regras e no painel. Os nomes do
+  documento saem do domínio daqui: `categoria: 'ENCOMENDA'`, `tipoVolume`, `quantidadeVolumes`, `complemento`,
+  `faixaPeso`, `retirada` e `destinatario {nome, telefone}` (só com `OUTRA_PESSOA`).
+- **Ainda como proposta no plano:** a validade (até a partida), toda saída aceita encomenda, o mesmo WhatsApp do
+  atendimento, e o texto da capa.
 
 **Pendências, registradas nos planos:**
 
