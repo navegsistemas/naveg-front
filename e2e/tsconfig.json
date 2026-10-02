@@ -4,6 +4,9 @@
     /* Quem lê estes arquivos é o Playwright, que resolve como um bundler; nada daqui é emitido. */
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    /* A configuração do Playwright lê `process.env`. Declarado aqui porque, do TypeScript 6 em
+       diante, nenhum `@types` entra sem ser pedido. */
+    "types": ["node"],
     "composite": false,
     "declaration": false,
     "declarationMap": false,
