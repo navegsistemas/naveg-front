@@ -28,8 +28,9 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-01: parei na reserva de encomenda, com o plano e o roteiro no domínio prontos para merge, esperando o
-KMP.** No mesmo dia o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
+**2026-10-02: parei na reserva de encomenda, com o plano e o roteiro no domínio na `main` e a encomenda no balcão
+feita no KMP. Próxima aqui: a ilha da encomenda (entrega 3).** No mesmo dia entraram os majors do Dependabot,
+menos o TypeScript 7. Em 2026-10-01 o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
 fechado com o caminho inteiro funcionando: o cliente reserva no totem de
 homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
 da NAVEG, `(91) 99203-5322`, com a reserva escrita. O atendente acha a reserva pelo código no painel do KMP.
@@ -46,8 +47,9 @@ Provado de ponta a ponta nesse dia.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
 fluviapp` (44 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
-ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` dá **402 cenários
-verdes** e um pulado nesta máquina, e o orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **434 cenários**,
+um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
+vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
 (`npm run conferir:build`). `npm run e2e` dá 5 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
 na primeira vez, `npx playwright install chromium webkit`.
 
@@ -60,17 +62,22 @@ segurança, meta e `RUNBOOK`, e o Lighthouse.
 
 **A reserva de encomenda** (a carga do plano do ERP do KMP, E3 e M6) tem plano próprio, em
 [docs/plano-da-reserva-de-encomenda.md](docs/plano-da-reserva-de-encomenda.md): uma seção à parte, com item na
-barra superior e botão na capa, que vai ao ar já com a reserva gravada, depois das entregas 4 e 5 do ERP no KMP.
+barra superior e botão na capa, que vai ao ar já com a reserva gravada, depois das regras de `reservas` no KMP.
 Decidido pelo PO: o nome é "Encomendas"; tipo do volume por lista e peso por faixa; celular do destinatário
 obrigatório; quem manda pode ser quem retira (o motorista), e aí o celular dele é obrigatório; o quiosque fica só
 com passagem. Há um wireframe para análise (privado do PO, em claude.ai).
 
-- **Entregas 1 e 2, em PR:** o plano (#24) e o roteiro, a montagem e a mensagem no domínio (#25, 433 cenários
-  verdes). A reserva de encomenda ainda não entra no codec: entra na entrega 6, junto com as regras do KMP.
+- **Feitas aqui, na `main`:** a 1, o plano (#24), e a 2, o roteiro, a montagem e a mensagem no domínio (#25). A
+  reserva de encomenda ainda não entra no codec: entra na entrega 6, junto com as regras do KMP.
+- **Feita no KMP, em 2026-10-02:** a 4, a encomenda no balcão (entrega 5 do ERP, fluviapp-kmp#33 e #34, alinhada a
+  este plano), sobre a entrega 4 do ERP, o fim do compartilhamento (fluviapp-kmp#29).
 - **Próxima aqui, a 3:** a ilha da encomenda, com as telas do totem e o envio em memória, **fora da página**.
-- **No KMP, com o PO:** as entregas 4 e 5 do ERP e a reserva de encomenda nas regras e no painel. Os nomes do
-  documento saem do domínio daqui: `categoria: 'ENCOMENDA'`, `tipoVolume`, `quantidadeVolumes`, `complemento`,
-  `faixaPeso`, `retirada` e `destinatario {nome, telefone}` (só com `OUTRA_PESSOA`).
+  Medir o orçamento da ilha nela: a de passagem já está em 17,5 kB de 20.
+- **Próxima no KMP, com o PO:** a 5, a reserva de encomenda nas regras de `reservas` e no painel (a parte KMP da
+  entrega 6 do ERP). Os nomes do documento saem do domínio daqui: `categoria: 'ENCOMENDA'`, `tipoVolume`,
+  `quantidadeVolumes`, `complemento`, `faixaPeso`, `retirada` e `destinatario {nome, telefone}` (só com
+  `OUTRA_PESSOA`).
+- **Depois, aqui e na API:** a 6, no ar junto com o merge das regras no KMP.
 - **Ainda como proposta no plano:** a validade (até a partida), toda saída aceita encomenda, o mesmo WhatsApp do
   atendimento, e o texto da capa.
 
@@ -82,8 +89,11 @@ com passagem. Há um wireframe para análise (privado do PO, em claude.ai).
 - **Esperando o domínio de produção, sem urgência:** a linha "Abrir no app" na mensagem, a página `/r/{codigo}`
   (D9), e o App Link no app móvel do KMP com o `assetlinks.json`.
 - **Esperando a data do quiosque:** o QR do link na conclusão.
-- **PRs de major do Dependabot** (Astro 7, TypeScript 7, Vitest 5, jsdom 30, `@astrojs/react` 7; na API, Hono 2,
-  TypeScript 7, Vitest 5): cada um é uma migração a decidir, não um merge.
+- **Majors do Dependabot:** aqui, Astro 7, `@astrojs/react` 7, Vitest 5, jsdom 30 e `upload-artifact` 7 entraram
+  em 2026-10-02. **O TypeScript 7 (#13) fica parado**, por dois motivos: o `e2e/tsconfig.json` precisa declarar
+  `"types": ["node"]` (do TypeScript 6 em diante, nenhum `@types` entra sem ser pedido; a correção está pronta e
+  vale também no 5.9), e o `astro check` recusa o 7.0. O suporte do Astro, experimental, só vem com o 7.1.
+  Na API, Hono 2, TypeScript 7 e Vitest 5 seguem como migrações a decidir.
 - **Vencimentos:** as chaves das contas `naveg-api-leitura` e `naveg-api-escrita`, por volta de 2026-12-24; o
   `FLUVIAPP_LEITURA_TOKEN` (segredo da org) e o `DEPENDABOT_NPM_TOKEN` da API, por volta de 2026-12-24 também
   (90 dias).

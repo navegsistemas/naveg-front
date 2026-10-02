@@ -2,7 +2,7 @@
 
 **Data:** 2026-10-01
 **Situação:** C1, C3, C4, C5, C9, C11 e C12 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta.
-Aqui, a entrega 2 (o roteiro no domínio) está em PR. No KMP, a entrega 4 do ERP (o fim do compartilhamento) e a 5
+Aqui, as entregas 1 e 2 (o plano e o roteiro no domínio) estão na `main`; a próxima é a 3. No KMP, a entrega 4 do ERP (o fim do compartilhamento) e a 5
 (a encomenda no balcão) estão no `master` desde 2026-10-02, e o balcão se alinha a este plano (§4.1).
 **De onde vem:** o [plano do ERP do `fluviapp-kmp`](https://github.com/navegsistemas/fluviapp-kmp/blob/master/docs/plano-do-erp.md)
 (`docs/plano-do-erp.md` lá), decisões **E3** (a carga entra, começando pela encomenda) e **M6** (o transporte de
