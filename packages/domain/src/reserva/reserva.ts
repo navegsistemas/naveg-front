@@ -24,13 +24,15 @@
  *
  * As pendências que sobram são as da `PassagemDePassageiro.pendencias()` do aplicativo que não dependem de
  * pessoa — excede ocupação, tipo não admitido, gratuidade sem subtipo e subtipo sem gratuidade — mais as que
- * só a reserva tem (o cliente, a validade, a conversão).
+ * só a reserva tem (o cliente, a validade, a conversão). A de encomenda soma as dela: os volumes, o complemento
+ * e quem retira — as mesmas do `Reserva.pendencias()` do KMP, na mesma lista.
  *
  * ### Por que a reserva não reserva assento
  *
  * Contar ocupação exige **ler** a coleção de passagens, e ler é o que o público não faz. A reserva é um pedido
  * registrado — *reserva, não venda* —, e vale até o navio partir.
  */
+import { LIMITE_DE_VOLUMES, LIMITE_DO_COMPLEMENTO, type FaixaPeso, type Retirada, type TipoVolume } from '../encomenda/volume.js'
 import { Acomodacao } from '../passagem/acomodacao.js'
 import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import type { TipoGratuidade } from '../passagem/tipo-gratuidade.js'
@@ -49,6 +51,14 @@ import type { StatusReserva } from './status-reserva.js'
 export const ORIGENS_DA_RESERVA = ['TOTEM_WEB'] as const
 
 export type OrigemDaReserva = (typeof ORIGENS_DA_RESERVA)[number]
+
+/**
+ * **O que se pediu** — o discriminador `categoria` do documento. As duas primeiras são as da `CategoriaPassagem`;
+ * a terceira é o pedido de envio, que converte em encomenda e não em passagem. É o `CategoriaReserva` do KMP.
+ */
+export const CATEGORIAS_DE_RESERVA = ['PASSAGEIRO', 'VEICULO', 'ENCOMENDA'] as const
+
+export type CategoriaReserva = (typeof CATEGORIAS_DE_RESERVA)[number]
 
 /**
  * **Quem pediu.** O nome é obrigatório — é como o atendente chama a pessoa quando a conversa abre. O telefone
@@ -74,8 +84,6 @@ interface ReservaBase {
   readonly criadoEm: InstanteLocal
   /** Até quando o pedido vale — hoje, a partida do navio. Ver `validade-da-reserva.ts`. */
   readonly expiraEm: InstanteLocal
-  /** Preenchido pelo aplicativo na conversão, junto com o status `CONVERTIDA`. Nunca pela web. */
-  readonly passagemId?: string
   /**
    * **Opcional, e a tensão é declarada.** O ADR-0001 diz que uma reserva pública *"não tem agência
    * atribuída"*; o plano lista `agenciaId` entre os campos de consulta. A agência **não é escolhida por
@@ -99,7 +107,13 @@ export interface Tratamento {
   readonly em: InstanteLocal
 }
 
-export interface ReservaDePassageiro extends ReservaBase {
+/** A reserva de passagem converte em passagem. */
+interface ConvertidaEmPassagem {
+  /** Preenchido pelo aplicativo na conversão, junto com o status `CONVERTIDA`. Nunca pela web. */
+  readonly passagemId?: string
+}
+
+export interface ReservaDePassageiro extends ReservaBase, ConvertidaEmPassagem {
   readonly categoria: 'PASSAGEIRO'
   readonly acomodacao: Acomodacao
   readonly tipo: TipoPassagem
@@ -109,7 +123,7 @@ export interface ReservaDePassageiro extends ReservaBase {
   readonly quantidadePessoas: number
 }
 
-export interface ReservaDeVeiculo extends ReservaBase {
+export interface ReservaDeVeiculo extends ReservaBase, ConvertidaEmPassagem {
   readonly categoria: 'VEICULO'
   readonly classe: ClasseVeiculo
   /**
@@ -119,7 +133,39 @@ export interface ReservaDeVeiculo extends ReservaBase {
   readonly cilindrada?: number
 }
 
-export type Reserva = ReservaDePassageiro | ReservaDeVeiculo
+/** Quem retira no destino, quando não é quem manda. Os dois campos são obrigatórios (C5). */
+export interface DestinatarioDaEncomenda {
+  readonly nome: string
+  /** Celular em E.164 sem o `+`, como o do cliente. */
+  readonly telefone: string
+}
+
+/**
+ * **O pedido de envio** (`docs/plano-da-reserva-de-encomenda.md`) — o que vai, quanto pesa mais ou menos, e quem
+ * retira. Sem documento e sem valor declarado: são do balcão, que confere. O `cliente` é **quem manda**.
+ *
+ * Converte em **encomenda**, e não em passagem: `encomendaId` no lugar do `passagemId`, que ela não tem.
+ */
+export interface ReservaDeEncomenda extends ReservaBase {
+  readonly categoria: 'ENCOMENDA'
+  readonly tipoVolume: TipoVolume
+  readonly quantidadeVolumes: number
+  readonly complemento?: string
+  /** Estimativa de quem manda. No balcão o volume é pesado, e o peso exato a substitui. */
+  readonly faixaPeso: FaixaPeso
+  readonly retirada: Retirada
+  /** Presente **só** com `retirada: 'OUTRA_PESSOA'`, e obrigatório nesse caso — como a gratuidade e o tipo. */
+  readonly destinatario?: DestinatarioDaEncomenda
+  /** A encomenda que nasceu da conversão — gravada pelo aplicativo junto com `CONVERTIDA`. Nunca pela web. */
+  readonly encomendaId?: string
+}
+
+export type Reserva = ReservaDePassageiro | ReservaDeVeiculo | ReservaDeEncomenda
+
+/** O que nasceu da conversão — a passagem, ou a encomenda. Presente se, e só se, `CONVERTIDA`. */
+export function convertidaEm(reserva: Reserva): string | undefined {
+  return reserva.categoria === 'ENCOMENDA' ? reserva.encomendaId : reserva.passagemId
+}
 
 /** O que pode estar incoerente numa reserva — nomeado, para quem chama apontar o campo certo. */
 export const PENDENCIAS_DA_RESERVA = [
@@ -133,6 +179,16 @@ export const PENDENCIAS_DA_RESERVA = [
   'CILINDRADA',
   'VALIDADE',
   'CONVERSAO',
+  // --- só a de encomenda ---
+  /** Quem manda retira, e não deixou o celular por onde o destino avisa. */
+  'CLIENTE_TELEFONE_AUSENTE',
+  'DESTINATARIO_AUSENTE',
+  /** Destinatário numa encomenda que o próprio remetente retira — sobra de uma escolha desfeita. */
+  'DESTINATARIO_INDEVIDO',
+  'DESTINATARIO_NOME',
+  'DESTINATARIO_TELEFONE',
+  'VOLUMES',
+  'COMPLEMENTO',
 ] as const
 
 export type PendenciaDaReserva = (typeof PENDENCIAS_DA_RESERVA)[number]
@@ -155,8 +211,8 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
   }
   /* Com a validade sendo a partida, isto é "o navio já partiu". */
   if (reserva.expiraEm <= reserva.criadoEm) pendencias.add('VALIDADE')
-  /* A conversão grava as duas coisas juntas — o status e a passagem que nasceu. */
-  if ((reserva.status === 'CONVERTIDA') !== (reserva.passagemId !== undefined)) pendencias.add('CONVERSAO')
+  /* A conversão grava as duas coisas juntas — o status e o que nasceu dela, a passagem ou a encomenda. */
+  if ((reserva.status === 'CONVERTIDA') !== (convertidaEm(reserva) !== undefined)) pendencias.add('CONVERSAO')
 
   switch (reserva.categoria) {
     case 'PASSAGEIRO': {
@@ -183,6 +239,9 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
       if (!exige && cilindrada !== undefined) pendencias.add('CILINDRADA')
       break
     }
+    case 'ENCOMENDA':
+      pendenciasDoEnvio(reserva, pendencias)
+      break
     default:
       casoImpossivel(reserva, 'pendenciasDaReserva')
   }
@@ -190,11 +249,42 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
   return pendencias
 }
 
+/**
+ * O que só a encomenda tem: de 1 a 20 volumes, o complemento curto, e quem retira coerente com o destinatário.
+ * Com `REMETENTE`, o celular de quem manda é obrigatório (C12) — é por ele que o destino avisa.
+ */
+function pendenciasDoEnvio(reserva: ReservaDeEncomenda, pendencias: Set<PendenciaDaReserva>): void {
+  const { quantidadeVolumes } = reserva
+  if (!Number.isInteger(quantidadeVolumes) || quantidadeVolumes < 1 || quantidadeVolumes > LIMITE_DE_VOLUMES) {
+    pendencias.add('VOLUMES')
+  }
+  if (reserva.complemento !== undefined && reserva.complemento.length > LIMITE_DO_COMPLEMENTO) pendencias.add('COMPLEMENTO')
+
+  switch (reserva.retirada) {
+    case 'REMETENTE':
+      if (reserva.cliente.telefone === undefined) pendencias.add('CLIENTE_TELEFONE_AUSENTE')
+      if (reserva.destinatario !== undefined) pendencias.add('DESTINATARIO_INDEVIDO')
+      break
+    case 'OUTRA_PESSOA': {
+      const { destinatario } = reserva
+      if (destinatario === undefined) {
+        pendencias.add('DESTINATARIO_AUSENTE')
+        break
+      }
+      if (destinatario.nome.trim().length === 0) pendencias.add('DESTINATARIO_NOME')
+      if (!whatsappValido(destinatario.telefone)) pendencias.add('DESTINATARIO_TELEFONE')
+      break
+    }
+    default:
+      casoImpossivel(reserva.retirada, 'pendenciasDoEnvio')
+  }
+}
+
 export function reservaCoerente(reserva: Reserva): boolean {
   return pendenciasDaReserva(reserva).size === 0
 }
 
-/** Quantas pessoas o pedido cobre. Uma reserva de veículo cobre **zero** passageiros — leva um veículo. */
+/** Quantas pessoas o pedido cobre. As de veículo e de encomenda cobrem **zero** passageiros. */
 export function pessoasDaReserva(reserva: Reserva): number {
   return reserva.categoria === 'PASSAGEIRO' ? reserva.quantidadePessoas : 0
 }

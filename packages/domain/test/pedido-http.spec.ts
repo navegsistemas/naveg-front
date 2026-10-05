@@ -11,10 +11,12 @@ import {
   LIMITE_DO_DESAFIO,
   LIMITE_DO_NOME,
   pedidoDeReservaDoJson,
+  respostasDaEncomendaDoJson,
   respostasDoJson,
+  type PedidoDeReserva,
   type PedidoDeReservaJson,
 } from '../src/reserva/pedido-http.js'
-import { data } from './exemplos.js'
+import { data, ENCOMENDA_PARA_OUTRA } from './exemplos.js'
 
 const PEDIDO: PedidoDeReservaJson = {
   viagemId: 'viagem-quarta-18h',
@@ -32,9 +34,13 @@ const PEDIDO: PedidoDeReservaJson = {
 /** O pedido pela rede, como o totem o manda. */
 const peloFio = (corpo: unknown) => pedidoDeReservaDoJson(JSON.parse(JSON.stringify(corpo)))
 
+/** As respostas de passagem do pedido lido, quando é de passagem. */
+const respostasDe = (pedido: PedidoDeReserva | null) => (pedido?.caso === 'PASSAGEM' ? pedido.respostas : undefined)
+
 describe('o pedido de reserva', () => {
   it('o que o totem manda passa inteiro', () => {
     expect(peloFio(PEDIDO)).toEqual({
+      caso: 'PASSAGEM',
       ocorrencia: { viagemId: 'viagem-quarta-18h', data: data('2026-10-14') },
       respostas: PEDIDO.respostas,
       desafio: 'token-do-turnstile',
@@ -46,12 +52,12 @@ describe('o pedido de reserva', () => {
       ...PEDIDO,
       respostas: { categoria: 'VEICULO', naturezaVeiculo: 'MOTOCICLO', classeVeiculo: 'MOTO', cilindrada: 160, cliente: { nome: 'João' } },
     }
-    expect(peloFio(moto)?.respostas).toEqual(moto.respostas)
+    expect(respostasDe(peloFio(moto))).toEqual(moto.respostas)
   })
 
   it('a observação é ignorada — o totem não tem esse campo, e texto livre público é o primeiro lugar de um abuso', () => {
     const comObservacao = { ...PEDIDO, respostas: { ...PEDIDO.respostas, observacao: 'qualquer coisa' } }
-    expect(peloFio(comObservacao)?.respostas).not.toHaveProperty('observacao')
+    expect(respostasDe(peloFio(comObservacao))).not.toHaveProperty('observacao')
   })
 
   it('o que o servidor deriva sozinho não é lido do corpo — código, instante, status', () => {
@@ -111,5 +117,53 @@ describe('as respostas, campo a campo', () => {
   it('ausente continua ausente — o roteiro é quem diz o que falta', () => {
     expect(respostasDoJson({})).toEqual({})
     expect(respostasDoJson({ categoria: 'PASSAGEIRO' })).toEqual({ categoria: 'PASSAGEIRO' })
+  })
+})
+
+describe('o pedido de encomenda', () => {
+  const ENVIO = {
+    viagemId: 'viagem-quarta-18h',
+    data: '2026-10-14',
+    encomenda: { ...ENCOMENDA_PARA_OUTRA, complemento: 'mantimentos' },
+    desafio: 'token-do-turnstile',
+  } satisfies PedidoDeReservaJson
+
+  it('o que a seção manda passa inteiro, como pedido de encomenda', () => {
+    expect(peloFio(ENVIO)).toEqual({
+      caso: 'ENCOMENDA',
+      ocorrencia: { viagemId: 'viagem-quarta-18h', data: data('2026-10-14') },
+      encomenda: ENVIO.encomenda,
+      desafio: 'token-do-turnstile',
+    })
+  })
+
+  it('um pedido é de uma coisa só: com as respostas da passagem junto, não é pedido', () => {
+    expect(peloFio({ ...ENVIO, respostas: PEDIDO.respostas })).toBeNull()
+  })
+
+  const com = (campos: Record<string, unknown>) => respostasDaEncomendaDoJson({ ...ENVIO.encomenda, ...campos })
+
+  it('as listas são fechadas: tipo, faixa e retirada fora delas são recusados', () => {
+    for (const torto of [{ tipoVolume: 'CONTAINER' }, { faixaPeso: 'ATE_1000' }, { retirada: 'CORREIO' }, { tipoVolume: 3 }]) {
+      expect(com(torto), JSON.stringify(torto)).toBeNull()
+    }
+  })
+
+  it('de 1 a 20 volumes, e o complemento até 60 caracteres', () => {
+    expect(com({ quantidadeVolumes: 20, complemento: 'x'.repeat(60) })).not.toBeNull()
+    for (const torto of [{ quantidadeVolumes: 0 }, { quantidadeVolumes: 21 }, { quantidadeVolumes: 2.5 }, { complemento: 'x'.repeat(61) }]) {
+      expect(com(torto), JSON.stringify(torto)).toBeNull()
+    }
+  })
+
+  it('o destinatário tem a forma do cliente, e o mesmo limite', () => {
+    for (const torto of [{ destinatario: 'João' }, { destinatario: { nome: 'J'.repeat(101) } }, { destinatario: { nome: 'João', telefone: 96 } }]) {
+      expect(com(torto), JSON.stringify(torto)).toBeNull()
+    }
+  })
+
+  it('a observação e as chaves da passagem são ignoradas', () => {
+    const lida = com({ observacao: 'frágil', acomodacao: 'REDE', categoria: 'PASSAGEIRO' })
+    expect(lida).toEqual(ENVIO.encomenda)
   })
 })

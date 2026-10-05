@@ -86,9 +86,11 @@ export {
 export type { FonteDeAleatoriedade } from './reserva/codigo-da-reserva.js'
 export { formatarWhatsapp, normalizarWhatsapp, whatsappValido } from './reserva/contato.js'
 export { validadeDaReserva } from './reserva/validade-da-reserva.js'
-export { linkDaReserva, linkDeWhatsApp, mensagemDaReserva } from './reserva/link-de-atendimento.js'
+export { linkDaEncomenda, linkDaReserva, linkDeWhatsApp, mensagemDaReserva } from './reserva/link-de-atendimento.js'
 export type { RotulosDaMensagem } from './reserva/link-de-atendimento.js'
 export {
+  CATEGORIAS_DE_RESERVA,
+  convertidaEm,
   ORIGENS_DA_RESERVA,
   PENDENCIAS_DA_RESERVA,
   pendenciasDaReserva,
@@ -97,10 +99,13 @@ export {
   reservaExpirada,
 } from './reserva/reserva.js'
 export type {
+  CategoriaReserva,
   ClienteDaReserva,
+  DestinatarioDaEncomenda,
   OrigemDaReserva,
   PendenciaDaReserva,
   Reserva,
+  ReservaDeEncomenda,
   ReservaDePassageiro,
   ReservaDeVeiculo,
   Tratamento,
@@ -134,13 +139,15 @@ export type {
   ResultadoDaMontagem,
 } from './reserva/montagem-da-reserva.js'
 export { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio } from './reserva/documento.js'
-export type { ClienteDocumento, ReservaDocumento, TratamentoDocumento } from './reserva/documento.js'
-export { enviarReserva, TENTATIVAS_DE_CODIGO } from './reserva/envio-da-reserva.js'
+export type { ClienteDocumento, DestinatarioDocumento, ReservaDocumento, TratamentoDocumento } from './reserva/documento.js'
+export { enviarEncomenda, enviarReserva, TENTATIVAS_DE_CODIGO } from './reserva/envio-da-reserva.js'
 export type {
   PedidoDeEnvio,
+  PedidoDeEnvioDaEncomenda,
   ReservaRepositorio,
   ResultadoDaGravacao,
   ResultadoDoEnvio,
+  ResultadoDoEnvioDaEncomenda,
 } from './reserva/envio-da-reserva.js'
 export {
   LIMITE_DA_CILINDRADA,
@@ -149,11 +156,20 @@ export {
   LIMITE_DO_NOME,
   LIMITE_DO_TELEFONE,
   pedidoDeReservaDoJson,
+  respostasDaEncomendaDoJson,
   respostasDoJson,
 } from './reserva/pedido-http.js'
-export type { PedidoDeReserva, PedidoDeReservaJson, ReservaCriadaJson } from './reserva/pedido-http.js'
+export type {
+  PedidoDeEncomenda,
+  PedidoDeEncomendaJson,
+  PedidoDePassagem,
+  PedidoDePassagemJson,
+  PedidoDeReserva,
+  PedidoDeReservaJson,
+  ReservaCriadaJson,
+} from './reserva/pedido-http.js'
 
-// --- a encomenda (docs/plano-da-reserva-de-encomenda.md): o roteiro, a montagem e a mensagem; o codec vem na entrega 6 ---
+// --- a encomenda (docs/plano-da-reserva-de-encomenda.md): as listas, o roteiro, a montagem e a mensagem. O tipo é um caso da `Reserva` ---
 export {
   FAIXAS_DE_PESO,
   FaixaPeso,
@@ -172,14 +188,9 @@ export {
   voltarNaEncomenda,
 } from './encomenda/roteiro-da-encomenda.js'
 export type { NoDaEncomenda, PassoDaEncomenda, RespostasDaEncomenda, RoteiroDaEncomenda } from './encomenda/roteiro-da-encomenda.js'
-export { montarEncomenda, PENDENCIAS_DA_ENCOMENDA, pendenciasDaEncomenda } from './encomenda/montagem-da-encomenda.js'
-export type {
-  DestinatarioDaEncomenda,
-  PendenciaDaEncomenda,
-  ReservaDeEncomenda,
-  ResultadoDaMontagemDaEncomenda,
-} from './encomenda/montagem-da-encomenda.js'
-export { linkDaEncomenda, mensagemDaEncomenda, oQueVai, quemRetira } from './encomenda/mensagem-da-encomenda.js'
+export { montarEncomenda } from './encomenda/montagem-da-encomenda.js'
+export type { ResultadoDaMontagemDaEncomenda } from './encomenda/montagem-da-encomenda.js'
+export { mensagemDaEncomenda, oQueVai, quemRetira } from './encomenda/mensagem-da-encomenda.js'
 
 // --- a plataforma: os eventos (ADR-0013 do fluviapp-kmp) ---
 export {

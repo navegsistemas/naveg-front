@@ -18,7 +18,15 @@
  * - **a observação é ignorada**: o totem não tem esse campo, e um texto livre aberto ao público é o primeiro
  *   lugar que um abuso usa;
  * - chave desconhecida → ignorada.
+ *
+ * ### Dois pedidos, uma rota
+ *
+ * O totem de passagem manda `respostas`; a seção de encomenda manda `encomenda`, com as respostas dela. A chave
+ * diz que pedido é, e as duas juntas são recusa. O corpo do totem de passagem não mudou com a encomenda — a API
+ * nova lê o site antigo.
  */
+import { FaixaPeso, LIMITE_DE_VOLUMES, LIMITE_DO_COMPLEMENTO, Retirada, TipoVolume } from '../encomenda/volume.js'
+import type { RespostasDaEncomenda } from '../encomenda/roteiro-da-encomenda.js'
 import { Acomodacao } from '../passagem/acomodacao.js'
 import { CategoriaPassagem } from '../passagem/categoria-passagem.js'
 import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
@@ -40,21 +48,43 @@ export const LIMITE_DA_CILINDRADA = 10_000
 /** Quantidade de pessoas acima disto não cabe em acomodação nenhuma do catálogo. */
 export const LIMITE_DE_PESSOAS = 50
 
-/** O corpo do `POST /reservas`. */
-export interface PedidoDeReserva {
+interface PedidoBase {
   readonly ocorrencia: OcorrenciaViagem
-  readonly respostas: RespostasDaReserva
   /** O token do Turnstile. Quem o confere é o servidor. */
   readonly desafio: string
 }
 
-/** O corpo como ele vai no fio. */
-export interface PedidoDeReservaJson {
+/** O pedido de passagem — o do totem. */
+export interface PedidoDePassagem extends PedidoBase {
+  readonly caso: 'PASSAGEM'
+  readonly respostas: RespostasDaReserva
+}
+
+/** O pedido de envio — o da seção "Envie sua encomenda". */
+export interface PedidoDeEncomenda extends PedidoBase {
+  readonly caso: 'ENCOMENDA'
+  readonly encomenda: RespostasDaEncomenda
+}
+
+/** O corpo do `POST /reservas`, lido. */
+export type PedidoDeReserva = PedidoDePassagem | PedidoDeEncomenda
+
+interface PedidoJsonBase {
   readonly viagemId: string
   readonly data: string
-  readonly respostas: RespostasDaReserva
   readonly desafio: string
 }
+
+export interface PedidoDePassagemJson extends PedidoJsonBase {
+  readonly respostas: RespostasDaReserva
+}
+
+export interface PedidoDeEncomendaJson extends PedidoJsonBase {
+  readonly encomenda: RespostasDaEncomenda
+}
+
+/** O corpo como ele vai no fio. */
+export type PedidoDeReservaJson = PedidoDePassagemJson | PedidoDeEncomendaJson
 
 /** O `201` do `POST /reservas`: o código **do servidor**, e a reserva como foi gravada. */
 export interface ReservaCriadaJson {
@@ -129,7 +159,31 @@ export function respostasDoJson(dado: unknown): RespostasDaReserva | null {
   }
 }
 
-/** O pedido inteiro, ou `null` quando o corpo não é um pedido. */
+function lerEncomenda(dado: Dado): RespostasDaEncomenda {
+  const campos = {
+    tipoVolume: enumOpcional(dado, 'tipoVolume', TipoVolume.de),
+    quantidadeVolumes: inteiroOpcional(dado, 'quantidadeVolumes', LIMITE_DE_VOLUMES),
+    complemento: textoOpcional(dado, 'complemento', LIMITE_DO_COMPLEMENTO),
+    faixaPeso: enumOpcional(dado, 'faixaPeso', FaixaPeso.de),
+    retirada: enumOpcional(dado, 'retirada', Retirada.de),
+    destinatario: lerCliente(dado['destinatario']),
+    cliente: lerCliente(dado['cliente']),
+  }
+  return Object.fromEntries(Object.entries(campos).filter(([, valor]) => valor !== undefined)) as RespostasDaEncomenda
+}
+
+/** As respostas da encomenda, ou `null` quando algum campo não tem a forma que a seção manda. */
+export function respostasDaEncomendaDoJson(dado: unknown): RespostasDaEncomenda | null {
+  if (!ehObjeto(dado)) return null
+  try {
+    return lerEncomenda(dado)
+  } catch (erro) {
+    if (erro instanceof Recusado) return null
+    throw erro
+  }
+}
+
+/** O pedido inteiro, ou `null` quando o corpo não é um pedido — nem de passagem, nem de encomenda. */
 export function pedidoDeReservaDoJson(dado: unknown): PedidoDeReserva | null {
   if (!ehObjeto(dado)) return null
   const { viagemId, data, desafio } = dado
@@ -137,7 +191,17 @@ export function pedidoDeReservaDoJson(dado: unknown): PedidoDeReserva | null {
   if (viagemId.length > 200 || desafio.trim().length === 0 || desafio.length > LIMITE_DO_DESAFIO) return null
 
   const ocorrencia = OcorrenciaViagem.de(viagemId, data)
+  if (ocorrencia === null) return null
+
+  const temRespostas = dado['respostas'] !== undefined
+  const temEncomenda = dado['encomenda'] !== undefined
+  /* Um pedido é de uma coisa só: as duas chaves juntas não são um pedido que o site faça. */
+  if (temRespostas === temEncomenda) return null
+
+  if (temEncomenda) {
+    const encomenda = respostasDaEncomendaDoJson(dado['encomenda'])
+    return encomenda === null ? null : { caso: 'ENCOMENDA', ocorrencia, encomenda, desafio }
+  }
   const respostas = respostasDoJson(dado['respostas'])
-  if (ocorrencia === null || respostas === null) return null
-  return { ocorrencia, respostas, desafio }
+  return respostas === null ? null : { caso: 'PASSAGEM', ocorrencia, respostas, desafio }
 }
