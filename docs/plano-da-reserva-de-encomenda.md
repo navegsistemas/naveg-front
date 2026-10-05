@@ -154,8 +154,9 @@ documento — é isso que deixa o teste de contrato verde enquanto o KMP não te
 | **5** | KMP | **a reserva de encomenda nas regras e no painel** (parte KMP da entrega 6 do ERP) | 4 |
 | **6** | aqui e API | **no ar:** a `ReservaDeEncomenda` no codec (`CAMPOS_DO_DOCUMENTO`), o pedido HTTP estrito, a API gravando, o domínio publicado em versão nova; **a seção, o item "Encomendas" no menu, o botão na capa e o texto da capa**; o E2E da jornada | 5 |
 
-A 2 e a 3 não esperam ninguém. A 6 entra **junto** com o merge das regras no KMP, nem antes nem depois — merge na
-API publica o deploy que aponta para a homologação.
+A 2 e a 3 não esperam ninguém. A 6 entra **junto** com o merge das regras no KMP, nem antes nem depois. Na
+homologação provisória, o merge na API não basta: o deploy da `main` dela é promovido à mão (plano de ambientes,
+§3). Foi a ordem de 2026-10-05: tag do domínio → merge da API → promoção → merge do front.
 
 ## 6. Como fica no código
 
