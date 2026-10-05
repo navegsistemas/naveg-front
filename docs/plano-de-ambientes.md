@@ -79,6 +79,11 @@ oficial do front ainda não aponta para a Vercel.
 - **As variáveis que sustentam isso:** no front, `PUBLIC_URL_DA_API` = `https://naveg-api-vercel.vercel.app`
   no escopo *Preview*; na API, `ORIGENS_PERMITIDAS` com `https://naveg-front-agencia.vercel.app` nos escopos
   *Preview* e *Production*.
+- **Uma mudança da API só chega à homologação promovida** *(visto em 2026-10-05)*. O merge na `main` da API
+  gera um deploy *Preview*, e a homologação do front fala com o de *Production*: até o provisório acabar, levar a
+  `main` da API à homologação é `vercel promote` do deploy do merge, à mão, por quem tem acesso ao projeto — foi
+  assim com o naveg-api-vercel#17 (a reserva de encomenda). A promoção refaz o build com as variáveis de
+  *Production*, e volta-se atrás com `vercel rollback`. **O merge sozinho não é o deploy.**
 - **O provisório é o desenho até o lançamento** *(decidido em 2026-09-25)*. O domínio da API de homologação não
   será comprado agora: a estrutura está estável — o envio ligado, o CI e a fumaça em todo deploy, o contrato e o
   emulador conferidos em todo PR —, e os domínios entram juntos, um para cada ambiente, quando for a hora.
