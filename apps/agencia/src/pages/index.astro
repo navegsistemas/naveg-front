@@ -17,6 +17,7 @@ import Depoimentos from '../componentes/Depoimentos.astro'
 import Rodape from '../componentes/Rodape.astro'
 import Pendente from '../componentes/Pendente.astro'
 import TotemDaAgencia from '../ilhas/TotemDaAgencia'
+import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
 
 import { SECOES } from '../conteudo/secoes'
 
@@ -34,8 +35,19 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
           {secao.id === 'capa' && <Capa />}
           {secao.id === 'atendentes' && <Atendimento />}
           {secao.id === 'depoimentos' && <Depoimentos />}
-          {/* A única ilha da página: o código desce quando a seção entra na tela. */}
+          {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}
           {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" />}
+          {secao.id === 'encomendas' && <EncomendaDaAgencia client:visible />}
+          {
+            secao.id === 'encomendas' && (
+              <noscript>
+                <p>
+                  O envio de encomenda precisa de JavaScript. Sem ele, fale direto com o atendimento pelos
+                  contatos no fim da página.
+                </p>
+              </noscript>
+            )
+          }
           {
             secao.id === 'totem' && (
               <noscript>

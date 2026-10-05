@@ -20,8 +20,8 @@ const WHATSAPP_DA_NAVEG = '5591992035322'
  */
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
 
-/** O totem, e só ele: na página há outros títulos e outras listas. */
-const totem = (page: Page): Locator => page.locator('.totem')
+/** O totem, e só ele: na página há outros títulos, outras listas — e a seção de encomenda, com a mesma moldura. */
+const totem = (page: Page): Locator => page.locator('.totem:not(.totem--encomenda)')
 const pergunta = (page: Page): Locator => totem(page).getByRole('heading', { level: 3 })
 
 /** Da lista ao botão "Confirmar reserva": ferry, passageiro, rede, inteira, Maria Souza. */
@@ -65,7 +65,7 @@ test.describe('a reserva no quiosque', () => {
     expect(pedido?.viagemId).toMatch(/^demo-ferry-ida-/)
     expect(pedido?.data).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(pedido?.desafio).toBe(TOKEN_DE_TESTE_DO_TURNSTILE)
-    expect(pedido?.respostas).toMatchObject({
+    expect(pedido !== undefined && 'respostas' in pedido ? pedido.respostas : undefined).toMatchObject({
       categoria: 'PASSAGEIRO',
       acomodacao: 'REDE',
       tipo: 'INTEIRA',

@@ -25,9 +25,15 @@ import { gzipSync } from 'node:zlib'
 
 const DIST = fileURLToPath(new URL('../apps/agencia/dist/', import.meta.url))
 
-/** Em kB de gzip. Medido em 2026-09-25: runtime 67,1; ilha 13,9 + carregador 3,2. */
+/**
+ * Em kB de gzip. Medido em 2026-09-25: runtime 67,1; ilha 13,9 + carregador 3,2.
+ *
+ * Em 2026-10-05 a segunda ilha (a encomenda, `docs/plano-da-reserva-de-encomenda.md`, §6) levou o resto a 22,8:
+ * o pedaço comum das duas (domínio e telas) 15,4, o carregador 3,0, e cada ilha 2,1 e 2,2. O teto do resto subiu
+ * de 20 para 25 — o que o plano previa, e a folga de ~2 kB que o de 20 tinha.
+ */
 const TETO_DO_RUNTIME = 70
-const TETO_DO_RESTO = 20
+const TETO_DO_RESTO = 25
 
 const CARA_DE_CREDENCIAL = [
   ['chave privada', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],

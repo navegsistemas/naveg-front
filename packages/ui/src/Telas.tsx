@@ -15,13 +15,15 @@ import { TEXTO_DA_PENDENCIA } from './textos.js'
 export interface PropsDaLista {
   readonly travessias: readonly TravessiaOfertada[]
   readonly aoEscolher: (travessia: TravessiaOfertada) => void
+  /** O botão de cada saída. O padrão é o do totem de passagem. */
+  readonly rotuloDaEscolha?: string
 }
 
 /**
  * **As saídas disponíveis**, na ordem da partida — a ordem e o recorte vêm de `travessiasOfertadas`, e a lista
  * só desenha. Vazia, ela diz que não há saída nos próximos dias, em vez de sumir.
  */
-export function ListaDeTravessias({ travessias, aoEscolher }: PropsDaLista) {
+export function ListaDeTravessias({ travessias, aoEscolher, rotuloDaEscolha = 'Reservar esta saída' }: PropsDaLista) {
   if (travessias.length === 0) {
     return <p className="totem-vazio">Não há saídas disponíveis nos próximos sete dias.</p>
   }
@@ -39,7 +41,7 @@ export function ListaDeTravessias({ travessias, aoEscolher }: PropsDaLista) {
           </p>
           <p className="totem-travessia__embarcacao">{travessia.rotulos.embarcacao}</p>
           <button type="button" className="acao" onClick={() => aoEscolher(travessia)}>
-            Reservar esta saída
+            {rotuloDaEscolha}
           </button>
         </li>
       ))}
@@ -65,13 +67,21 @@ export interface PropsDaConferencia {
   readonly pendencias: readonly PendenciaDaReserva[]
   readonly enviando: boolean
   readonly aoConfirmar: () => void
+  /** O botão de confirmar. O padrão é o do totem de passagem. */
+  readonly rotuloDoConfirmar?: string
 }
 
 /**
  * **Conferir antes de enviar.** Se o domínio achou pendência, ela aparece aqui e o botão de confirmar some —
  * não fica desabilitado: um botão cinza que não diz por quê é a forma mais comum de alguém desistir.
  */
-export function Conferencia({ linhas, pendencias, enviando, aoConfirmar }: PropsDaConferencia) {
+export function Conferencia({
+  linhas,
+  pendencias,
+  enviando,
+  aoConfirmar,
+  rotuloDoConfirmar = 'Confirmar reserva',
+}: PropsDaConferencia) {
   return (
     <div className="totem-conferencia">
       <dl className="totem-resumo">
@@ -90,7 +100,7 @@ export function Conferencia({ linhas, pendencias, enviando, aoConfirmar }: Props
         </ul>
       ) : (
         <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando}>
-          {enviando ? 'Enviando…' : 'Confirmar reserva'}
+          {enviando ? 'Enviando…' : rotuloDoConfirmar}
         </button>
       )}
     </div>
@@ -105,13 +115,23 @@ export interface PropsDaConclusao {
   readonly aoRecomecar: () => void
   /** O que leva ao atendimento: o botão do WhatsApp com a reserva escrita, ou a orientação sem ele (passo 11). */
   readonly atendimento?: ReactNode
+  /** A frase sobre o código, e o botão de recomeçar. Os padrões são os do totem de passagem. */
+  readonly registrada?: string
+  readonly rotuloDoRecomecar?: string
 }
 
 /**
  * **A reserva feita.** O código em destaque, copiável, e **em texto** — o redirecionamento pode falhar, e a
  * pessoa não pode sair de mãos vazias.
  */
-export function ReservaConcluida({ codigo, linhas, aoRecomecar, atendimento }: PropsDaConclusao) {
+export function ReservaConcluida({
+  codigo,
+  linhas,
+  aoRecomecar,
+  atendimento,
+  registrada = 'Reserva registrada. Guarde este código:',
+  rotuloDoRecomecar = 'Fazer outra reserva',
+}: PropsDaConclusao) {
   const [copiado, setCopiado] = useState(false)
 
   async function copiar() {
@@ -125,7 +145,7 @@ export function ReservaConcluida({ codigo, linhas, aoRecomecar, atendimento }: P
 
   return (
     <div className="totem-conclusao">
-      <p>Reserva registrada. Guarde este código:</p>
+      <p>{registrada}</p>
       <p className="totem-codigo">
         {codigo}
       </p>
@@ -142,7 +162,7 @@ export function ReservaConcluida({ codigo, linhas, aoRecomecar, atendimento }: P
         ))}
       </dl>
       <button type="button" className="acao acao--secundaria" onClick={aoRecomecar}>
-        Fazer outra reserva
+        {rotuloDoRecomecar}
       </button>
     </div>
   )

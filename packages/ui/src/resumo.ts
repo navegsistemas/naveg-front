@@ -12,7 +12,11 @@ import {
   TipoGratuidade,
   TipoPassagem,
   casoImpossivel,
+  oQueVai,
   type Reserva,
+  type ReservaDeEncomenda,
+  type ReservaDePassageiro,
+  type ReservaDeVeiculo,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
 
@@ -25,7 +29,7 @@ function pessoas(quantidade: number): string {
   return quantidade === 1 ? '1 pessoa' : `${quantidade} pessoas`
 }
 
-function aPassagem(reserva: Reserva): string {
+function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
   switch (reserva.categoria) {
     case 'PASSAGEIRO': {
       const tipo =
@@ -44,7 +48,33 @@ function aPassagem(reserva: Reserva): string {
   }
 }
 
+function telefoneOuNao(telefone: string | undefined): string {
+  return telefone === undefined ? 'Não informado' : formatarWhatsapp(telefone)
+}
+
+/** O resumo da encomenda: o que vai, quem manda, quem retira, e até quando entregar. */
+export function resumoDaEncomenda(reserva: ReservaDeEncomenda, travessia: TravessiaOfertada): readonly LinhaDoResumo[] {
+  const { destinatario } = reserva
+  return [
+    { rotulo: 'Travessia', valor: `${travessia.rotulos.origem} → ${travessia.rotulos.destino}` },
+    { rotulo: 'Saída', valor: travessia.rotulos.partida },
+    { rotulo: 'Embarcação', valor: travessia.rotulos.embarcacao },
+    { rotulo: 'Encomenda', valor: oQueVai(reserva) },
+    { rotulo: 'Quem manda', valor: reserva.cliente.nome },
+    { rotulo: 'Celular de quem manda', valor: telefoneOuNao(reserva.cliente.telefone) },
+    {
+      rotulo: 'Quem retira',
+      valor:
+        reserva.retirada === 'REMETENTE' || destinatario === undefined
+          ? 'Quem manda'
+          : `${destinatario.nome}, ${formatarWhatsapp(destinatario.telefone)}`,
+    },
+    { rotulo: 'Entregar no porto', valor: `antes da saída — ${travessia.rotulos.partida}` },
+  ]
+}
+
 export function resumoDaReserva(reserva: Reserva, travessia: TravessiaOfertada): readonly LinhaDoResumo[] {
+  if (reserva.categoria === 'ENCOMENDA') return resumoDaEncomenda(reserva, travessia)
   return [
     { rotulo: 'Travessia', valor: `${travessia.rotulos.origem} → ${travessia.rotulos.destino}` },
     { rotulo: 'Saída', valor: travessia.rotulos.partida },
@@ -53,7 +83,7 @@ export function resumoDaReserva(reserva: Reserva, travessia: TravessiaOfertada):
     { rotulo: 'Em nome de', valor: reserva.cliente.nome },
     {
       rotulo: 'Telefone',
-      valor: reserva.cliente.telefone === undefined ? 'Não informado' : formatarWhatsapp(reserva.cliente.telefone),
+      valor: telefoneOuNao(reserva.cliente.telefone),
     },
     { rotulo: 'Vale até', valor: `a saída — ${travessia.rotulos.partida}` },
   ]

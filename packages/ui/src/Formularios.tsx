@@ -1,5 +1,5 @@
 /**
- * **Os dois passos em que se digita** — o cliente e a cilindrada.
+ * **Os passos em que se digita** — o cliente (e, na encomenda, o destinatário), a cilindrada e o volume.
  *
  * O rascunho do que se digita fica **aqui dentro**, e só vai às respostas no "Continuar". Não é estado de
  * aplicação: é o texto do campo. Se cada tecla fosse resposta, a primeira letra do nome já responderia o passo
@@ -11,21 +11,47 @@
  */
 import { useId, useState, type FormEvent } from 'react'
 
-import { LIMITE_DO_NOME, LIMITE_DO_TELEFONE, normalizarWhatsapp, type RascunhoDoCliente } from '@navegsistemas/domain'
+import {
+  LIMITE_DE_VOLUMES,
+  LIMITE_DO_COMPLEMENTO,
+  LIMITE_DO_NOME,
+  LIMITE_DO_TELEFONE,
+  normalizarWhatsapp,
+  TipoVolume,
+  type RascunhoDoCliente,
+} from '@navegsistemas/domain'
+
+import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 
 export interface PropsDoFormularioDoCliente {
   readonly inicial: RascunhoDoCliente | undefined
   readonly aoConfirmar: (cliente: RascunhoDoCliente) => void
+  /**
+   * O celular passa a ser obrigatório: o destinatário da encomenda, e quem manda quando é quem retira (C5 e C12).
+   * O padrão é o do totem de passagem — opcional.
+   */
+  readonly telefoneObrigatorio?: boolean
+  /** O que dizer quando falta o nome — de quem reserva, por padrão. */
+  readonly erroDoNome?: string
 }
 
-export function FormularioDoCliente({ inicial, aoConfirmar }: PropsDoFormularioDoCliente) {
+export function FormularioDoCliente({
+  inicial,
+  aoConfirmar,
+  telefoneObrigatorio = false,
+  erroDoNome = 'Informe o nome de quem faz a reserva.',
+}: PropsDoFormularioDoCliente) {
   const id = useId()
   const [nome, setNome] = useState(inicial?.nome ?? '')
   const [telefone, setTelefone] = useState(inicial?.telefone ?? '')
   const [tentou, setTentou] = useState(false)
 
   const nomeVazio = nome.trim().length === 0
-  const telefoneInvalido = telefone.trim().length > 0 && normalizarWhatsapp(telefone) === null
+  const telefoneVazio = telefone.trim().length === 0
+  const telefoneInvalido = telefoneVazio ? telefoneObrigatorio : normalizarWhatsapp(telefone) === null
+  const erroDoTelefone = telefoneObrigatorio
+    ? 'Informe um celular com DDD, como (91) 98888-7777.'
+    : 'Precisa ser um celular com DDD — ou deixe em branco.'
 
   function enviar(evento: FormEvent) {
     evento.preventDefault()
@@ -50,14 +76,14 @@ export function FormularioDoCliente({ inicial, aoConfirmar }: PropsDoFormularioD
         />
         {tentou && nomeVazio && (
           <p id={`${id}-nome-erro`} className="totem-erro">
-            Informe o nome de quem faz a reserva.
+            {erroDoNome}
           </p>
         )}
       </div>
 
       <div className="totem-campo">
         <label htmlFor={`${id}-telefone`}>
-          Celular com DDD <span className="totem-opcional">(opcional)</span>
+          Celular com DDD{!telefoneObrigatorio && <> <span className="totem-opcional">(opcional)</span></>}
         </label>
         <input
           id={`${id}-telefone`}
@@ -74,7 +100,7 @@ export function FormularioDoCliente({ inicial, aoConfirmar }: PropsDoFormularioD
         />
         {tentou && telefoneInvalido && (
           <p id={`${id}-telefone-erro`} className="totem-erro">
-            Precisa ser um celular com DDD — ou deixe em branco.
+            {erroDoTelefone}
           </p>
         )}
       </div>
@@ -127,6 +153,98 @@ export function CampoDeCilindrada({ inicial, aoConfirmar }: PropsDaCilindrada) {
           </p>
         )}
       </div>
+      <button type="submit" className="acao totem-continuar">
+        Continuar
+      </button>
+    </form>
+  )
+}
+
+/** O que o passo do volume escreve nas respostas: o tipo, quantos, e o complemento, se houver. */
+export interface RespostaDoVolume {
+  readonly tipoVolume: TipoVolume
+  readonly quantidadeVolumes: number
+  readonly complemento?: string
+}
+
+export interface PropsDoFormularioDoVolume {
+  readonly tipos: readonly TipoVolume[]
+  readonly inicial: Partial<RespostaDoVolume>
+  readonly aoConfirmar: (volume: RespostaDoVolume) => void
+}
+
+/**
+ * **O que vai** — o tipo, a quantidade e o complemento, numa tela só (C3). O tipo é escolhido em cartão, como
+ * os outros passos; aqui o toque só marca, porque a quantidade ainda falta.
+ */
+export function FormularioDoVolume({ tipos, inicial, aoConfirmar }: PropsDoFormularioDoVolume) {
+  const id = useId()
+  const [tipo, setTipo] = useState<TipoVolume | undefined>(inicial.tipoVolume)
+  const [quantidade, setQuantidade] = useState(String(inicial.quantidadeVolumes ?? 1))
+  const [complemento, setComplemento] = useState(inicial.complemento ?? '')
+  const [tentou, setTentou] = useState(false)
+
+  const numero = /^\d{1,2}$/.test(quantidade.trim()) ? Number(quantidade.trim()) : null
+  const quantidadeInvalida = numero === null || numero < 1 || numero > LIMITE_DE_VOLUMES
+  const semTipo = tipo === undefined
+
+  function enviar(evento: FormEvent) {
+    evento.preventDefault()
+    setTentou(true)
+    if (tipo === undefined || numero === null || quantidadeInvalida) return
+    const texto = complemento.trim()
+    aoConfirmar({ tipoVolume: tipo, quantidadeVolumes: numero, ...(texto.length > 0 ? { complemento: texto } : {}) })
+  }
+
+  return (
+    <form className="totem-formulario" onSubmit={enviar} noValidate>
+      <fieldset className="totem-campo totem-grupo" aria-describedby={tentou && semTipo ? `${id}-tipo-erro` : undefined}>
+        <legend>Tipo do volume</legend>
+        <EscolhaEmCartoes
+          opcoes={tipos.map((valor) => ({ valor, rotulo: TipoVolume.rotulo(valor) }))}
+          escolhida={tipo}
+          aoEscolher={setTipo}
+        />
+        {tentou && semTipo && (
+          <p id={`${id}-tipo-erro`} className="totem-erro">
+            Escolha o tipo do volume.
+          </p>
+        )}
+      </fieldset>
+
+      <div className="totem-campo">
+        <label htmlFor={`${id}-quantidade`}>Quantos volumes</label>
+        <input
+          id={`${id}-quantidade`}
+          name="quantidadeVolumes"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          aria-invalid={tentou && quantidadeInvalida}
+          aria-describedby={tentou && quantidadeInvalida ? `${id}-quantidade-erro` : undefined}
+        />
+        {tentou && quantidadeInvalida && (
+          <p id={`${id}-quantidade-erro`} className="totem-erro">
+            De 1 a {LIMITE_DE_VOLUMES} volumes.
+          </p>
+        )}
+      </div>
+
+      <div className="totem-campo">
+        <label htmlFor={`${id}-complemento`}>
+          O que é <span className="totem-opcional">(opcional)</span>
+        </label>
+        <input
+          id={`${id}-complemento`}
+          name="complemento"
+          placeholder="mantimentos, peças, roupas…"
+          maxLength={LIMITE_DO_COMPLEMENTO}
+          value={complemento}
+          onChange={(e) => setComplemento(e.target.value)}
+        />
+      </div>
+
       <button type="submit" className="acao totem-continuar">
         Continuar
       </button>

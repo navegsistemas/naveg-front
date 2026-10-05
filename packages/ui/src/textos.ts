@@ -7,7 +7,7 @@
  *
  * O texto é de tela, e a tela é de quem **não** trabalha no rio: nenhuma sigla interna, nenhum nome de enum.
  */
-import type { PassoDaReserva, PendenciaDaReserva } from '@navegsistemas/domain'
+import type { PassoDaEncomenda, PassoDaReserva, PendenciaDaReserva } from '@navegsistemas/domain'
 
 export interface TextoDoPasso {
   readonly pergunta: string
@@ -45,9 +45,43 @@ export const TEXTO_DA_PENDENCIA: Readonly<Record<PendenciaDaReserva, string>> = 
   CILINDRADA: 'Informe a cilindrada da moto.',
   VALIDADE: 'Esta saída já partiu. Escolha outra travessia.',
   CONVERSAO: 'Esta reserva não pode ser enviada.',
+  CLIENTE_TELEFONE_AUSENTE: 'Quem manda e retira precisa deixar o celular com DDD: é por ele que o destino avisa.',
+  DESTINATARIO_AUSENTE: 'Informe quem retira a encomenda no destino.',
+  DESTINATARIO_INDEVIDO: 'Você mesmo retira esta encomenda: ela não leva destinatário.',
+  DESTINATARIO_NOME: 'Informe o nome de quem retira a encomenda.',
+  DESTINATARIO_TELEFONE: 'O celular de quem retira precisa ter DDD, como (96) 98888-7777.',
+  VOLUMES: 'Uma encomenda vai de 1 a 20 volumes. Mais do que isso, fale com o atendimento.',
+  COMPLEMENTO: 'O complemento cabe em 60 caracteres.',
 }
+
+/** As perguntas da seção "Envie sua encomenda" — `docs/plano-da-reserva-de-encomenda.md`, §3.2. */
+export const TEXTO_DO_PASSO_DA_ENCOMENDA: Readonly<Record<PassoDaEncomenda, TextoDoPasso>> = {
+  VOLUMES: { pergunta: 'O que vai mandar?', ajuda: 'Até 20 volumes. Mais do que isso, fale com o atendimento.' },
+  PESO: {
+    pergunta: 'Quanto pesa, mais ou menos?',
+    ajuda: 'Todos os volumes juntos. No porto a encomenda é pesada, e vale o peso da balança.',
+  },
+  RETIRADA: { pergunta: 'Quem retira no destino?' },
+  DESTINATARIO: {
+    pergunta: 'Para quem vai?',
+    ajuda: 'O celular é obrigatório: é por ele que o destino avisa que a encomenda chegou.',
+  },
+  REMETENTE: { pergunta: 'Quem está mandando?' },
+  CONFERENCIA: { pergunta: 'Confira a encomenda' },
+}
+
+/** A ajuda do passo de quem manda muda com quem retira (C12): é o celular que passa a ser obrigatório. */
+export const AJUDA_DO_REMETENTE = {
+  retira: 'Você retira no destino, então o celular é obrigatório: é por ele que o destino avisa que a encomenda chegou.',
+  naoRetira: 'O celular é opcional: ao final, você fala com o atendimento pelo WhatsApp.',
+} as const
 
 /** O aviso que acompanha o totem inteiro. */
 export const AVISO_RESERVA_NAO_VENDA =
   'Isto é uma reserva, não uma venda: nada é pago aqui. O atendimento confirma a passagem com você pelo ' +
   'WhatsApp, e a reserva vale até a saída do barco.'
+
+/** O aviso que acompanha a seção de encomenda. */
+export const AVISO_ENCOMENDA_NAO_VENDA =
+  'Isto é uma reserva, não uma venda: nada é pago aqui. O atendimento confirma com você pelo WhatsApp; no ' +
+  'porto, a encomenda é pesada, o frete é cobrado, e ela é entregue antes da partida.'

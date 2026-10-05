@@ -2,8 +2,12 @@
 
 **Data:** 2026-10-01
 **Situação:** C1, C3, C4, C5, C9, C11 e C12 decididas pelo PO em 2026-10-01; C6, C7, C8 e C10 seguem como proposta.
-Aqui, as entregas 1 e 2 (o plano e o roteiro no domínio) estão na `main`; a próxima é a 3. No KMP, a entrega 4 do ERP (o fim do compartilhamento) e a 5
-(a encomenda no balcão) estão no `master` desde 2026-10-02, e o balcão se alinha a este plano (§4.1).
+Aqui, as entregas 1 e 2 (o plano e o roteiro no domínio) estão na `main`. No KMP, a 4 e a 5 estão no `master` (a
+5, as regras de `reservas` e o painel, em fluviapp-kmp#36, 2026-10-05). **A 3 e a 6 foram juntas, em 2026-10-05** — é a
+entrega 3 do [plano do MVP](https://github.com/navegsistemas/fluviapp-kmp/blob/master/docs/plano-do-mvp.md): a
+`ReservaDeEncomenda` no codec (domínio 0.6.0), a API gravando, e a seção com o item no menu, o botão e o texto da
+capa. C7 (toda saída aceita encomenda) foi confirmada pelo PO nessa entrega; C6, C8 e C10 foram aplicadas como estão
+propostas.
 **De onde vem:** o [plano do ERP do `fluviapp-kmp`](https://github.com/navegsistemas/fluviapp-kmp/blob/master/docs/plano-do-erp.md)
 (`docs/plano-do-erp.md` lá), decisões **E3** (a carga entra, começando pela encomenda) e **M6** (o transporte de
 carga chega ao front como **reserva com redirecionamento ao atendente**, igual à de passageiro), §6.3 e entrega 6.

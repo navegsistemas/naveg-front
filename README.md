@@ -28,8 +28,10 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-02: parei na reserva de encomenda, com o plano e o roteiro no domínio na `main` e a encomenda no balcão
-feita no KMP. Próxima aqui: a ilha da encomenda (entrega 3).** No mesmo dia entraram os majors do Dependabot,
+**2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`
+lá): o domínio 0.6.0 com a `ReservaDeEncomenda` no codec, a API gravando, e a seção "Envie sua encomenda" na
+página. **Próxima, pelo plano do MVP:** a 4 e a 5 (o caixa por viagem) são do KMP; aqui, a 6 — o resto do
+endurecimento e a política de privacidade. Em 2026-10-02 entraram os majors do Dependabot,
 menos o TypeScript 7. Em 2026-10-01 o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
 fechado com o caminho inteiro funcionando: o cliente reserva no totem de
 homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
@@ -46,11 +48,11 @@ Provado de ponta a ponta nesse dia.
   antiga.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
-fluviapp` (44 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
-ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **434 cenários**,
+fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **474 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
-vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 67,1 kB de runtime e 17,5 kB de ilha
-(`npm run conferir:build`). `npm run e2e` dá 5 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
+vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 22,8 kB de
+ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 8 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
 na primeira vez, `npx playwright install chromium webkit`.
 
 **O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
@@ -67,19 +69,16 @@ Decidido pelo PO: o nome é "Encomendas"; tipo do volume por lista e peso por fa
 obrigatório; quem manda pode ser quem retira (o motorista), e aí o celular dele é obrigatório; o quiosque fica só
 com passagem. Há um wireframe para análise (privado do PO, em claude.ai).
 
-- **Feitas aqui, na `main`:** a 1, o plano (#24), e a 2, o roteiro, a montagem e a mensagem no domínio (#25). A
-  reserva de encomenda ainda não entra no codec: entra na entrega 6, junto com as regras do KMP.
-- **Feita no KMP, em 2026-10-02:** a 4, a encomenda no balcão (entrega 5 do ERP, fluviapp-kmp#33 e #34, alinhada a
-  este plano), sobre a entrega 4 do ERP, o fim do compartilhamento (fluviapp-kmp#29).
-- **Próxima aqui, a 3:** a ilha da encomenda, com as telas do totem e o envio em memória, **fora da página**.
-  Medir o orçamento da ilha nela: a de passagem já está em 17,5 kB de 20.
-- **Próxima no KMP, com o PO:** a 5, a reserva de encomenda nas regras de `reservas` e no painel (a parte KMP da
-  entrega 6 do ERP). Os nomes do documento saem do domínio daqui: `categoria: 'ENCOMENDA'`, `tipoVolume`,
-  `quantidadeVolumes`, `complemento`, `faixaPeso`, `retirada` e `destinatario {nome, telefone}` (só com
-  `OUTRA_PESSOA`).
-- **Depois, aqui e na API:** a 6, no ar junto com o merge das regras no KMP.
-- **Ainda como proposta no plano:** a validade (até a partida), toda saída aceita encomenda, o mesmo WhatsApp do
-  atendimento, e o texto da capa.
+- **Feitas aqui, na `main`:** a 1, o plano (#24), e a 2, o roteiro, a montagem e a mensagem no domínio (#25).
+- **Feitas no KMP:** a 4, a encomenda no balcão (fluviapp-kmp#33 e #34), e a 5, as regras de `reservas` e o painel
+  (fluviapp-kmp#36, 2026-10-05): em Reservas, o botão Receber abre Cargas com "Receber encomenda" preenchido.
+- **Feitas juntas, em 2026-10-05, a 3 e a 6** (a entrega 3 do plano do MVP): o domínio 0.6.0 (a
+  `ReservaDeEncomenda` na união, o codec com as chaves do `ReservaDocumento.kt`, as pendências da encomenda no
+  `pendenciasDaReserva`, a conversão por `encomendaId`, o pedido HTTP com `encomenda` no lugar de `respostas`, e o
+  `enviarEncomenda`); a API gravando, com o emulador contra as regras do KMP; e a seção, o item "Encomendas", o
+  botão "Enviar encomenda" e o texto da capa, com o E2E da jornada. O quiosque segue só com passagem.
+- **Aplicadas como estavam propostas:** a validade (até a partida), o mesmo WhatsApp do atendimento e o texto da
+  capa ("passageiros, veículos e encomendas"). Toda saída aceita encomenda (C7) foi confirmada pelo PO.
 
 **Pendências, registradas nos planos:**
 

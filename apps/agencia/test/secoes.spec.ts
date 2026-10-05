@@ -83,4 +83,8 @@ describe('o menu', () => {
     const hrefs = menu.map((item) => item.href)
     expect(new Set(hrefs).size).toBe(hrefs.length)
   })
+
+  it('as encomendas têm porta própria, logo depois da reserva de passagem (plano da encomenda, §3.1)', () => {
+    expect(menu.map((item) => item.rotulo)).toEqual(['Reservar', 'Encomendas', 'Atendentes', 'Avaliações', 'Contato'])
+  })
 })
