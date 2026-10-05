@@ -277,3 +277,19 @@
     gap: 0;
   }
 }
+
+/* ── Um grupo de escolhas dentro de um formulário (o tipo do volume) ───────────────────────── */
+
+.totem-grupo {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.totem-grupo legend {
+  margin-block-end: var(--espaco-2);
+  padding: 0;
+  color: var(--text);
+  font-weight: 600;
+}

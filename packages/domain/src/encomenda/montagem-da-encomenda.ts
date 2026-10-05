@@ -1,108 +1,31 @@
 /**
- * **A reserva de encomenda, e o caminho das respostas até ela.**
+ * **Das respostas à reserva de encomenda** — o caminho, e ele só se abre quando o roteiro fecha.
  *
- * `ReservaDeEncomenda` tem a mesma base da reserva de passagem — código, ocorrência, quem pediu, status, origem,
- * criação e validade — e o pedido da encomenda no lugar da passagem pedida. **Ainda não é um caso de `Reserva`**:
- * ela entra na união, no codec do documento e no pedido HTTP na entrega 6 do plano, junto com as regras do KMP.
- * Antes disso, o teste de contrato acusaria chaves que o `ReservaDocumento.kt` não conhece.
+ * A `ReservaDeEncomenda` é um caso da `Reserva` (`reserva/reserva.ts`), com a mesma base da de passagem — código,
+ * ocorrência, quem pediu, status, origem, criação e validade — e o pedido de envio no lugar da passagem pedida.
+ * As pendências são as do `pendenciasDaReserva`, como no KMP.
  *
  * A montagem segue a da passagem: lê **os nós que o roteiro devolveu** e só o que foi perguntado é resposta. O
  * destinatário que sobrou de um "Outra pessoa" desfeito não entra numa encomenda que o próprio remetente retira.
  */
-import { codigoValido } from '../reserva/codigo-da-reserva.js'
-import { normalizarWhatsapp, whatsappValido } from '../reserva/contato.js'
+import { normalizarWhatsapp } from '../reserva/contato.js'
 import type { IdentidadeDaReserva } from '../reserva/montagem-da-reserva.js'
-import type { ClienteDaReserva, ReservaDePassageiro } from '../reserva/reserva.js'
+import {
+  pendenciasDaReserva,
+  type ClienteDaReserva,
+  type PendenciaDaReserva,
+  type ReservaDeEncomenda,
+} from '../reserva/reserva.js'
 import type { ContextoDaReserva, RascunhoDoCliente } from '../reserva/roteiro-da-reserva.js'
 import { STATUS_DA_WEB } from '../reserva/status-reserva.js'
 import { validadeDaReserva } from '../reserva/validade-da-reserva.js'
-import { casoImpossivel } from '../primitivos/fronteira.js'
 import { retiradaEmVigor, roteiroDaEncomenda, type NoDaEncomenda, type RespostasDaEncomenda } from './roteiro-da-encomenda.js'
-import { LIMITE_DE_VOLUMES, LIMITE_DO_COMPLEMENTO, type FaixaPeso, type Retirada, type TipoVolume } from './volume.js'
-
-/** Quem retira no destino, quando não é quem manda. Os dois campos são obrigatórios (C5). */
-export interface DestinatarioDaEncomenda {
-  readonly nome: string
-  /** Celular em E.164 sem o `+`, como o do cliente. */
-  readonly telefone: string
-}
-
-type BaseDaReserva = Omit<ReservaDePassageiro, 'categoria' | 'acomodacao' | 'tipo' | 'gratuidade' | 'quantidadePessoas'>
-
-export interface ReservaDeEncomenda extends BaseDaReserva {
-  readonly categoria: 'ENCOMENDA'
-  readonly tipoVolume: TipoVolume
-  readonly quantidadeVolumes: number
-  readonly complemento?: string
-  readonly faixaPeso: FaixaPeso
-  readonly retirada: Retirada
-  /** Presente **só** com `retirada: 'OUTRA_PESSOA'`, e obrigatório nesse caso — como a gratuidade e o tipo. */
-  readonly destinatario?: DestinatarioDaEncomenda
-}
-
-export const PENDENCIAS_DA_ENCOMENDA = [
-  'CODIGO',
-  'CLIENTE_NOME',
-  /** O celular de quem manda veio, e não é um celular. */
-  'CLIENTE_TELEFONE',
-  /** Quem manda retira, e não deixou o celular por onde o destino avisa. */
-  'CLIENTE_TELEFONE_AUSENTE',
-  'DESTINATARIO_AUSENTE',
-  /** Destinatário numa encomenda que o próprio remetente retira — sobra de uma escolha desfeita. */
-  'DESTINATARIO_INDEVIDO',
-  'DESTINATARIO_NOME',
-  'DESTINATARIO_TELEFONE',
-  'VOLUMES',
-  'COMPLEMENTO',
-  'VALIDADE',
-] as const
-
-export type PendenciaDaEncomenda = (typeof PENDENCIAS_DA_ENCOMENDA)[number]
-
-/** **Esta encomenda é coerente consigo mesma?** Vazio = sim. Como a da passagem, olha só para ela. */
-export function pendenciasDaEncomenda(reserva: ReservaDeEncomenda): ReadonlySet<PendenciaDaEncomenda> {
-  const pendencias = new Set<PendenciaDaEncomenda>()
-
-  if (!codigoValido(reserva.codigo)) pendencias.add('CODIGO')
-  if (reserva.cliente.nome.trim().length === 0) pendencias.add('CLIENTE_NOME')
-  if (reserva.cliente.telefone !== undefined && !whatsappValido(reserva.cliente.telefone)) {
-    pendencias.add('CLIENTE_TELEFONE')
-  }
-  if (reserva.expiraEm <= reserva.criadoEm) pendencias.add('VALIDADE')
-
-  const { quantidadeVolumes } = reserva
-  if (!Number.isInteger(quantidadeVolumes) || quantidadeVolumes < 1 || quantidadeVolumes > LIMITE_DE_VOLUMES) {
-    pendencias.add('VOLUMES')
-  }
-  if (reserva.complemento !== undefined && reserva.complemento.length > LIMITE_DO_COMPLEMENTO) pendencias.add('COMPLEMENTO')
-
-  switch (reserva.retirada) {
-    case 'REMETENTE':
-      if (reserva.cliente.telefone === undefined) pendencias.add('CLIENTE_TELEFONE_AUSENTE')
-      if (reserva.destinatario !== undefined) pendencias.add('DESTINATARIO_INDEVIDO')
-      break
-    case 'OUTRA_PESSOA': {
-      const { destinatario } = reserva
-      if (destinatario === undefined) {
-        pendencias.add('DESTINATARIO_AUSENTE')
-        break
-      }
-      if (destinatario.nome.trim().length === 0) pendencias.add('DESTINATARIO_NOME')
-      if (!whatsappValido(destinatario.telefone)) pendencias.add('DESTINATARIO_TELEFONE')
-      break
-    }
-    default:
-      casoImpossivel(reserva.retirada, 'pendenciasDaEncomenda')
-  }
-
-  return pendencias
-}
 
 export type ResultadoDaMontagemDaEncomenda =
   | { readonly caso: 'OK'; readonly reserva: ReservaDeEncomenda }
   /** O roteiro ainda não fechou; `faltando` é o nó em foco. */
   | { readonly caso: 'INCOMPLETA'; readonly faltando: NoDaEncomenda }
-  | { readonly caso: 'INCOERENTE'; readonly pendencias: ReadonlySet<PendenciaDaEncomenda> }
+  | { readonly caso: 'INCOERENTE'; readonly pendencias: ReadonlySet<PendenciaDaReserva> }
 
 function aparado(texto: string | undefined): string {
   return (texto ?? '').trim()
@@ -164,6 +87,6 @@ export function montarEncomenda(
     ...(destinatario !== undefined ? { destinatario } : {}),
   }
 
-  const pendencias = pendenciasDaEncomenda(reserva)
+  const pendencias = pendenciasDaReserva(reserva)
   return pendencias.size > 0 ? { caso: 'INCOERENTE', pendencias } : { caso: 'OK', reserva }
 }

@@ -9,15 +9,17 @@ import { describe, expect, it } from 'vitest'
 import {
   DataCalendario,
   InstanteLocal,
+  montarEncomenda,
   montarReserva,
   paraDocumento,
   type ContextoDaReserva,
   type Reserva,
+  type RespostasDaEncomenda,
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
 
-import { envioHttp, type PedidoDoTotem } from '../src/envio.js'
+import { envioHttp, envioHttpDaEncomenda, type PedidoDaEncomenda, type PedidoDoTotem } from '../src/envio.js'
 import type { Buscar } from '../src/http.js'
 
 const CONTEXTO: ContextoDaReserva = {
@@ -114,5 +116,52 @@ describe('o envio pela API', () => {
     const resultado = await envioHttp('https://api', () => Promise.reject(new Error('fechou')), buscar).enviar(PEDIDO)
     expect(resultado.caso).toBe('FALHA')
     expect(pedidos).toEqual([])
+  })
+})
+
+describe('o envio da encomenda pela API', () => {
+  const ENCOMENDA: RespostasDaEncomenda = {
+    tipoVolume: 'CAIXA',
+    quantidadeVolumes: 3,
+    faixaPeso: 'DE_5_A_20',
+    retirada: 'OUTRA_PESSOA',
+    destinatario: { nome: 'João Lima', telefone: '(96) 98888-7777' },
+    cliente: { nome: 'Maria Souza' },
+  }
+  const PEDIDO_DA_ENCOMENDA: PedidoDaEncomenda = { ...PEDIDO, respostas: ENCOMENDA }
+
+  function encomendaDoServidor(codigo: string) {
+    const montagem = montarEncomenda(ENCOMENDA, CONTEXTO, { codigo, criadoEm: InstanteLocal.de('2026-10-13T09:01') as InstanteLocal })
+    if (montagem.caso !== 'OK') throw new Error('exemplo incoerente')
+    return montagem.reserva
+  }
+
+  it('manda a encomenda no lugar das respostas, para a mesma rota', async () => {
+    const { buscar, pedidos } = respondendo(201, { codigo: 'NVG-SRV123', reserva: paraDocumento(encomendaDoServidor('NVG-SRV123')) })
+    const resultado = await envioHttpDaEncomenda('https://api', desafio, buscar).enviar(PEDIDO_DA_ENCOMENDA)
+
+    expect(pedidos[0]?.url).toBe('https://api/reservas')
+    expect(JSON.parse(String(pedidos[0]?.init?.body))).toEqual({
+      viagemId: 'v1',
+      data: '2026-10-14',
+      encomenda: ENCOMENDA,
+      desafio: 'token-do-turnstile',
+    })
+    expect(resultado.caso === 'ENVIADA' && resultado.reserva.codigo).toBe('NVG-SRV123')
+  })
+
+  it('uma reserva de passagem de volta é falha — não é o que foi pedido', async () => {
+    const { buscar } = respondendo(201, { codigo: 'NVG-SRV123', reserva: paraDocumento(doServidor('NVG-SRV123')) })
+    expect((await envioHttpDaEncomenda('https://api', desafio, buscar).enviar(PEDIDO_DA_ENCOMENDA)).caso).toBe('FALHA')
+  })
+
+  it('422 com as pendências da encomenda, e 409 como a saída que partiu', async () => {
+    const recusa = respondendo(422, { pendencias: ['DESTINATARIO_TELEFONE'] })
+    const recusada = await envioHttpDaEncomenda('https://api', desafio, recusa.buscar).enviar(PEDIDO_DA_ENCOMENDA)
+    expect(recusada.caso === 'INCOERENTE' && [...recusada.pendencias]).toEqual(['DESTINATARIO_TELEFONE'])
+
+    const partiu = respondendo(409, {})
+    const fora = await envioHttpDaEncomenda('https://api', desafio, partiu.buscar).enviar(PEDIDO_DA_ENCOMENDA)
+    expect(fora.caso === 'INCOERENTE' && [...fora.pendencias]).toEqual(['VALIDADE'])
   })
 })

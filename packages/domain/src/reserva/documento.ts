@@ -12,15 +12,22 @@
  * ### Os campos de consulta ficam no topo
  *
  * `status`, `viagemId`, `data` e `agenciaId` são o que a consulta do aplicativo recorta e o que a Rule
- * confere. O `cliente` é o único **sub-objeto**, e existe para ser **ausente ou inteiro** — nunca metade.
+ * confere. O `cliente` e o `destinatario` são os únicos **sub-objetos**, e existem para ser **ausentes ou
+ * inteiros** — nunca metade.
+ *
+ * ### Três ramos, e as chaves de um não aparecem no outro
+ *
+ * `PASSAGEIRO`, `VEICULO` e `ENCOMENDA` têm chaves exclusivas. A de passagem converte em passagem
+ * (`passagemId`); a de encomenda, em encomenda (`encomendaId`). A presença de uma chave de outro ramo é estado
+ * misto, e o documento não vira nada — como no `ReservaDocumento.kt`.
  *
  * ### E o id não é um campo
  *
  * O código **é** o id do documento, e não se repete dentro dele: duas cópias do mesmo dado são duas
  * oportunidades de divergirem, e a que vale para as Rules é a do caminho.
  */
+import { FaixaPeso, Retirada, TipoVolume } from '../encomenda/volume.js'
 import { Acomodacao } from '../passagem/acomodacao.js'
-import { CategoriaPassagem } from '../passagem/categoria-passagem.js'
 import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import { TipoGratuidade } from '../passagem/tipo-gratuidade.js'
 import { TipoPassagem } from '../passagem/tipo-passagem.js'
@@ -29,9 +36,11 @@ import { casoImpossivel, deValor } from '../primitivos/fronteira.js'
 import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import { codigoValido } from './codigo-da-reserva.js'
 import {
+  CATEGORIAS_DE_RESERVA,
   ORIGENS_DA_RESERVA,
   pendenciasDaReserva,
   type ClienteDaReserva,
+  type DestinatarioDaEncomenda,
   type Reserva,
   type Tratamento,
 } from './reserva.js'
@@ -43,6 +52,12 @@ export interface ClienteDocumento {
   readonly telefone?: string
 }
 
+/** Quem retira a encomenda — a mesma forma do [ClienteDocumento], com o celular obrigatório (C5). */
+export interface DestinatarioDocumento {
+  readonly nome: string
+  readonly telefone: string
+}
+
 /** O carimbo de quem tratou — `{porId, em}`, escrito pelo fluviapp. */
 export interface TratamentoDocumento {
   readonly porId: string
@@ -52,7 +67,7 @@ export interface TratamentoDocumento {
 
 /** A forma gravada. Toda enumeração é o **valor canônico** — o mesmo texto que o Kotlin grava. */
 export interface ReservaDocumento {
-  /** O discriminador: `PASSAGEIRO` ou `VEICULO`. Ausente ou ilegível faz o documento não virar nada. */
+  /** O discriminador: `PASSAGEIRO`, `VEICULO` ou `ENCOMENDA`. Ausente ou ilegível faz o documento não virar nada. */
   readonly categoria: string
   readonly status: string
   readonly viagemId: string
@@ -64,7 +79,10 @@ export interface ReservaDocumento {
   readonly expiraEm: string
   readonly cliente: ClienteDocumento
   readonly agenciaId?: string
+  /** A passagem que nasceu da conversão — só nos ramos de passagem. */
   readonly passagemId?: string
+  /** A encomenda que nasceu da conversão — só no ramo `ENCOMENDA`. */
+  readonly encomendaId?: string
   readonly observacao?: string
   // --- só quando `categoria == PASSAGEIRO` ---
   readonly acomodacao?: string
@@ -75,13 +93,22 @@ export interface ReservaDocumento {
   // --- só quando `categoria == VEICULO` ---
   readonly classe?: string
   readonly cilindrada?: number
+  // --- só quando `categoria == ENCOMENDA` ---
+  readonly tipoVolume?: string
+  readonly quantidadeVolumes?: number
+  readonly complemento?: string
+  readonly faixaPeso?: string
+  readonly retirada?: string
+  /** Presente **só** com `retirada == OUTRA_PESSOA`, e obrigatório nesse caso. */
+  readonly destinatario?: DestinatarioDocumento
   // --- só do fluviapp: quem cancelou ou converteu ---
   readonly tratamento?: TratamentoDocumento
 }
 
 /**
- * Toda chave de topo que o codec pode escrever — a lista "campos previstos" da Rule. `satisfies` faz esquecer
- * uma chave aqui virar erro de compilação.
+ * Toda chave de topo que o codec pode escrever — a lista "campos previstos" da Rule, **na ordem do
+ * `ReservaDocumento.kt`**, que o teste de contrato confere. `satisfies` faz esquecer uma chave aqui virar erro de
+ * compilação.
  */
 export const CAMPOS_DO_DOCUMENTO = [
   'categoria',
@@ -94,6 +121,7 @@ export const CAMPOS_DO_DOCUMENTO = [
   'cliente',
   'agenciaId',
   'passagemId',
+  'encomendaId',
   'observacao',
   'acomodacao',
   'tipo',
@@ -101,6 +129,12 @@ export const CAMPOS_DO_DOCUMENTO = [
   'quantidadePessoas',
   'classe',
   'cilindrada',
+  'tipoVolume',
+  'quantidadeVolumes',
+  'complemento',
+  'faixaPeso',
+  'retirada',
+  'destinatario',
   'tratamento',
 ] as const satisfies readonly (keyof ReservaDocumento)[]
 
@@ -109,9 +143,19 @@ type ChavesNaoListadas = Exclude<keyof ReservaDocumento, (typeof CAMPOS_DO_DOCUM
 const _todasAsChavesListadas: ChavesNaoListadas extends never ? true : never = true
 void _todasAsChavesListadas
 
-/** As chaves exclusivas de cada ramo — a presença de uma do outro ramo é estado misto. */
+/** As chaves exclusivas de cada ramo — a presença de uma de outro ramo é estado misto. */
 const DO_PASSAGEIRO = ['acomodacao', 'tipo', 'gratuidade', 'quantidadePessoas'] as const
 const DO_VEICULO = ['classe', 'cilindrada'] as const
+const DA_PASSAGEM = [...DO_PASSAGEIRO, ...DO_VEICULO, 'passagemId'] as const
+const DA_ENCOMENDA = [
+  'tipoVolume',
+  'quantidadeVolumes',
+  'complemento',
+  'faixaPeso',
+  'retirada',
+  'destinatario',
+  'encomendaId',
+] as const
 
 // ---------------------------------------------------------------------------------------------------------
 // Domínio → documento
@@ -135,7 +179,6 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
       ...(reserva.cliente.telefone !== undefined ? { telefone: reserva.cliente.telefone } : {}),
     },
     ...(reserva.agenciaId !== undefined ? { agenciaId: reserva.agenciaId } : {}),
-    ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
     ...(reserva.observacao !== undefined ? { observacao: reserva.observacao } : {}),
     ...(reserva.tratamento !== undefined
       ? { tratamento: { porId: reserva.tratamento.porId, em: reserva.tratamento.em } }
@@ -146,6 +189,7 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
     case 'PASSAGEIRO':
       return {
         ...comum,
+        ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
         acomodacao: reserva.acomodacao,
         tipo: reserva.tipo,
         ...(reserva.gratuidade !== undefined ? { gratuidade: reserva.gratuidade } : {}),
@@ -154,8 +198,22 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
     case 'VEICULO':
       return {
         ...comum,
+        ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
         classe: reserva.classe,
         ...(reserva.cilindrada !== undefined ? { cilindrada: reserva.cilindrada } : {}),
+      }
+    case 'ENCOMENDA':
+      return {
+        ...comum,
+        ...(reserva.encomendaId !== undefined ? { encomendaId: reserva.encomendaId } : {}),
+        tipoVolume: reserva.tipoVolume,
+        quantidadeVolumes: reserva.quantidadeVolumes,
+        ...(reserva.complemento !== undefined ? { complemento: reserva.complemento } : {}),
+        faixaPeso: reserva.faixaPeso,
+        retirada: reserva.retirada,
+        ...(reserva.destinatario !== undefined
+          ? { destinatario: { nome: reserva.destinatario.nome, telefone: reserva.destinatario.telefone } }
+          : {}),
       }
     default:
       return casoImpossivel(reserva, 'paraDocumento')
@@ -218,6 +276,19 @@ function clienteDoDocumento(valor: unknown): ClienteDaReserva | null {
 }
 
 /**
+ * O destinatário: ausente, ou inteiro. **Pela metade é recusa**, e não um destinatário inventado — numa
+ * encomenda que outra pessoa retira, sem o celular dela o destino não tem como avisar. Como no KMP.
+ */
+function destinatarioDoDocumento(valor: unknown): DestinatarioDaEncomenda | undefined | typeof ILEGIVEL {
+  if (valor === undefined || valor === null) return undefined
+  if (!ehObjeto(valor)) return ILEGIVEL
+  const nome = texto(valor, 'nome')
+  const telefone = textoOpcional(valor, 'telefone')
+  if (nome === undefined || telefone === undefined || telefone === ILEGIVEL) return ILEGIVEL
+  return { nome, telefone }
+}
+
+/**
  * **Documento para domínio — e recusa o que não reconhece.** Documento que não forma uma reserva não vira
  * reserva degradada, **não vira nada** (`null`).
  *
@@ -231,17 +302,20 @@ function clienteDoDocumento(valor: unknown): ClienteDaReserva | null {
  * 4. **status** ou **origem** ilegíveis — a FSM e a origem são o que a Rule confere;
  * 5. **instantes** ilegíveis — sem `expiraEm`, ninguém sabe se o pedido ainda vale;
  * 6. **cliente** ausente ou sem nome — a reserva existe para que alguém seja atendido;
- * 7. **o que define a passagem** ausente — acomodação, tipo e quantidade; ou a classe do veículo;
- * 8. **estado misto** — reserva de passageiro com `classe`, ou de veículo com `acomodacao`;
+ * 7. **o que define o pedido** ausente — acomodação, tipo e quantidade; a classe do veículo; ou o tipo do
+ *    volume, a quantidade, a faixa de peso e quem retira;
+ * 8. **estado misto** — reserva de passageiro com `classe`, de veículo com `acomodacao`, de passagem com chave de
+ *    encomenda, de encomenda com `passagemId`; ou o destinatário pela metade;
  * 9. **incoerência** — tudo legível, mas `pendenciasDaReserva` não está vazio: meia numa suíte, quatro
- *    pessoas num camarote, gratuidade sem subtipo, moto sem cilindrada.
+ *    pessoas num camarote, gratuidade sem subtipo, moto sem cilindrada, 21 volumes, outra pessoa retira e não
+ *    há destinatário.
  *
  * Chaves que o codec não usa são ignoradas na leitura — quem recusa chave extra é a Rule, na escrita.
  */
 export function paraDominio(id: string, dado: unknown): Reserva | null {
   if (!codigoValido(id) || !ehObjeto(dado)) return null
 
-  const categoria = CategoriaPassagem.de(texto(dado, 'categoria'))
+  const categoria = deValor(CATEGORIAS_DE_RESERVA, texto(dado, 'categoria'))
   const ocorrencia = OcorrenciaViagem.de(texto(dado, 'viagemId'), texto(dado, 'data'))
   const status = StatusReserva.de(texto(dado, 'status'))
   const origem = deValor(ORIGENS_DA_RESERVA, texto(dado, 'origem'))
@@ -261,9 +335,8 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
   }
 
   const agenciaId = textoOpcional(dado, 'agenciaId')
-  const passagemId = textoOpcional(dado, 'passagemId')
   const observacao = textoOpcional(dado, 'observacao')
-  if (agenciaId === ILEGIVEL || passagemId === ILEGIVEL || observacao === ILEGIVEL) return null
+  if (agenciaId === ILEGIVEL || observacao === ILEGIVEL) return null
   const tratamento = tratamentoDoDocumento(dado['tratamento'])
 
   const comum = {
@@ -275,7 +348,6 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
     criadoEm,
     expiraEm,
     ...(agenciaId !== undefined ? { agenciaId } : {}),
-    ...(passagemId !== undefined ? { passagemId } : {}),
     ...(observacao !== undefined ? { observacao } : {}),
     ...(tratamento !== undefined ? { tratamento } : {}),
   }
@@ -284,12 +356,21 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
   switch (categoria) {
     case 'PASSAGEIRO': {
       if (DO_VEICULO.some((chave) => dado[chave] !== undefined)) return null
+      if (DA_ENCOMENDA.some((chave) => dado[chave] !== undefined)) return null
 
       const acomodacao = Acomodacao.de(texto(dado, 'acomodacao'))
       const tipo = TipoPassagem.de(texto(dado, 'tipo'))
       const quantidadePessoas = numeroOpcional(dado, 'quantidadePessoas')
       const gratuidadeBruta = textoOpcional(dado, 'gratuidade')
-      if (acomodacao === null || tipo === null || quantidadePessoas === undefined || quantidadePessoas === ILEGIVEL || gratuidadeBruta === ILEGIVEL) {
+      const passagemId = textoOpcional(dado, 'passagemId')
+      if (
+        acomodacao === null ||
+        tipo === null ||
+        quantidadePessoas === undefined ||
+        quantidadePessoas === ILEGIVEL ||
+        gratuidadeBruta === ILEGIVEL ||
+        passagemId === ILEGIVEL
+      ) {
         return null
       }
       const gratuidade = gratuidadeBruta === undefined ? undefined : TipoGratuidade.de(gratuidadeBruta)
@@ -297,6 +378,7 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
 
       reserva = {
         ...comum,
+        ...(passagemId !== undefined ? { passagemId } : {}),
         categoria,
         acomodacao,
         tipo,
@@ -307,12 +389,56 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
     }
     case 'VEICULO': {
       if (DO_PASSAGEIRO.some((chave) => dado[chave] !== undefined)) return null
+      if (DA_ENCOMENDA.some((chave) => dado[chave] !== undefined)) return null
 
       const classe = ClasseVeiculo.de(texto(dado, 'classe'))
       const cilindrada = numeroOpcional(dado, 'cilindrada')
-      if (classe === null || cilindrada === ILEGIVEL) return null
+      const passagemId = textoOpcional(dado, 'passagemId')
+      if (classe === null || cilindrada === ILEGIVEL || passagemId === ILEGIVEL) return null
 
-      reserva = { ...comum, categoria, classe, ...(cilindrada !== undefined ? { cilindrada } : {}) }
+      reserva = {
+        ...comum,
+        ...(passagemId !== undefined ? { passagemId } : {}),
+        categoria,
+        classe,
+        ...(cilindrada !== undefined ? { cilindrada } : {}),
+      }
+      break
+    }
+    case 'ENCOMENDA': {
+      if (DA_PASSAGEM.some((chave) => dado[chave] !== undefined)) return null
+
+      const tipoVolume = TipoVolume.de(texto(dado, 'tipoVolume'))
+      const quantidadeVolumes = numeroOpcional(dado, 'quantidadeVolumes')
+      const complemento = textoOpcional(dado, 'complemento')
+      const faixaPeso = FaixaPeso.de(texto(dado, 'faixaPeso'))
+      const retirada = Retirada.de(texto(dado, 'retirada'))
+      const destinatario = destinatarioDoDocumento(dado['destinatario'])
+      const encomendaId = textoOpcional(dado, 'encomendaId')
+      if (
+        tipoVolume === null ||
+        quantidadeVolumes === undefined ||
+        quantidadeVolumes === ILEGIVEL ||
+        complemento === ILEGIVEL ||
+        faixaPeso === null ||
+        retirada === null ||
+        destinatario === ILEGIVEL ||
+        encomendaId === ILEGIVEL
+      ) {
+        return null
+      }
+
+      reserva = {
+        ...comum,
+        ...(encomendaId !== undefined ? { encomendaId } : {}),
+        categoria,
+        tipoVolume,
+        quantidadeVolumes,
+        ...(complemento !== undefined ? { complemento } : {}),
+        faixaPeso,
+        retirada,
+        ...(destinatario !== undefined ? { destinatario } : {}),
+      }
       break
     }
     default:

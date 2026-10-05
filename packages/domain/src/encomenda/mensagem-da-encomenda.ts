@@ -19,9 +19,9 @@
  * O atendente precisa dele à vista, e ele pode não ser o da conversa.
  */
 import { formatarWhatsapp } from '../reserva/contato.js'
-import { linkDeWhatsApp, type RotulosDaMensagem } from '../reserva/link-de-atendimento.js'
+import type { RotulosDaMensagem } from '../reserva/link-de-atendimento.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
-import type { ReservaDeEncomenda } from './montagem-da-encomenda.js'
+import type { ReservaDeEncomenda } from '../reserva/reserva.js'
 import { FaixaPeso, TipoVolume } from './volume.js'
 
 function volumes(quantidade: number): string {
@@ -58,9 +58,4 @@ export function mensagemDaEncomenda(reserva: ReservaDeEncomenda, rotulos: Rotulo
     quemRetira(reserva),
     'Entregue no porto antes da partida.',
   ].join('\n')
-}
-
-/** O link de atendimento **desta** encomenda: a conversa com o atendimento, com o pedido escrito. */
-export function linkDaEncomenda(telefoneDoAtendimento: string, reserva: ReservaDeEncomenda, rotulos: RotulosDaMensagem): string {
-  return linkDeWhatsApp(telefoneDoAtendimento, mensagemDaEncomenda(reserva, rotulos))
 }

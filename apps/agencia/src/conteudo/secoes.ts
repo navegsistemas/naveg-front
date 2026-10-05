@@ -47,6 +47,14 @@ export const SECOES: readonly SecaoDaPagina[] = [
     pendenteDoPasso: null,
   },
   {
+    /* Uma porta própria para quem quer mandar uma caixa, e não comprar passagem (`docs/plano-da-reserva-de-encomenda.md`, §1). */
+    id: 'encomendas',
+    titulo: 'Envie sua encomenda',
+    subtitulo: 'Diga o que vai mandar e para quem. O atendente confirma pelo WhatsApp e você entrega no porto.',
+    rotuloNoMenu: 'Encomendas',
+    pendenteDoPasso: null,
+  },
+  {
     id: 'atendentes',
     titulo: 'Quem atende você',
     subtitulo:

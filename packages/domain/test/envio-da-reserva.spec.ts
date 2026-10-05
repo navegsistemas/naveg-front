@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { DataCalendario, InstanteLocal } from '../src/primitivos/calendario.js'
 import { paraDocumento, type ReservaDocumento } from '../src/reserva/documento.js'
 import {
+  enviarEncomenda,
   enviarReserva,
   TENTATIVAS_DE_CODIGO,
   type ReservaRepositorio,
@@ -14,6 +15,7 @@ import {
 } from '../src/reserva/envio-da-reserva.js'
 import type { Reserva } from '../src/reserva/reserva.js'
 import type { ContextoDaReserva, RespostasDaReserva } from '../src/reserva/roteiro-da-reserva.js'
+import { ENCOMENDA_DO_PROPRIO, ENCOMENDA_PARA_OUTRA } from './exemplos.js'
 
 /**
  * A porta, em memória, para o cenário. Guarda **o documento** (passa pelo codec, como o Firestore) e recusa o
@@ -120,5 +122,37 @@ describe('enviar a reserva', () => {
     expect(
       await enviarReserva({ respostas: RESPOSTAS, contexto: CONTEXTO, criadoEm: CRIADO_EM, repositorio }),
     ).toEqual({ caso: 'FALHA', motivo: 'sem rede' })
+  })
+})
+
+describe('enviar a encomenda', () => {
+  it('monta a de encomenda e grava na mesma coleção, com a mesma nova tentativa', async () => {
+    const repositorio = new ReservaEmMemoria(['NVG-AAAAAA'])
+    const resultado = await enviarEncomenda({
+      respostas: ENCOMENDA_PARA_OUTRA,
+      contexto: CONTEXTO,
+      criadoEm: CRIADO_EM,
+      repositorio,
+      agenciaId: 'naveg',
+      gerarCodigo: sequencia('NVG-AAAAAA', 'NVG-7K3QP2'),
+    })
+    expect(resultado.caso === 'ENVIADA' && resultado.reserva.codigo).toBe('NVG-7K3QP2')
+    expect(repositorio.documento('NVG-7K3QP2')).toMatchObject({
+      categoria: 'ENCOMENDA',
+      status: 'RESERVADA',
+      agenciaId: 'naveg',
+      retirada: 'OUTRA_PESSOA',
+      destinatario: { nome: 'João Lima', telefone: '5596988887777' },
+    })
+  })
+
+  it('incompleta e incoerente voltam sem gravar nada', async () => {
+    const repositorio = new ReservaEmMemoria()
+    const incompleta = await enviarEncomenda({ respostas: {}, contexto: CONTEXTO, criadoEm: CRIADO_EM, repositorio })
+    expect(incompleta.caso === 'INCOMPLETA' && incompleta.faltando.passo).toBe('VOLUMES')
+
+    const semCelular = { ...ENCOMENDA_DO_PROPRIO, cliente: { nome: 'Carlos', telefone: '9132221111' } }
+    const incoerente = await enviarEncomenda({ respostas: semCelular, contexto: CONTEXTO, criadoEm: CRIADO_EM, repositorio })
+    expect(incoerente.caso === 'INCOERENTE' && [...incoerente.pendencias]).toEqual(['CLIENTE_TELEFONE'])
   })
 })

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio, type ReservaDocumento } from '../src/reserva/documento.js'
-import type { Reserva, ReservaDePassageiro, ReservaDeVeiculo } from '../src/reserva/reserva.js'
+import type { Reserva, ReservaDeEncomenda, ReservaDePassageiro, ReservaDeVeiculo } from '../src/reserva/reserva.js'
 import { instante, OCORRENCIA } from './exemplos.js'
 
 const BASE = {
@@ -60,7 +60,44 @@ const CANCELADA: ReservaDeVeiculo = {
   tratamento: { porId: 'uid-ana', em: instante('2026-10-02T09:00:00') },
 }
 
-const EXEMPLOS: readonly Reserva[] = [REDE_GRATUIDADE, SUITE_PARA_TRES, MOTO, CARRETA, CONVERTIDA, CANCELADA]
+/** Três caixas que outra pessoa retira — com o complemento e o destinatário inteiro. */
+const CAIXAS_PARA_OUTRA: ReservaDeEncomenda = {
+  ...BASE,
+  codigo: 'NVG-ENC0M1',
+  categoria: 'ENCOMENDA',
+  tipoVolume: 'CAIXA',
+  quantidadeVolumes: 3,
+  complemento: 'mantimentos',
+  faixaPeso: 'DE_5_A_20',
+  retirada: 'OUTRA_PESSOA',
+  destinatario: { nome: 'João Lima', telefone: '5596988887777' },
+  agenciaId: 'agencia-naveg-belem',
+}
+
+/** O saco que o próprio remetente retira, já convertido em encomenda no balcão. */
+const SACO_RECEBIDO: ReservaDeEncomenda = {
+  ...BASE,
+  codigo: 'NVG-ENC0M2',
+  status: 'CONVERTIDA',
+  categoria: 'ENCOMENDA',
+  tipoVolume: 'SACO_FARDO',
+  quantidadeVolumes: 1,
+  faixaPeso: 'ATE_5',
+  retirada: 'REMETENTE',
+  encomendaId: 'encomenda-xyz',
+  tratamento: { porId: 'uid-ana', em: instante('2026-10-02T09:00:00') },
+}
+
+const EXEMPLOS: readonly Reserva[] = [
+  REDE_GRATUIDADE,
+  SUITE_PARA_TRES,
+  MOTO,
+  CARRETA,
+  CONVERTIDA,
+  CANCELADA,
+  CAIXAS_PARA_OUTRA,
+  SACO_RECEBIDO,
+]
 
 /** O que o Firestore devolve: um objeto sem protótipo de classe, e sem `undefined`. */
 function comoFirestore(documento: ReservaDocumento): Record<string, unknown> {
@@ -233,5 +270,80 @@ describe('as recusas', () => {
     expect(lido !== null && 'observacao' in lido).toBe(false)
     expect(estragar(SUITE_PARA_TRES, (d) => void (d['observacao'] = 42))).toBeNull()
     expect(estragar(SUITE_PARA_TRES, (d) => void delete d['agenciaId'])).not.toBeNull()
+  })
+})
+
+describe('a reserva de encomenda', () => {
+  function estragar(reserva: Reserva, alterar: (documento: Record<string, unknown>) => void): Reserva | null {
+    const documento = comoFirestore(paraDocumento(reserva))
+    alterar(documento)
+    return paraDominio(reserva.codigo, documento)
+  }
+
+  it('o exemplo intacto é aceito — sem isso, as recusas abaixo não provam nada', () => {
+    expect(estragar(CAIXAS_PARA_OUTRA, () => {})).toEqual(CAIXAS_PARA_OUTRA)
+    expect(estragar(SACO_RECEBIDO, () => {})).toEqual(SACO_RECEBIDO)
+  })
+
+  it('o que o KMP lê: as chaves da encomenda, e nenhuma da passagem', () => {
+    expect(paraDocumento(CAIXAS_PARA_OUTRA)).toEqual({
+      categoria: 'ENCOMENDA',
+      status: 'RESERVADA',
+      viagemId: OCORRENCIA.viagemId,
+      data: OCORRENCIA.data,
+      origem: 'TOTEM_WEB',
+      criadoEm: '2026-10-01T23:30:00',
+      expiraEm: '2026-10-14T18:00:00',
+      cliente: { nome: 'Maria Souza', telefone: '5591988887777' },
+      agenciaId: 'agencia-naveg-belem',
+      tipoVolume: 'CAIXA',
+      quantidadeVolumes: 3,
+      complemento: 'mantimentos',
+      faixaPeso: 'DE_5_A_20',
+      retirada: 'OUTRA_PESSOA',
+      destinatario: { nome: 'João Lima', telefone: '5596988887777' },
+    })
+    expect(Object.keys(paraDocumento(SACO_RECEBIDO))).not.toContain('passagemId')
+    expect(Object.keys(paraDocumento(CONVERTIDA))).not.toContain('encomendaId')
+  })
+
+  it('o que define o envio ausente ou fora da lista recusa', () => {
+    for (const chave of ['tipoVolume', 'quantidadeVolumes', 'faixaPeso', 'retirada']) {
+      expect(estragar(CAIXAS_PARA_OUTRA, (d) => void delete d[chave]), chave).toBeNull()
+    }
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['tipoVolume'] = 'CONTAINER'))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['faixaPeso'] = 'PESADO'))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['retirada'] = 'CORREIO'))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['quantidadeVolumes'] = '3'))).toBeNull()
+  })
+
+  it('estado misto: chave de passagem na encomenda, e de encomenda na passagem', () => {
+    for (const [chave, valor] of [['acomodacao', 'REDE'], ['classe', 'MOTO'], ['quantidadePessoas', 1], ['passagemId', 'p-1']] as const) {
+      expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d[chave] = valor)), chave).toBeNull()
+    }
+    for (const [chave, valor] of [['tipoVolume', 'CAIXA'], ['retirada', 'REMETENTE'], ['encomendaId', 'e-1']] as const) {
+      expect(estragar(REDE_GRATUIDADE, (d) => void (d[chave] = valor)), chave).toBeNull()
+      expect(estragar(MOTO, (d) => void (d[chave] = valor)), chave).toBeNull()
+    }
+  })
+
+  it('o destinatário pela metade é recusa, e não um destinatário inventado', () => {
+    for (const metade of [{ nome: 'João Lima' }, { telefone: '5596988887777' }, 'João', { nome: 'João', telefone: 96 }]) {
+      expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['destinatario'] = metade)), JSON.stringify(metade)).toBeNull()
+    }
+  })
+
+  it('incoerente: quem retira contra o destinatário, os volumes e o complemento', () => {
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void delete d['destinatario'])).toBeNull()
+    expect(estragar(SACO_RECEBIDO, (d) => void (d['destinatario'] = { nome: 'X', telefone: '5596988887777' }))).toBeNull()
+    expect(estragar(SACO_RECEBIDO, (d) => void (d['cliente'] = { nome: 'Carlos' }))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['quantidadeVolumes'] = 21))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['complemento'] = 'x'.repeat(61)))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['destinatario'] = { nome: 'João', telefone: '9632221111' }))).toBeNull()
+  })
+
+  it('a conversão é em encomenda: CONVERTIDA sem encomendaId, ou encomendaId sem CONVERTIDA, recusa', () => {
+    expect(estragar(SACO_RECEBIDO, (d) => void delete d['encomendaId'])).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['encomendaId'] = 'encomenda-1'))).toBeNull()
   })
 })

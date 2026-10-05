@@ -21,11 +21,12 @@
  * `(91) 98888-7777` — e passa por [normalizarWhatsapp]. Um número que não é celular **lança**: ele é conteúdo
  * do site, escrito uma vez, e deve quebrar o build de quem o digitou, não virar um link que não abre.
  */
+import { mensagemDaEncomenda } from '../encomenda/mensagem-da-encomenda.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import { Acomodacao } from '../passagem/acomodacao.js'
 import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import { normalizarWhatsapp } from './contato.js'
-import type { Reserva } from './reserva.js'
+import type { Reserva, ReservaDeEncomenda, ReservaDePassageiro, ReservaDeVeiculo } from './reserva.js'
 
 /** O que a mensagem precisa da travessia — os rótulos que o catálogo já escreveu (`TravessiaOfertada.rotulos`). */
 export interface RotulosDaMensagem {
@@ -59,7 +60,7 @@ function pessoas(quantidade: number): string {
 }
 
 /** "Rede · 1 pessoa" ou "Moto · 160 cc". */
-function aPassagem(reserva: Reserva): string {
+function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
   switch (reserva.categoria) {
     case 'PASSAGEIRO':
       return `${Acomodacao.rotulo(reserva.acomodacao)} · ${pessoas(reserva.quantidadePessoas)}`
@@ -81,8 +82,11 @@ function aPassagem(reserva: Reserva): string {
  * Rede · 1 pessoa · Maria Souza
  * Vale até a partida.
  * ```
+ *
+ * A de encomenda tem a mensagem dela (`mensagemDaEncomenda`), com o que vai e quem retira.
  */
 export function mensagemDaReserva(reserva: Reserva, rotulos: RotulosDaMensagem): string {
+  if (reserva.categoria === 'ENCOMENDA') return mensagemDaEncomenda(reserva, rotulos)
   return [
     `Reserva ${reserva.codigo}`,
     `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`,
@@ -94,4 +98,9 @@ export function mensagemDaReserva(reserva: Reserva, rotulos: RotulosDaMensagem):
 /** O link de atendimento **desta** reserva: a conversa com o atendimento, com a mensagem pronta. */
 export function linkDaReserva(telefoneDoAtendimento: string, reserva: Reserva, rotulos: RotulosDaMensagem): string {
   return linkDeWhatsApp(telefoneDoAtendimento, mensagemDaReserva(reserva, rotulos))
+}
+
+/** O link de atendimento **desta** encomenda: a conversa com o atendimento, com o pedido escrito. */
+export function linkDaEncomenda(telefoneDoAtendimento: string, reserva: ReservaDeEncomenda, rotulos: RotulosDaMensagem): string {
+  return linkDaReserva(telefoneDoAtendimento, reserva, rotulos)
 }

@@ -44,6 +44,7 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { TIPOS_DE_DOCUMENTO, TipoDocumento } from '../src/documento/tipo-documento.js'
+import { FAIXAS_DE_PESO, FORMAS_DE_RETIRADA, TIPOS_DE_VOLUME } from '../src/encomenda/volume.js'
 import { CAMPOS_DO_EVENTO, paraDoTipo, TIPOS_DE_EVENTO } from '../src/evento/evento.js'
 import { UFS } from '../src/localidade/localidade.js'
 import { ACOMODACOES, Acomodacao } from '../src/passagem/acomodacao.js'
@@ -53,6 +54,7 @@ import { NATUREZAS_DE_VEICULO } from '../src/passagem/natureza-veiculo.js'
 import { TIPOS_DE_GRATUIDADE } from '../src/passagem/tipo-gratuidade.js'
 import { TIPOS_DE_PASSAGEM } from '../src/passagem/tipo-passagem.js'
 import { CAMPOS_DO_DOCUMENTO } from '../src/reserva/documento.js'
+import { CATEGORIAS_DE_RESERVA, PENDENCIAS_DA_RESERVA } from '../src/reserva/reserva.js'
 import { DIAS_DA_SEMANA } from '../src/primitivos/dia-semana.js'
 import { TIPOS_DE_EMBARCACAO, TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
 
@@ -230,6 +232,27 @@ const ENUMS: readonly ClausulaDeEnum[] = [
     kotlin: [
       'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
       'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+    ],
+  },
+  // --- a reserva de encomenda: as listas fechadas do site, e o que a reserva pode ter de errado ---
+  { fonte: KMP, enum: 'CategoriaReserva', arquivo: 'reserva/Reserva.kt', aqui: CATEGORIAS_DE_RESERVA, kotlin: ['PASSAGEIRO', 'VEICULO', 'ENCOMENDA'] },
+  {
+    fonte: KMP, enum: 'TipoVolume',
+    arquivo: 'encomenda/Encomenda.kt',
+    aqui: TIPOS_DE_VOLUME,
+    kotlin: ['CAIXA', 'SACO_FARDO', 'ELETRODOMESTICO', 'MOVEL', 'OUTRO'],
+  },
+  { fonte: KMP, enum: 'FaixaPeso', arquivo: 'encomenda/Encomenda.kt', aqui: FAIXAS_DE_PESO, kotlin: ['ATE_5', 'DE_5_A_20', 'DE_20_A_50', 'ACIMA_DE_50'] },
+  { fonte: KMP, enum: 'Retirada', arquivo: 'encomenda/Encomenda.kt', aqui: FORMAS_DE_RETIRADA, kotlin: ['REMETENTE', 'OUTRA_PESSOA'] },
+  {
+    fonte: KMP, enum: 'PendenciaDaReserva',
+    arquivo: 'reserva/Reserva.kt',
+    aqui: PENDENCIAS_DA_RESERVA,
+    kotlin: [
+      'CODIGO', 'CLIENTE_NOME', 'CLIENTE_TELEFONE', 'TIPO_NAO_ADMITIDO', 'GRATUIDADE_AUSENTE', 'GRATUIDADE_INDEVIDA',
+      'QUANTIDADE', 'CILINDRADA', 'VALIDADE', 'CONVERSAO',
+      'CLIENTE_TELEFONE_AUSENTE', 'DESTINATARIO_AUSENTE', 'DESTINATARIO_INDEVIDO', 'DESTINATARIO_NOME',
+      'DESTINATARIO_TELEFONE', 'VOLUMES', 'COMPLEMENTO',
     ],
   },
 ]

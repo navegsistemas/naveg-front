@@ -4,7 +4,7 @@
  *
  * O build do E2E aponta o totem para `http://localhost:4599`, onde nada escuta: toda chamada para lá é
  * interceptada aqui. O que volta tem a forma do que a `naveg-api-vercel` devolve, e é montado **com o mesmo
- * domínio** que ela usa — o catálogo pelo `catalogoParaJson`, a reserva pelo `montarReserva` e pelo
+ * domínio** que ela usa — o catálogo pelo `catalogoParaJson`, a reserva pelo `montarReserva` (ou pelo `montarEncomenda`) e pelo
  * `paraDocumento`. Assim o teste confere o caminho do navegador (o Turnstile, o `fetch`, o CORS, a leitura da
  * resposta, o link), e não uma resposta escrita à mão que pode divergir da real sem ninguém ver.
  *
@@ -16,6 +16,7 @@ import type { Page, Route } from '@playwright/test'
 import {
   catalogoParaJson,
   InstanteLocal,
+  montarEncomenda,
   montarReserva,
   paraDocumento,
   pedidoDeReservaDoJson,
@@ -87,7 +88,11 @@ export async function servirApiFalsa(
       )
       if (travessia === undefined) return json(route, 409, { erro: 'travessia-fora-da-oferta' })
 
-      const montagem = montarReserva(lido.respostas, travessia.contexto, { codigo: CODIGO_DO_SERVIDOR, criadoEm: agora })
+      const identidade = { codigo: CODIGO_DO_SERVIDOR, criadoEm: agora }
+      const montagem =
+        lido.caso === 'ENCOMENDA'
+          ? montarEncomenda(lido.encomenda, travessia.contexto, identidade)
+          : montarReserva(lido.respostas, travessia.contexto, identidade)
       if (montagem.caso !== 'OK') return json(route, 422, { pendencias: montagem.caso === 'INCOERENTE' ? [...montagem.pendencias] : [] })
 
       const criada: ReservaCriadaJson = { codigo: CODIGO_DO_SERVIDOR, reserva: paraDocumento(montagem.reserva) }

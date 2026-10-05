@@ -26,10 +26,13 @@ export interface Acao {
 export const CAPA = {
   titulo: 'Belém ⇄ Macapá, com reserva em um minuto',
   lead:
-    'A NAVEG opera a travessia entre Belém e Macapá há 15 anos, com três ferry boats para passageiros e ' +
-    'veículos. Reserve sua passagem por aqui, sem cadastro, e o atendimento emite para você.',
+    'A NAVEG opera a travessia entre Belém e Macapá há 15 anos, com três ferry boats para passageiros, ' +
+    'veículos e encomendas. Reserve sua passagem ou mande sua encomenda por aqui, sem cadastro, e o ' +
+    'atendimento cuida do resto.',
 
   acaoPrimaria: { rotulo: 'Reservar passagem', href: '#totem' } satisfies Acao,
+  /** A segunda porta, para quem quer mandar uma caixa e não comprar passagem — entre as duas outras (§3.1 do plano). */
+  acaoDaEncomenda: { rotulo: 'Enviar encomenda', href: '#encomendas' } satisfies Acao,
   /**
    * Aponta para os atendentes, e não para o WhatsApp.
    *
@@ -52,7 +55,7 @@ export const CAPA = {
     {
       icone: 'barco',
       valor: '3 ferry boats',
-      rotulo: 'Para passageiros e veículos',
+      rotulo: 'Para passageiros, veículos e encomendas',
     },
   ] satisfies readonly Credencial[],
 } as const

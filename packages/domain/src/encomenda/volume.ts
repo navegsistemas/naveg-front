@@ -11,8 +11,8 @@
  * - **quem retira** é o caso do motorista ou transportador que despacha o volume e o pega no destino: com
  *   `REMETENTE` não há destinatário, e o celular de quem manda passa a ser obrigatório.
  *
- * Nada disso é porte do fluviapp ainda: a encomenda nasce no KMP (entrega 5 do plano do ERP). Quando nascer, o
- * teste de contrato passa a conferir estes valores contra o Kotlin, como confere os da passagem.
+ * Os mesmos nomes do `Encomenda.kt` do fluviapp-kmp (o balcão leva a resposta da reserva sem traduzir), e o
+ * teste de contrato os confere contra o Kotlin, como confere os da passagem.
  */
 import { deValor } from '../primitivos/fronteira.js'
 

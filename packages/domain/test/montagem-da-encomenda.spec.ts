@@ -3,13 +3,10 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { linkDaEncomenda, mensagemDaEncomenda } from '../src/encomenda/mensagem-da-encomenda.js'
-import {
-  montarEncomenda,
-  pendenciasDaEncomenda,
-  type ReservaDeEncomenda,
-  type ResultadoDaMontagemDaEncomenda,
-} from '../src/encomenda/montagem-da-encomenda.js'
+import { mensagemDaEncomenda } from '../src/encomenda/mensagem-da-encomenda.js'
+import { linkDaEncomenda, mensagemDaReserva } from '../src/reserva/link-de-atendimento.js'
+import { montarEncomenda, type ResultadoDaMontagemDaEncomenda } from '../src/encomenda/montagem-da-encomenda.js'
+import { pendenciasDaReserva, type ReservaDeEncomenda } from '../src/reserva/reserva.js'
 import { contexto, ENCOMENDA_DO_PROPRIO, ENCOMENDA_PARA_OUTRA, IDENTIDADE, instante } from './exemplos.js'
 
 function reservaDe(resultado: ResultadoDaMontagemDaEncomenda): ReservaDeEncomenda {
@@ -101,10 +98,17 @@ describe('a coerência', () => {
 
   it('a reserva lida de fora é conferida inteira: retirada e destinatário andam juntos', () => {
     const base = reservaDe(montarEncomenda(ENCOMENDA_DO_PROPRIO, contexto(), IDENTIDADE))
-    expect([...pendenciasDaEncomenda({ ...base, destinatario: { nome: 'X', telefone: '5596988887777' } })]).toEqual(['DESTINATARIO_INDEVIDO'])
-    expect([...pendenciasDaEncomenda({ ...base, cliente: { nome: 'Carlos' } })]).toEqual(['CLIENTE_TELEFONE_AUSENTE'])
-    expect([...pendenciasDaEncomenda({ ...base, retirada: 'OUTRA_PESSOA' })]).toEqual(['DESTINATARIO_AUSENTE'])
-    expect([...pendenciasDaEncomenda({ ...base, quantidadeVolumes: 21 })]).toEqual(['VOLUMES'])
+    expect([...pendenciasDaReserva({ ...base, destinatario: { nome: 'X', telefone: '5596988887777' } })]).toEqual(['DESTINATARIO_INDEVIDO'])
+    expect([...pendenciasDaReserva({ ...base, cliente: { nome: 'Carlos' } })]).toEqual(['CLIENTE_TELEFONE_AUSENTE'])
+    expect([...pendenciasDaReserva({ ...base, retirada: 'OUTRA_PESSOA' })]).toEqual(['DESTINATARIO_AUSENTE'])
+    expect([...pendenciasDaReserva({ ...base, quantidadeVolumes: 21 })]).toEqual(['VOLUMES'])
+  })
+
+  it('a conversão é em encomenda: CONVERTIDA anda com o encomendaId, e só com ele', () => {
+    const base = reservaDe(montarEncomenda(ENCOMENDA_DO_PROPRIO, contexto(), IDENTIDADE))
+    expect([...pendenciasDaReserva({ ...base, status: 'CONVERTIDA', encomendaId: 'enc-1' })]).toEqual([])
+    expect([...pendenciasDaReserva({ ...base, status: 'CONVERTIDA' })]).toEqual(['CONVERSAO'])
+    expect([...pendenciasDaReserva({ ...base, encomendaId: 'enc-1' })]).toEqual(['CONVERSAO'])
   })
 })
 
@@ -134,5 +138,10 @@ describe('a mensagem para o atendente', () => {
     const link = new URL(linkDaEncomenda('(91) 99203-5322', reserva, ROTULOS))
     expect(`${link.origin}${link.pathname}`).toBe('https://wa.me/5591992035322')
     expect(link.searchParams.get('text')).toBe(mensagemDaEncomenda(reserva, ROTULOS))
+  })
+
+  it('a mensagem de uma Reserva qualquer, quando é encomenda, é a da encomenda', () => {
+    const reserva = reservaDe(montarEncomenda(ENCOMENDA_PARA_OUTRA, contexto(), IDENTIDADE))
+    expect(mensagemDaReserva(reserva, ROTULOS)).toBe(mensagemDaEncomenda(reserva, ROTULOS))
   })
 })
