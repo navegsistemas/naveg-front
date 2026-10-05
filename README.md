@@ -30,7 +30,9 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 **2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`
 lá): o domínio 0.6.0 com a `ReservaDeEncomenda` no codec, a API gravando, e a seção "Envie sua encomenda" na
-página. **Próxima, pelo plano do MVP:** a 4 e a 5 (o caixa por viagem) são do KMP; aqui, a 6 — o resto do
+página. **Provado de ponta a ponta no mesmo dia, pelo PO:** a encomenda reservada na homologação foi gravada em
+`reservas` (`categoria: ENCOMENDA`), apareceu em Reservas no painel do KMP e foi recebida como encomenda pelo
+botão Receber. **Próxima, pelo plano do MVP:** a 4 e a 5 (o caixa por viagem) são do KMP; aqui, a 6 — o resto do
 endurecimento e a política de privacidade. Em 2026-10-02 entraram os majors do Dependabot,
 menos o TypeScript 7. Em 2026-10-01 o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
 fechado com o caminho inteiro funcionando: o cliente reserva no totem de
