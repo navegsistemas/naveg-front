@@ -16,8 +16,13 @@
   box-sizing: border-box;
 }
 
+/*
+ * A âncora salta, sem rolagem suave — de propósito. A página tem ilhas `client:visible` com listas que crescem
+ * quando o catálogo chega; a rolagem suave as atravessava a caminho do alvo, elas hidratavam no meio da animação e
+ * empurravam o alvo para baixo, e a pessoa que tocou em "Encomendas" parava no meio das saídas do totem (visto no
+ * E2E do CI, 2026-10-05). Com o salto, o que fica no caminho não entra na tela, e nada cresce acima do alvo.
+ */
 html {
-  scroll-behavior: smooth;
   /* A navegação é por âncora; sem isso o cabeçalho fixo cobre o título da seção de destino. */
   scroll-padding-top: calc(var(--espaco-6) + var(--espaco-4));
   -webkit-text-size-adjust: 100%;
@@ -87,10 +92,6 @@ picture {
 
 /* ── Movimento ─────────────────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   *,
   *::before,
   *::after {

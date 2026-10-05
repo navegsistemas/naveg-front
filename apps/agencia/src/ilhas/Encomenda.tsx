@@ -33,6 +33,7 @@ import {
   resumoDaEncomenda,
 } from '@navegsistemas/ui'
 
+import { useAncoraNoCarregamento } from './ancora'
 import { useOferta } from './oferta'
 import type { Demonstracao } from './Totem'
 
@@ -75,6 +76,9 @@ export function Encomenda({
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
   const [respostas, setRespostas] = useState<RespostasDaEncomenda>({})
   const [envio, setEnvio] = useState<Envio>(OCIOSO)
+
+  const raiz = useRef<HTMLDivElement>(null)
+  useAncoraNoCarregamento(raiz, catalogo !== null)
 
   const titulo = useRef<HTMLHeadingElement>(null)
   /* Só se move o foco depois que a pessoa começou: roubá-lo no carregamento arrastaria a página até a seção. */
@@ -236,7 +240,7 @@ export function Encomenda({
     roteiro !== null && envio.estado !== 'ENVIADA' ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}` : pergunta
 
   return (
-    <div className="totem totem--encomenda">
+    <div ref={raiz} className="totem totem--encomenda">
       <p className="totem-aviso">{AVISO_ENCOMENDA_NAO_VENDA}</p>
       {demonstracao !== null && (
         <p className="totem-demonstracao">

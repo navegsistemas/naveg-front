@@ -51,7 +51,7 @@ Provado de ponta a ponta nesse dia.
 fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **474 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
-vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 22,8 kB de
+vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
 ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 8 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
 na primeira vez, `npx playwright install chromium webkit`.
 

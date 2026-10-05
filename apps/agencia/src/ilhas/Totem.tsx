@@ -34,6 +34,7 @@ import {
   resumoDaReserva,
 } from '@navegsistemas/ui'
 
+import { useAncoraNoCarregamento } from './ancora'
 import { useOferta } from './oferta'
 
 export type Demonstracao = 'SAIDAS_E_ENVIO' | 'ENVIO'
@@ -87,6 +88,9 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
   const [respostas, setRespostas] = useState<RespostasDaReserva>({})
   const [envio, setEnvio] = useState<Envio>(OCIOSO)
+
+  const raiz = useRef<HTMLDivElement>(null)
+  useAncoraNoCarregamento(raiz, catalogo !== null)
 
   const titulo = useRef<HTMLHeadingElement>(null)
   /* Só se move o foco depois que a pessoa começou: roubá-lo no carregamento arrastaria a página até o totem. */
@@ -258,7 +262,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     roteiro !== null && envio.estado !== 'ENVIADA' ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}` : pergunta
 
   return (
-    <div className={quiosque ? 'totem totem--quiosque' : 'totem'}>
+    <div ref={raiz} className={quiosque ? 'totem totem--quiosque' : 'totem'}>
       <p className="totem-aviso">{AVISO_RESERVA_NAO_VENDA}</p>
       {demonstracao !== null && (
         <p className="totem-demonstracao">

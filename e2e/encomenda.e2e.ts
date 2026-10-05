@@ -50,7 +50,11 @@ test.describe('a encomenda na página', () => {
     await page.goto('/')
 
     await page.getByRole('navigation', { name: 'Seções da página' }).getByRole('link', { name: 'Encomendas' }).click()
-    await expect(page.getByRole('heading', { level: 2, name: 'Envie sua encomenda' })).toBeInViewport()
+    const titulo = page.getByRole('heading', { level: 2, name: 'Envie sua encomenda' })
+    await expect(titulo).toBeInViewport()
+    /* E continua nela quando as saídas chegam: nada que hidrata acima pode empurrar a seção para baixo. */
+    await expect(secao(page).getByRole('listitem').first()).toBeVisible()
+    await expect(titulo).toBeInViewport()
 
     await enviarTresCaixas(page)
     await expect(secao(page).getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible()
