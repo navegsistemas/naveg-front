@@ -96,7 +96,14 @@ com passagem. Há um wireframe para análise (privado do PO, em claude.ai).
   em 2026-10-02. **O TypeScript 7 (#13) fica parado**, por dois motivos: o `e2e/tsconfig.json` precisa declarar
   `"types": ["node"]` (do TypeScript 6 em diante, nenhum `@types` entra sem ser pedido; a correção está pronta e
   vale também no 5.9), e o `astro check` recusa o 7.0. O suporte do Astro, experimental, só vem com o 7.1.
-  Na API, Hono 2, TypeScript 7 e Vitest 5 seguem como migrações a decidir.
+  Na API, Hono 2 (#20, no lugar do #12 do Dependabot) e Vitest 5 (#16) entraram em 2026-10-05; o TypeScript 7
+  (#10) espera a mesma linha no `tsconfig.json` (`"types": ["node"]`), e lá não há Astro para barrar.
+- **Atenção na próxima promoção da API:** a homologação está no deploy do #17 (a encomenda). A próxima promoção
+  leva junto a troca do ponto de entrada para o Hono 2 (`getRequestListener` no lugar do `@hono/node-server/vercel`)
+  e o Vitest 5. A fumaça do preview do #20 passou com o adaptador novo; mesmo assim, **conferir a homologação logo
+  depois de promover** (o catálogo carregando e uma reserva gravada), com o `vercel rollback` à mão se algo falhar.
+- **Overrides de segurança na API** (`grpc-js` e `uuid`): saem quando o `firebase` e o `firebase-admin` subirem
+  essas dependências — conferir com `npm ls @grpc/grpc-js` a cada atualização (README da API).
 - **Vencimentos:** as chaves das contas `naveg-api-leitura` e `naveg-api-escrita`, por volta de 2026-12-24; o
   `FLUVIAPP_LEITURA_TOKEN` (segredo da org) e o `DEPENDABOT_NPM_TOKEN` da API, por volta de 2026-12-24 também
   (90 dias).
