@@ -1,7 +1,8 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **nenhuma seção começou.** O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
+**Situação:** **nenhuma seção começou** — o roteiro começa **depois do endurecimento** (13.1 a 13.6), por
+decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
 venda online do KMP, cujo lado do site está no [plano da venda online](plano-da-venda-online.md). As decisões de UX
@@ -149,5 +150,5 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
-**Em paralelo, e sem disputar com o roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela, e as
+**Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
 entregas do KMP (7.2, 7.3, 7.5). O roteiro anda no ritmo das decisões do PO, não no do código.

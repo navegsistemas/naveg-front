@@ -31,9 +31,10 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 **2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
-agora feito já com a compra em mente**, em seis PRs (13.1, cabeçalhos e CSP por rota, é o primeiro); **e, em
-paralelo, a 7.1**, com calma: o [roteiro de UI/UX](docs/roteiro-de-ui-ux.md), seção por seção, começando
-pelas seções vigentes (a 1.1, topo e menu). Um achado com prazo: a conta não funciona
+agora feito já com a compra em mente**, em seis PRs — **começa pela 13.1, cabeçalhos e CSP por rota**. **Só
+depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
+seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. O
+PR #32 (estes planos) espera o merge. Um achado com prazo: a conta não funciona
 nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
 
 **2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`

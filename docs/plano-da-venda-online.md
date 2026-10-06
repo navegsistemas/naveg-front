@@ -167,7 +167,7 @@ de cada item:
      13.1 cabeçalhos e CSP por rota -> 13.2 teclado, sem JS, axe -> 13.3 meta
      -> 13.4 política de privacidade (U7) -> 13.5 RUNBOOK -> 13.6 Lighthouse
 14 · O roteiro de UI/UX (7.1), seção por seção: vigentes -> reserva -> cadastro
-     -> páginas do cliente -> compra e emissão                <- pode correr junto da 13
+     -> páginas do cliente -> compra e emissão                <- depois da 13
 15 · O domínio da compra (0.7)                       <- depois da 7.2 e da 7.3 no KMP
 16 · A conta no site (7.4) + ADR-0003      <- etapas 3 e 4 do roteiro decididas, U8 e a regra no KMP
 17 · A compra do passageiro (7.6)          <- etapa 5 do roteiro decidida e a O14
@@ -175,7 +175,8 @@ de cada item:
 -> entrega 8: produção (o plano da produção do KMP)
 ```
 
-**O que pode começar já:** a 13 inteira e a 14 — nenhuma das duas espera o KMP nem a API.
+**O que pode começar já:** a 13 — não espera o KMP nem a API. **A 14 vem depois dela**, por decisão do PO
+(2026-10-06): primeiro o endurecimento, depois a interface, com calma.
 **O que destrava o resto:** a U8 (o domínio da homologação) para a 16; a O14 para a 17.
 
 ## 10. Riscos

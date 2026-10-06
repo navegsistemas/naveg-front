@@ -733,7 +733,7 @@ E · A venda      14 roteiro de UI/UX, seção por seção (7.1) -> 15 domínio 
 **Bloco E — a venda online.** Os passos 14 a 18 estão no [plano da venda online](plano-da-venda-online.md), o lado
 do site da entrega 7 do plano do MVP do KMP: as decisões de UX (U1–U8), a ordem e o que
 cada passo espera do KMP e da API. O 14 é o [roteiro de UI/UX](roteiro-de-ui-ux.md), seção por seção — das seções
-vigentes à emissão online —, e pode correr junto do 13; o 16 espera o domínio da homologação (U8).
+vigentes à emissão online —, e começa **depois** do 13 (PO, 2026-10-06); o 16 espera o domínio da homologação (U8).
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
