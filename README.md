@@ -32,7 +32,8 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
 agora feito já com a compra em mente**, em seis PRs (13.1, cabeçalhos e CSP por rota, é o primeiro); **e, em
-paralelo, a 7.1** — as decisões de UX U1–U8 com o PO e o wireframe. Um achado com prazo: a conta não funciona
+paralelo, a 7.1**, com calma: o [roteiro de UI/UX](docs/roteiro-de-ui-ux.md), seção por seção, começando
+pelas seções vigentes (a 1.1, topo e menu). Um achado com prazo: a conta não funciona
 nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
 
 **2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`

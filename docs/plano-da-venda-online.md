@@ -21,7 +21,7 @@ online entra nele como **Bloco E**, e o passo 13 (endurecimento) passa a prepar�
 
 | entrega do KMP | o que cabe ao front | depende de |
 |---|---|---|
-| **7.1 — a UX da página** | **toda**: os casos comuns, o "outros" que vira reserva, a conta, os pedidos, o pagamento (§5 e §6) | nada — pode correr já |
+| **7.1 — a UX da página** | **toda**: os casos comuns, o "outros" que vira reserva, a conta, os pedidos, o pagamento (§5 e §6) — **seção por seção**, no [roteiro de UI/UX](roteiro-de-ui-ux.md) | nada — pode correr já |
 | **7.4 — a conta do cliente** | as telas: criar conta, confirmar e-mail, entrar e sair, esqueci a senha, Meus dados (corrigir, apagar) | 7.1, a regra no KMP, **o domínio também na homologação** (§3) |
 | **7.6 — a compra do passageiro** | o pedido, o valor da tabela, o pagamento (PIX e cartão), a espera, o bilhete, Meus pedidos | 7.1–7.4, a O14 |
 | **7.7 — a compra do veículo** | o aviso de que a vaga está segura por um prazo, e o que acontece quando ele vence | 7.6 e a vaga segura no KMP |
@@ -115,73 +115,35 @@ antes da venda real — o plano Hobby não permite uso comercial, e venda é o c
 | **U8** | **O endereço da homologação** | **subdomínios de `gruponaveg.com.br` para a homologação também**, antes da 7.4 (§3) | Sem eles, a conta não funciona no iPhone em homologação, e o PO não consegue aceitar a 7.4 |
 
 **A O14 (o que é obrigatório na compra) continua do PO**, no plano do KMP. Ela muda uma tela só — os dados do
-titular — e por isso o resto da 7.1 não espera por ela. Para ajudar a decidir, o wireframe (§6) mostra a tela
+titular — e por isso o resto da 7.1 não espera por ela. Para ajudar a decidir, o wireframe da etapa 5 do roteiro mostra a tela
 com o mínimo que a conferência na doca pede: **nome completo e documento (tipo e número)** do titular, e a
 **placa** do veículo na 7.7. O documento é digitado no aparelho do próprio cliente, logado — diferente do totem
 público, onde a decisão de 2026-09-22 (nenhum documento) continua valendo.
 
 ## 6. O planejamento de UI/UX (o que a 7.1 entrega)
 
-**A entrega da 7.1 é um wireframe navegável, privado do PO em claude.ai** — como o da encomenda —, e este plano
-atualizado com as U1–U8 decididas. Nenhuma tela é codificada antes disso.
+**Vai com calma, seção por seção, no [roteiro de UI/UX](roteiro-de-ui-ux.md)** (combinado com o PO em
+2026-10-06). Antes da compra, o roteiro revê o que já está no ar e passa por cinco etapas:
 
-### 6.1 As jornadas
+1. **as seções vigentes** da página — topo, capa, reserva, encomendas, atendimento, avaliações, rodapé, quiosque;
+2. **as melhorias na reserva** — o fluxo da passagem e o da encomenda, que recebem tudo o que a compra não cobre;
+3. **o cadastro** — criar a conta, confirmar o e-mail, entrar, esqueci a senha;
+4. **as páginas do cliente** — Minha conta, Meus dados, Meus pedidos, as páginas legais;
+5. **a compra e a emissão online** — a bifurcação no totem, o pedido, o titular, o pagamento, o bilhete.
 
-1. **Comprar como passageiro** (7.6): travessia → passageiro, inteira → resumo com o valor → entrar ou criar conta
-   → dados do titular (O14) → pagar (PIX ou cartão) → esperar a confirmação → bilhete na tela e no e-mail.
-2. **Criar a conta no meio da compra** (7.4): criar → "abra seu e-mail" → o link → de volta ao pagamento, com o
-   pedido intacto.
-3. **Cair na reserva**: "outros", ou caso sem preço → o totem de hoje, já com a travessia escolhida.
-4. **Acompanhar e cancelar** (7.6, U6): Meus pedidos → o pedido → o bilhete, ou "Pedir cancelamento" → o estado do
-   estorno.
-5. **Cuidar da conta** (7.4): Meus dados → corrigir; apagar a conta, com o aviso da O7 (as passagens ficam).
-6. **Comprar veículo** (7.7): a jornada 1, com a placa e o aviso "sua vaga fica guardada até HH:MM".
+Cada seção passa por levantamento, análise, proposta (o wireframe **só daquela seção**), decisão do PO e, quando
+a parte do KMP e da API existir, implementação. As U1–U8 se decidem dentro do roteiro, na etapa em que aparecem
+(§8 de lá). As jornadas, as telas, os estados e as réguas que estavam aqui agora moram lá.
 
-### 6.2 As telas e os estados de cada uma
-
-O wireframe desenha **cada estado**, não só o caminho feliz — é nos estados que a compra online se perde.
-
-| tela | estados que precisam existir |
-|---|---|
-| **a bifurcação no totem** | com preço (comprar ou reservar); sem preço (só reservar, com o porquê); compra fechada (§7: só reservar, sem alarde) |
-| **o resumo do pedido** | valor da tabela; o aviso de que a agência não cobra taxa (O3); a saída partindo antes do fim do PIX (o pedido não começa) |
-| **entrar / criar conta / esqueci a senha** | erro de senha sem dizer se o e-mail existe; e-mail não confirmado; link de confirmação vencido (reenviar); muitas tentativas (Turnstile) |
-| **os dados do titular** | o que a O14 decidir; documento inválido pela regra do domínio, explicado em português |
-| **o pagamento — PIX** | o código com **copiar** em destaque e o QR ao lado (o QR serve a quem paga noutro aparelho); o tempo restante; "aguardando o pagamento", que muda sozinho; expirado; aprovado |
-| **o pagamento — cartão** | em análise; recusado, com o motivo que o Mercado Pago der, em linguagem de gente; aprovado |
-| **a emissão** | emitindo; emitida (o bilhete com o QR, igual ao do balcão); **falhou** — "seu pagamento será devolvido", com o código para o atendimento |
-| **Meus pedidos** | vazio; lista; o pedido aguardando pagamento (com o caminho de volta ao PIX); emitido; cancelamento pedido; estornado |
-| **Meus dados** | corrigir; apagar, com confirmação e o texto da O7 |
-| **as páginas legais** | privacidade, cancelamento e reembolso (O5), termos — texto puro, sem JavaScript |
-| **o que vale para todas** | sessão expirada (volta ao mesmo lugar depois de entrar); API fora (o pedido não se perde); sem JavaScript |
-
-### 6.3 As réguas de UX (as que o site já segue, e as novas)
-
-- **Celular primeiro.** O cliente da travessia compra pelo celular, muitas vezes com sinal ruim: cada passo
-  sobrevive a recarregar a página, e o "aguardando" do PIX não depende da aba ficar aberta — o e-mail chega igual.
-- **O laranja é superfície, nunca texto** (a regra do passo 1). O botão "Comprar" é o primário laranja com rótulo
-  marrom; "Reservar" é o secundário.
-- **Dinheiro e hora sem ambiguidade**: `R$ 1.234,56`, e a hora no fuso da operação (`America/Belem`), nunca no do
-  aparelho — a mesma régua do totem.
-- **Estados anunciados**: a mudança do pagamento ("aprovado", "expirou") vai para uma região `aria-live`; a troca
-  de passo leva o foco ao título (13.2).
-- **Nada de pressa falsa**: o tempo do PIX é o tempo real da vaga, e não há contador onde não há prazo.
-- **Erros que dizem o que fazer**, e sempre com a saída para o atendimento pelo WhatsApp.
-- **Nenhum dado de cartão no site, nenhum documento inteiro na tela** depois de gravado — o mascaramento da O12
-  vale também em Meus dados.
-
-### 6.4 O que a 7.1 deixa para as seguintes
-
-- os **cenários do E2E**, um por estado da §6.2, usados como aceite da 7.4 e da 7.6;
-- os **textos**, num lugar só (`packages/ui/src/textos.ts`, como os do totem), revisados pelo PO no wireframe;
-- a **lista do que o domínio precisa** — o pedido de compra, o preço, os estados do pagamento —, que vira a
-  versão 0.7 do `@navegsistemas/domain`, com contrato contra o Kotlin da 7.2 e da 7.3.
+O que a 7.1 deixa para as entregas seguintes: os **cenários do E2E**, um por estado desenhado, como aceite da 7.4 e
+da 7.6; os **textos**, num lugar só (`packages/ui/src/textos.ts`); e a **lista do que o domínio precisa** — o
+pedido de compra, o preço, os estados do pagamento —, que vira a versão 0.7 do `@navegsistemas/domain`.
 
 ## 7. Fechar a compra e deixar a reserva
 
 Se o Mercado Pago cair, se a emissão falhar em série ou se a NAVEG decidir parar a venda, **a compra fecha e a
 reserva continua**. É uma chave **na API** (o catálogo passa a dizer "compra fechada"), e não no front — para
-fechar sem build nem deploy. O totem, vendo a compra fechada, mostra só "Reservar" (§6.2). Entra na 7.6; o
+fechar sem build nem deploy. O totem, vendo a compra fechada, mostra só "Reservar" (roteiro, 5.1). Entra na 7.6; o
 procedimento fica no `RUNBOOK` (13.5).
 
 ## 8. O que a API faz (o resumo para lá)
@@ -204,11 +166,12 @@ de cada item:
 13 · Endurecimento (entrega 6 do MVP)
      13.1 cabeçalhos e CSP por rota -> 13.2 teclado, sem JS, axe -> 13.3 meta
      -> 13.4 política de privacidade (U7) -> 13.5 RUNBOOK -> 13.6 Lighthouse
-14 · A UX da compra (7.1): U1–U8 com o PO -> wireframe -> este plano revisto      <- pode correr junto da 13
+14 · O roteiro de UI/UX (7.1), seção por seção: vigentes -> reserva -> cadastro
+     -> páginas do cliente -> compra e emissão                <- pode correr junto da 13
 15 · O domínio da compra (0.7)                       <- depois da 7.2 e da 7.3 no KMP
-16 · A conta no site (7.4) + ADR-0003                <- U8 (o domínio da homologação) e a regra no KMP
-17 · A compra do passageiro (7.6)                    <- a O14 decidida
-18 · A compra do veículo (7.7)                       <- a vaga segura no KMP
+16 · A conta no site (7.4) + ADR-0003      <- etapas 3 e 4 do roteiro decididas, U8 e a regra no KMP
+17 · A compra do passageiro (7.6)          <- etapa 5 do roteiro decidida e a O14
+18 · A compra do veículo (7.7)             <- a vaga segura no KMP
 -> entrega 8: produção (o plano da produção do KMP)
 ```
 

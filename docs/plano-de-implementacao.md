@@ -726,13 +726,14 @@ B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     
 C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
 D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limite por IP]
                  -> 11 WhatsApp -> 12 no centralizador (KMP): reserva vira passagem + deeplink -> 13 endurecimento
-E · A venda      14 UX da compra (7.1) -> 15 domínio da compra -> 16 a conta (7.4) -> 17 compra do passageiro (7.6)
+E · A venda      14 roteiro de UI/UX, seção por seção (7.1) -> 15 domínio da compra -> 16 a conta (7.4) -> 17 compra do passageiro (7.6)
                  -> 18 compra do veículo (7.7)          [plano da venda online]
 ```
 
 **Bloco E — a venda online.** Os passos 14 a 18 estão no [plano da venda online](plano-da-venda-online.md), o lado
-do site da entrega 7 do plano do MVP do KMP: as decisões de UX (U1–U8), as telas e os estados, a ordem e o que
-cada passo espera do KMP e da API. O 14 (a UX) pode correr junto do 13; o 16 espera o domínio da homologação (U8).
+do site da entrega 7 do plano do MVP do KMP: as decisões de UX (U1–U8), a ordem e o que
+cada passo espera do KMP e da API. O 14 é o [roteiro de UI/UX](roteiro-de-ui-ux.md), seção por seção — das seções
+vigentes à emissão online —, e pode correr junto do 13; o 16 espera o domínio da homologação (U8).
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
