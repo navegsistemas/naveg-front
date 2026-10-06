@@ -5,7 +5,10 @@ reserva**. O nome segue o que está impresso na marca; o briefing dizia "Navega�
 foi resolvida em favor do material que o cliente já distribui. A razão social completa e o CNPJ ainda faltam,
 e são pendência do passo 6 (rodapé e JSON-LD).
 **Escopo da Fase 1:** front-end. Gerar **reservas** (não vendas, não emissão) e formar clientela antes da venda online.
-**Fase 2 (fora deste plano):** venda de passagem online com cadastro e pagamento.
+**Fase 2:** ~~fora deste plano~~ **entrou em 2026-10-06** como a entrega 7 do plano do MVP do KMP — a conta do
+cliente e a compra com PIX e cartão pelo Mercado Pago. O lado do site está no
+[plano da venda online](plano-da-venda-online.md), e aqui vira o **Bloco E** (passos 14 a 18); o passo 13 passa a
+prepará-la.
 
 **Base de referência nesta máquina:**
 
@@ -689,6 +692,13 @@ anônimo.
 > não carrega, e a ilha da página hidratando ao rolar. **Falta do passo:** só teclado, a página sem JavaScript, o
 > axe, os cabeçalhos (CSP e companhia), meta e `RUNBOOK`, e o Lighthouse.
 
+> **2026-10-06: o resto do passo é a entrega 6 do MVP, feito já com a compra em mente.** Com a venda online no
+> MVP, o site vai ter conta e pagamento, e o que falta deste passo é feito para servir também às páginas da
+> compra: a CSP **por rota** (o Mercado Pago, se entrar, só na página de pagamento), o axe e o teclado como
+> ajudantes que recebem a rota, o `robots.txt` já sem `/conta` e `/pedidos`, a política de privacidade em página
+> própria e com versão, e o `RUNBOOK` com a seção da venda online. Os seis PRs, 13.1 a 13.6, estão no
+> [plano da venda online](plano-da-venda-online.md), §4.
+
 **← Análise do passo anterior:** o circuito está fechado — reserva → Firestore → WhatsApp → centralizador → passagem.
 
 **Entrega**
@@ -699,6 +709,7 @@ anônimo.
 - **Cenários da API** no CI (os dos passos 9 e 10, com portas falsas) e um contra o **emulador** do Firestore; varredura do `dist/` por credencial.
 - **O CI clona o `fluviapp-kmp`** (e o app Android legado, enquanto houver o que não foi portado) para rodar a camada 2 do contrato — sem isso, os 24 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem. Os dois repositórios já estão na org `navegsistemas` (D5): o CI lê o contrato com um token da org, só de leitura.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
+- **A política de privacidade** em `/privacidade` (a entrega 6 do MVP), com versão e data.
 - `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
 
 **Aceite**
@@ -715,7 +726,13 @@ B · Exibição     3 capa -> 4 atendentes -> 5 feedback+redes -> 6 rodapé     
 C · Totem        7 domínio e catálogo -> 8 ilha do totem (catálogo de molde, porta em memória)
 D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limite por IP]
                  -> 11 WhatsApp -> 12 no centralizador (KMP): reserva vira passagem + deeplink -> 13 endurecimento
+E · A venda      14 UX da compra (7.1) -> 15 domínio da compra -> 16 a conta (7.4) -> 17 compra do passageiro (7.6)
+                 -> 18 compra do veículo (7.7)          [plano da venda online]
 ```
+
+**Bloco E — a venda online.** Os passos 14 a 18 estão no [plano da venda online](plano-da-venda-online.md), o lado
+do site da entrega 7 do plano do MVP do KMP: as decisões de UX (U1–U8), as telas e os estados, a ordem e o que
+cada passo espera do KMP e da API. O 14 (a UX) pode correr junto do 13; o 16 espera o domínio da homologação (U8).
 
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
@@ -740,5 +757,5 @@ D · A API        9 GET /api/catalogo -> 10 POST /api/reservas [Turnstile + limi
 | Reserva e centralizador lerem chaves diferentes | passo 12 | Lista literal de chaves nos dois lados: `ReservaDocumentoTest` lá, o contrato daqui lendo o `ReservaDocumento.kt` e o `EventoDocumento.kt` |
 | App Links não verificarem | passo 12 | No app móvel do KMP, não no legado; `applicationId` correto (`br.com.fluviapp`); SHA-256 de release **e** de upload; fallback `intent://`; página web sempre funcional |
 | Laranja reprovando contraste | passo 1 | Cenário de contraste sobre os tokens; laranja é superfície, nunca tinta de texto pequeno |
-| Reserva virar expectativa de venda | passos 6, 8, 11 | "Reserva, não venda" no rodapé, no topo do totem e na mensagem do WhatsApp |
+| Reserva virar expectativa de venda | passos 6, 8, 11 | "Reserva, não venda" no rodapé, no topo do totem e na mensagem do WhatsApp. **Com a compra (Bloco E)**, a frase deixa de ser do site e passa a ser de cada caminho — U2 do plano da venda online |
 | Dado do cliente anterior vazar no totem físico | passo 8 | Timeout de inatividade que zera respostas e travessia |

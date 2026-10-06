@@ -28,6 +28,13 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
+**2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
+com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
+[docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
+agora feito já com a compra em mente**, em seis PRs (13.1, cabeçalhos e CSP por rota, é o primeiro); **e, em
+paralelo, a 7.1** — as decisões de UX U1–U8 com o PO e o wireframe. Um achado com prazo: a conta não funciona
+nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
+
 **2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`
 lá): o domínio 0.6.0 com a `ReservaDeEncomenda` no codec, a API gravando, e a seção "Envie sua encomenda" na
 página. **Provado de ponta a ponta no mesmo dia, pelo PO:** a encomenda reservada na homologação foi gravada em
