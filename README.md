@@ -65,7 +65,7 @@ fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **474 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
 vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
-ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 8 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
+ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 15 cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 56 execuções e 4 puladas;
 na primeira vez, `npx playwright install chromium webkit`.
 
 **A política de segurança (13.1):** toda página sai com uma `Content-Security-Policy` própria, que o Astro
@@ -75,6 +75,11 @@ de mais soma no próprio arquivo (hoje, as duas com o totem somam o Turnstile). 
 (`frame-ancestors 'none'`, HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`) em
 [vercel.json](apps/agencia/vercel.json). O `conferir:build` barra página sem política, `'unsafe-*'`,
 `style=""` e trecho sem hash; o E2E falha em qualquer violação que o navegador acuse.
+
+**Toda página, para todo mundo (13.2):** cada rota de [e2e/rotas.ts](e2e/rotas.ts) passa pelo axe (WCAG 2.2 AA,
+com as ilhas hidratadas), pelo teclado (o primeiro `Tab` é o "Pular para o conteúdo") e pelo sem-JavaScript (o
+título, e cada ilha trocada por um aviso com o WhatsApp). Página nova entra no CI só por entrar na lista. O totem
+tem ainda a reserva inteira só no teclado, com o foco indo para a pergunta de cada passo.
 
 **O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
 celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
