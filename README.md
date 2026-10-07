@@ -31,10 +31,12 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 **2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
-agora feito já com a compra em mente**, em seis PRs — **começa pela 13.1, cabeçalhos e CSP por rota**. **Só
+agora feito já com a compra em mente**, em seis PRs: a 13.1 (cabeçalhos e CSP por rota) e a 13.2 (teclado, sem
+JavaScript e axe) estão mergeadas, a 13.3 (imagem de compartilhamento, sitemap e robots) está no PR, e **a próxima
+é a 13.4, a política de privacidade**. **Só
 depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
-seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. O
-PR #32 (estes planos) espera o merge. Um achado com prazo: a conta não funciona
+seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
+achado com prazo: a conta não funciona
 nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
 
 **2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`
@@ -62,7 +64,7 @@ Provado de ponta a ponta nesse dia.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
 fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
-ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **474 cenários**,
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **488 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
 vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
 ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 15 cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 56 execuções e 4 puladas;
@@ -80,6 +82,14 @@ de mais soma no próprio arquivo (hoje, as duas com o totem somam o Turnstile). 
 com as ilhas hidratadas), pelo teclado (o primeiro `Tab` é o "Pular para o conteúdo") e pelo sem-JavaScript (o
 título, e cada ilha trocada por um aviso com o WhatsApp). Página nova entra no CI só por entrar na lista. O totem
 tem ainda a reserva inteira só no teclado, com o foco indo para a pergunta de cada passo.
+
+**O que o site diz para fora (13.3):** o endereço oficial é `https://gruponaveg.com.br`, sem `www` (D4,
+confirmado pelo PO em 2026-10-07), em [site.ts](apps/agencia/src/conteudo/site.ts) — dele saem o canônico, o
+cartão do link, o JSON-LD, o `sitemap.xml` e o `robots.txt`. O cartão é a
+[compartilhamento.png](apps/agencia/public/compartilhamento.png), gerada a partir do logo por
+`npm run gerar:compartilhamento`; troca quando chegar a foto de uma embarcação. O `robots.txt` não proíbe nada: o
+que fica fora da busca leva `noindex` na própria página. O `conferir:build` exige que o `sitemap.xml` tenha toda
+página sem `noindex`, e só elas — a lista mora em [meta.ts](apps/agencia/src/conteudo/meta.ts).
 
 **O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
 celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
