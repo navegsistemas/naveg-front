@@ -14,12 +14,27 @@ export const SITE = {
     'Reserve sua passagem de transporte fluvial pela agência virtual da NAVEG. ' +
     'Escolha a travessia, informe quem viaja e receba o código da reserva no WhatsApp.',
   /**
-   * **Pendente de confirmação.** Este é o host que os App Links do passo 11 vão verificar contra o
-   * `assetlinks.json`, e é o mesmo que entra no link `/r/{codigo}` da mensagem do WhatsApp. Trocá-lo depois do
-   * app publicado quebra o deeplink de todas as reservas já enviadas.
+   * **O endereço do site em produção** (D4; confirmado pelo PO em 2026-10-07): o domínio sem `www`, com o `www`
+   * redirecionando para ele na Vercel. Daqui saem o canônico, o `og:url`, a imagem de compartilhamento, o
+   * JSON-LD, o `sitemap.xml` e o `robots.txt` — tudo o que um buscador ou um cartão de link guarda.
+   *
+   * É também o host que os App Links vão verificar contra o `assetlinks.json`, e o que vai no link
+   * `/r/{codigo}` da mensagem do WhatsApp: trocá-lo depois do app publicado quebra o deeplink de todas as
+   * reservas já enviadas.
    */
-  origem: 'https://agencia.naveg.com.br',
+  origem: 'https://gruponaveg.com.br',
   idioma: 'pt-BR',
+  /**
+   * **O cartão do link** — o que aparece ao mandar o endereço no WhatsApp. Gerado a partir do logo por
+   * `npm run gerar:compartilhamento` (`scripts/gerar-compartilhamento.mjs`); troca quando chegar a foto de uma
+   * embarcação. 1200×630, a proporção que o WhatsApp, o Facebook e o X mostram inteira.
+   */
+  imagemDeCompartilhamento: {
+    caminho: '/compartilhamento.png',
+    largura: 1200,
+    altura: 630,
+    descricao: 'O logo da NAVEG, com a frase "Reserve sua passagem de barco".',
+  },
 } as const
 
 /**

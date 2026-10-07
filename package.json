@@ -17,6 +17,7 @@
     "typecheck": "tsc --build --force && tsc -p e2e",
     "verify": "npm run typecheck && npm run check && npm run test",
     "conferir:build": "node scripts/conferir-build.mjs",
+    "gerar:compartilhamento": "node scripts/gerar-compartilhamento.mjs",
     "publicar:domain": "node scripts/publicar-domain.mjs",
     "e2e": "playwright test"
   },

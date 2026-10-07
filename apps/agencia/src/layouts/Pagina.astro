@@ -26,6 +26,9 @@ interface Props {
 const { titulo = SITE.titulo, descricao = SITE.descricao, indexar = true } = Astro.props
 
 const urlCanonica = new URL(Astro.url.pathname, SITE.origem).href
+/* Endereço absoluto: o cartão do link é montado por quem lê a página fora dela (o WhatsApp), não pelo site. */
+const imagem = SITE.imagemDeCompartilhamento
+const urlDaImagem = new URL(imagem.caminho, SITE.origem).href
 
 /**
  * Só o que se sabe é verdade.
@@ -62,7 +65,15 @@ const dadosEstruturados = {
     <meta property="og:description" content={descricao} />
     <meta property="og:url" content={urlCanonica} />
     <meta property="og:locale" content="pt_BR" />
+    <meta property="og:image" content={urlDaImagem} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(imagem.largura)} />
+    <meta property="og:image:height" content={String(imagem.altura)} />
+    <meta property="og:image:alt" content={imagem.descricao} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={urlDaImagem} />
+    <meta name="twitter:image:alt" content={imagem.descricao} />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
     <script type="application/ld+json" set:html={JSON.stringify(dadosEstruturados)} />
   </head>

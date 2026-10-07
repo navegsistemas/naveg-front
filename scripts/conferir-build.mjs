@@ -1,5 +1,6 @@
 /**
- * **Confere o `dist/` da agência antes de ele ir ao ar** — o orçamento de JavaScript e a varredura de credencial.
+ * **Confere o `dist/` da agência antes de ele ir ao ar** — o orçamento de JavaScript, a política, o mapa do
+ * site e a varredura de credencial.
  *
  * Roda depois do `npm run build`, no CI de cada pull request (`.github/workflows/verificar.yml`), e à mão:
  * `npm run build && npm run conferir:build`.
@@ -111,6 +112,26 @@ if (!/frame-ancestors 'none'/.test(cabecalhos['content-security-policy'] ?? ''))
   falhas.push(`vercel.json: sem frame-ancestors 'none' em todas as rotas`)
 }
 
+/* O mapa do site (passo 13.3, `apps/agencia/src/conteudo/meta.ts`): toda página que aceita busca está nele, e
+   nada nele é página que recusa a busca ou que não existe. O `robots.txt` aponta para ele. */
+const naRaiz = (nome) => todos.find((a) => relative(DIST, a) === nome)
+const mapa = naRaiz('sitemap.xml') && readFileSync(naRaiz('sitemap.xml'), 'utf8')
+const robots = naRaiz('robots.txt') && readFileSync(naRaiz('robots.txt'), 'utf8')
+if (!mapa) falhas.push('sem sitemap.xml')
+if (!robots) falhas.push('sem robots.txt')
+else if (!/^Sitemap: https:\/\/[^\s]+\/sitemap\.xml$/m.test(robots)) falhas.push('robots.txt: sem a linha do Sitemap')
+if (mapa) {
+  const noMapa = new Set([...mapa.matchAll(/<loc>https?:\/\/[^/<]+(\/[^<]*)<\/loc>/g)].map(([, caminho]) => caminho))
+  for (const arquivo of todos.filter((a) => a.endsWith('.html'))) {
+    const caminho = `/${relative(DIST, arquivo).replaceAll('\\', '/')}`.replace(/index\.html$/, '')
+    const recusa = /<meta name="robots" content="[^"]*noindex/.test(readFileSync(arquivo, 'utf8'))
+    if (!recusa && !noMapa.has(caminho)) falhas.push(`${caminho}: aceita busca e não está no sitemap.xml`)
+    if (recusa && noMapa.has(caminho)) falhas.push(`${caminho}: está no sitemap.xml, mas tem noindex`)
+    noMapa.delete(caminho)
+  }
+  for (const caminho of noMapa) falhas.push(`${caminho}: está no sitemap.xml, mas não existe no build`)
+}
+
 for (const arquivo of todos) {
   const texto = readFileSync(arquivo, 'latin1')
   for (const [oQue, padrao] of CARA_DE_CREDENCIAL) {
@@ -122,4 +143,4 @@ if (falhas.length > 0) {
   for (const falha of falhas) console.error(`✗ ${falha}`)
   process.exit(1)
 }
-console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, política em toda página, nenhuma cara de credencial`)
+console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, política em toda página, sitemap.xml fiel às páginas, nenhuma cara de credencial`)
