@@ -20,14 +20,15 @@
 import logo from '@navegsistemas/design-system/marca/horizontal.svg'
 
 import { SITE } from '../conteudo/site'
-import { menuDaPagina } from '../conteudo/secoes'
+import { ancoraVistaDe, menuDaPagina } from '../conteudo/secoes'
 
 const menu = menuDaPagina()
+const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
 ---
 
 <header class="topo">
   <div class="conteudo topo__linha">
-    <a class="topo__marca" href="#capa" aria-label={`${SITE.nomeCompleto} — ir para o início`}>
+    <a class="topo__marca" href={ancora('#capa')} aria-label={`${SITE.nomeCompleto} — ir para o início`}>
       {/* `alt` vazio porque o link ao redor já se nomeia: repetir faria o leitor de tela dizer duas vezes. */}
       <img src={logo.src} width={logo.width} height={logo.height} alt="" />
     </a>
@@ -36,13 +37,13 @@ const menu = menuDaPagina()
       <ul>
         {menu.map((item) => (
           <li>
-            <a href={item.href}>{item.rotulo}</a>
+            <a href={ancora(item.href)}>{item.rotulo}</a>
           </li>
         ))}
       </ul>
     </nav>
 
-    <a class="acao topo__acao" href="#totem">Reservar agora</a>
+    <a class="acao topo__acao" href={ancora('#totem')}>Reservar agora</a>
   </div>
 </header>
 

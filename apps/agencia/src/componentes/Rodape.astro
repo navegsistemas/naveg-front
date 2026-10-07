@@ -19,7 +19,7 @@
  * estiver vazia: duas fileiras de chip tracejado na mesma página seriam a mesma cobrança feita duas vezes.
  */
 import { AVISO_DE_RESERVA } from '../conteudo/site'
-import { ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
+import { ancoraVistaDe, ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
 import { REDES } from '../conteudo/depoimentos'
 import { TipoDocumento } from '@navegsistemas/domain'
 import { formatarTelefone, linkDeTelefone } from '../conteudo/telefone'
@@ -36,6 +36,7 @@ import Icone from './Icone.astro'
 const ano = new Date().getFullYear()
 
 /* O próprio rodapé não entra na lista de atalhos dele. */
+const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
 const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`)
 
 /**
@@ -90,7 +91,7 @@ const redesComEndereco = REDES.filter((rede) => rede.url !== null)
               )
             }
           </li>
-          <li><a href="#atendentes">Falar no WhatsApp</a></li>
+          <li><a href={ancora('#atendentes')}>Falar no WhatsApp</a></li>
           <li class="coluna__nota">{CONTATO.horario}</li>
         </ul>
       </section>
@@ -119,7 +120,7 @@ const redesComEndereco = REDES.filter((rede) => rede.url !== null)
       <section class="coluna">
         <h2 class="coluna__titulo">Navegação</h2>
         <ul class="coluna__corpo coluna__lista">
-          {atalhos.map((item) => <li><a href={item.href}>{item.rotulo}</a></li>)}
+          {atalhos.map((item) => <li><a href={ancora(item.href)}>{item.rotulo}</a></li>)}
         </ul>
       </section>
 
@@ -141,7 +142,10 @@ const redesComEndereco = REDES.filter((rede) => rede.url !== null)
             Encarregado de dados (LGPD):{' '}
             {
               ENCARREGADO_LGPD.email === null ? (
-                <Falta campo="Contato" onde="LGPD, art. 41 — conteudo/rodape.ts" />
+                <>
+                  {ENCARREGADO_LGPD.nome !== null && <>{ENCARREGADO_LGPD.nome} · </>}
+                  <Falta campo="Contato" onde="LGPD, art. 41 — conteudo/rodape.ts" />
+                </>
               ) : (
                 <a href={`mailto:${ENCARREGADO_LGPD.email}`}>
                   {ENCARREGADO_LGPD.nome ?? ENCARREGADO_LGPD.email}
@@ -175,7 +179,7 @@ const redesComEndereco = REDES.filter((rede) => rede.url !== null)
         )
       }
 
-      <a class="rodape__topo" href="#capa">Voltar ao topo</a>
+      <a class="rodape__topo" href={Astro.url.pathname === '/' ? '#capa' : '#conteudo-principal'}>Voltar ao topo</a>
     </div>
   </div>
 </footer>

@@ -31,9 +31,9 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 **2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
-agora feito já com a compra em mente**, em seis PRs: a 13.1 (cabeçalhos e CSP por rota) e a 13.2 (teclado, sem
-JavaScript e axe) estão mergeadas, a 13.3 (imagem de compartilhamento, sitemap e robots) está no PR, e **a próxima
-é a 13.4, a política de privacidade**. **Só
+agora feito já com a compra em mente**, em seis PRs: da 13.1 à 13.3 (cabeçalhos e CSP, teclado e sem
+JavaScript, imagem de compartilhamento e sitemap) estão mergeadas, a 13.4 (a política de privacidade) está no PR,
+e **a próxima é a 13.5, o RUNBOOK**. **Só
 depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
 seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
 achado com prazo: a conta não funciona
@@ -64,10 +64,10 @@ Provado de ponta a ponta nesse dia.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
 fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
-ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **488 cenários**,
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **494 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
 vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
-ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 15 cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 56 execuções e 4 puladas;
+ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 66 execuções e 6 puladas;
 na primeira vez, `npx playwright install chromium webkit`.
 
 **A política de segurança (13.1):** toda página sai com uma `Content-Security-Policy` própria, que o Astro
@@ -90,6 +90,13 @@ cartão do link, o JSON-LD, o `sitemap.xml` e o `robots.txt`. O cartão é a
 `npm run gerar:compartilhamento`; troca quando chegar a foto de uma embarcação. O `robots.txt` não proíbe nada: o
 que fica fora da busca leva `noindex` na própria página. O `conferir:build` exige que o `sitemap.xml` tenha toda
 página sem `noindex`, e só elas — a lista mora em [meta.ts](apps/agencia/src/conteudo/meta.ts).
+
+**A política de privacidade (13.4):** em [`/privacidade`](apps/agencia/src/pages/privacidade.astro), do site de
+hoje, com versão e data no topo ([privacidade.ts](apps/agencia/src/conteudo/privacidade.ts)). O controlador é o
+MEI do PO, e o encarregado é o próprio PO. Enquanto houver pendência — o e-mail do encarregado, a anonimização
+(naveg-api-vercel#21), a encomenda sem destinatário (fluviapp-kmp#41) e a revisão jurídica —, a página se declara
+rascunho no topo e marca cada uma onde a promessa é feita. A conta e a compra estão num
+[rascunho à parte](docs/rascunho-da-privacidade-da-conta-e-da-compra.md), para a mesma revisão (U7).
 
 **O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
 celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
@@ -427,8 +434,26 @@ nenhum — dá um link que abre e não acha ninguém.
 
 ## Pendências conhecidas
 
-- **Razão social e CNPJ** da NAVEG, para o rodapé e o JSON-LD (passo 6).
+- ~~**Razão social e CNPJ**~~ *(2026-10-07)*: o controlador é o **MEI do PO**, com o nome empresarial do cartão
+  CNPJ (sem CPF nele), em `conteudo/rodape.ts`. O encarregado é o próprio PO; falta o e-mail, que espera o alias
+  do Workspace. Falta ainda levá-los ao JSON-LD.
+- **A marca NAVEG no INPI** *(2026-10-07)*: o registro está por fazer (MEI tem desconto nas taxas). Até lá o site
+  usa "©" e nunca "®". O **nome fantasia** "NAVEG — Turismo e Logística" já é o que o site assina, mas só entra no
+  CNPJ depois do registro: o Portal do Empreendedor bloqueou a edição.
+- **O MEI e a venda online** *(2026-10-07)*, com o contador, antes da entrega 7: o teto de faturamento anual do
+  MEI contra o valor das passagens que passaria pelo CNPJ, e se as ocupações do MEI cobrem agência de viagens ou
+  intermediação de transporte. A reserva de hoje não movimenta dinheiro, e não muda nada.
+- **O domínio** `gruponaveg.com.br` *(2026-10-07)*: conferir no Registro.br em nome de quem está — o ideal é o
+  CNPJ do MEI, e dá para transferir do CPF. O e-mail do domínio é do Google Workspace; os registros MX, SPF, DKIM
+  e DMARC dele vão no DNS de agora, sem registro A — o site só aponta no lançamento.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
+- **Anonimizar as reservas duas semanas depois da viagem** (PO, 2026-10-07) — a tarefa agendada da API,
+  [naveg-api-vercel#21](https://github.com/navegsistemas/naveg-api-vercel/issues/21). A política de privacidade de
+  produção só promete o prazo com ela no ar.
+- **A encomenda da web só com quem manda** (PO, 2026-10-07): sai "Quem retira no destino?" e o destinatário.
+  Começa pelo KMP, que hoje não lê a reserva de encomenda sem `retirada` —
+  [fluviapp-kmp#41](https://github.com/navegsistemas/fluviapp-kmp/issues/41) —, e depois vem o domínio, a API e o
+  formulário daqui.
 - **Marcas da Meta**: os ícones de Facebook, Instagram e WhatsApp em `src/icones.ts` são simplificações para
   prototipagem. Substituir pelos arquivos oficiais dos brand centers antes do lançamento.
 - **Troca das chaves das contas de serviço** a cada 90 dias — criadas em 2026-09-23, a primeira vence por

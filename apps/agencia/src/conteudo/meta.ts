@@ -16,7 +16,7 @@
  */
 
 /** Os caminhos do mapa, com a barra final que o Astro dá a cada página. */
-export const PAGINAS_DO_MAPA: readonly string[] = ['/']
+export const PAGINAS_DO_MAPA: readonly string[] = ['/', '/privacidade/']
 
 export function sitemap(origem: string, caminhos: readonly string[] = PAGINAS_DO_MAPA): string {
   const urls = caminhos.map((caminho) => `  <url><loc>${new URL(caminho, origem).href}</loc></url>`)
