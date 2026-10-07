@@ -32,8 +32,9 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
 agora feito já com a compra em mente**, em seis PRs: da 13.1 à 13.3 (cabeçalhos e CSP, teclado e sem
-JavaScript, imagem de compartilhamento e sitemap) estão mergeadas, a 13.4 (a política de privacidade) está no PR,
-e **a próxima é a 13.5, o RUNBOOK**. **Só
+JavaScript, imagem de compartilhamento e sitemap) e a 13.4 (a política de privacidade) estão mergeadas, e **a
+próxima é a 13.5, o RUNBOOK**. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
+privacidade@gruponaveg.com.br, testado pelo PO). **Só
 depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
 seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
 achado com prazo: a conta não funciona
@@ -93,7 +94,7 @@ página sem `noindex`, e só elas — a lista mora em [meta.ts](apps/agencia/src
 
 **A política de privacidade (13.4):** em [`/privacidade`](apps/agencia/src/pages/privacidade.astro), do site de
 hoje, com versão e data no topo ([privacidade.ts](apps/agencia/src/conteudo/privacidade.ts)). O controlador é o
-MEI do PO, e o encarregado é o próprio PO. Enquanto houver pendência — o e-mail do encarregado, a anonimização
+MEI do PO, e o encarregado é o próprio PO, em privacidade@gruponaveg.com.br. Enquanto houver pendência — a anonimização
 (naveg-api-vercel#21), a encomenda sem destinatário (fluviapp-kmp#41) e a revisão jurídica —, a página se declara
 rascunho no topo e marca cada uma onde a promessa é feita. A conta e a compra estão num
 [rascunho à parte](docs/rascunho-da-privacidade-da-conta-e-da-compra.md), para a mesma revisão (U7).
@@ -444,8 +445,9 @@ nenhum — dá um link que abre e não acha ninguém.
   MEI contra o valor das passagens que passaria pelo CNPJ, e se as ocupações do MEI cobrem agência de viagens ou
   intermediação de transporte. A reserva de hoje não movimenta dinheiro, e não muda nada.
 - **O domínio** `gruponaveg.com.br` *(2026-10-07)*: conferir no Registro.br em nome de quem está — o ideal é o
-  CNPJ do MEI, e dá para transferir do CPF. O e-mail do domínio é do Google Workspace; os registros MX, SPF, DKIM
-  e DMARC dele vão no DNS de agora, sem registro A — o site só aponta no lançamento.
+  CNPJ do MEI, e dá para transferir do CPF. O e-mail do domínio é do Google Workspace e está pronto
+  (2026-10-07): o DNS do Registro.br, em modo avançado, tem MX, SPF, DKIM e DMARC (`p=none`, relatórios para
+  administradorsistema@), sem registro A — o site só aponta no lançamento.
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Anonimizar as reservas duas semanas depois da viagem** (PO, 2026-10-07) — a tarefa agendada da API,
   [naveg-api-vercel#21](https://github.com/navegsistemas/naveg-api-vercel/issues/21). A política de privacidade de
