@@ -68,6 +68,14 @@ vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais nov
 ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá 8 cenários em 4 navegadores (Chromium e WebKit, desktop e celular);
 na primeira vez, `npx playwright install chromium webkit`.
 
+**A política de segurança (13.1):** toda página sai com uma `Content-Security-Policy` própria, que o Astro
+escreve no build com os *hashes* do que vai dentro dela — a base é "só o site e a API", e a página que precisa
+de mais soma no próprio arquivo (hoje, as duas com o totem somam o Turnstile). As regras estão em
+[seguranca.ts](apps/agencia/src/conteudo/seguranca.ts); os cabeçalhos que a `<meta>` não alcança
+(`frame-ancestors 'none'`, HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`) em
+[vercel.json](apps/agencia/vercel.json). O `conferir:build` barra página sem política, `'unsafe-*'`,
+`style=""` e trecho sem hash; o E2E falha em qualquer violação que o navegador acuse.
+
 **O passo 12 está feito no KMP** (fluviapp-kmp#11 e #22): o atendente emite a partir da reserva, no Desktop e no
 celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
 

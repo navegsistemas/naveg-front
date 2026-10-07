@@ -20,6 +20,14 @@ import TotemDaAgencia from '../ilhas/TotemDaAgencia'
 import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
 
 import { SECOES } from '../conteudo/secoes'
+import { folhaDaVitrine } from '../conteudo/embarcacoes'
+import { hashDoTrecho, politicaDaPagina, somarOTurnstile } from '../conteudo/seguranca'
+
+/* O que esta página soma à política do site (`conteudo/seguranca.ts`): o Turnstile, com que o totem e a
+   encomenda enviam; e a folha que a vitrine da capa gera, que o Astro não sabe calcular sozinho. */
+const politica = politicaDaPagina(Astro.csp)
+somarOTurnstile(politica)
+politica.insertStyleHash(hashDoTrecho(folhaDaVitrine()))
 
 /** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
 const PENDENCIAS: Readonly<Record<string, string>> = {}
