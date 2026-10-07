@@ -1,0 +1,43 @@
+---
+/**
+ * **O que o totem diz quando o JavaScript está desligado** (passo 13.2).
+ *
+ * As ilhas não existem sem script, e um espaço em branco onde deveria estar a reserva não diz nada a ninguém.
+ * Este aviso diz o que fazer: chamar o atendimento no WhatsApp, com o número escrito e o link. O link é um `<a>`
+ * comum, e funciona sem script nenhum. No quiosque não há rodapé, então "os contatos no fim da página" não
+ * serviriam — o número vai aqui mesmo.
+ *
+ * Sem o número (`WHATSAPP_DAS_RESERVAS` nulo), volta a orientação aos contatos da página.
+ */
+import { linkDeWhatsApp } from '@navegsistemas/domain'
+
+import { ATENDIMENTO, WHATSAPP_DAS_RESERVAS } from '../conteudo/atendimento'
+
+interface Props {
+  /** O que a ilha faz, para a frase: "O totem de reserva precisa…", "O envio de encomenda precisa…". */
+  readonly oQue: 'o totem de reserva' | 'o envio de encomenda'
+  /** O verbo de quem chama o atendimento: "reservar", "enviar a encomenda". */
+  readonly paraQue: 'reservar' | 'enviar a encomenda'
+}
+
+const { oQue, paraQue } = Astro.props
+const sujeito = oQue.charAt(0).toUpperCase() + oQue.slice(1)
+---
+
+<noscript>
+  <link rel="stylesheet" href="/sem-javascript.css" />
+  <p class="sem-javascript">
+    {sujeito} precisa de JavaScript, que está desligado neste navegador.{' '}
+    {
+      WHATSAPP_DAS_RESERVAS === null ? (
+        <>Para {paraQue}, fale direto com o atendimento pelos contatos no fim da página.</>
+      ) : (
+        <>
+          Para {paraQue}, chame o atendimento no WhatsApp:{' '}
+          <a href={linkDeWhatsApp(WHATSAPP_DAS_RESERVAS, ATENDIMENTO.mensagemInicial)}>{WHATSAPP_DAS_RESERVAS}</a>.
+        </>
+      )
+    }
+  </p>
+</noscript>
+

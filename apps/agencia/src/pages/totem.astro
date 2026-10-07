@@ -10,6 +10,7 @@
  */
 import Pagina from '../layouts/Pagina.astro'
 import TotemDaAgencia from '../ilhas/TotemDaAgencia'
+import SemJavaScript from '../componentes/SemJavaScript.astro'
 import { SITE } from '../conteudo/site'
 import { politicaDaPagina, somarOTurnstile } from '../conteudo/seguranca'
 
@@ -21,5 +22,6 @@ somarOTurnstile(politicaDaPagina(Astro.csp))
   <main id="conteudo-principal">
     <h1 class="apenas-leitor">Reserva de passagem</h1>
     <TotemDaAgencia client:load modo="quiosque" />
+    <SemJavaScript oQue="o totem de reserva" paraQue="reservar" />
   </main>
 </Pagina>

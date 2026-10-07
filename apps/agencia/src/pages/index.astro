@@ -16,6 +16,7 @@ import Atendimento from '../componentes/Atendimento.astro'
 import Depoimentos from '../componentes/Depoimentos.astro'
 import Rodape from '../componentes/Rodape.astro'
 import Pendente from '../componentes/Pendente.astro'
+import SemJavaScript from '../componentes/SemJavaScript.astro'
 import TotemDaAgencia from '../ilhas/TotemDaAgencia'
 import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
 
@@ -46,26 +47,8 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
           {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}
           {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" />}
           {secao.id === 'encomendas' && <EncomendaDaAgencia client:visible />}
-          {
-            secao.id === 'encomendas' && (
-              <noscript>
-                <p>
-                  O envio de encomenda precisa de JavaScript. Sem ele, fale direto com o atendimento pelos
-                  contatos no fim da página.
-                </p>
-              </noscript>
-            )
-          }
-          {
-            secao.id === 'totem' && (
-              <noscript>
-                <p>
-                  O totem de reserva precisa de JavaScript. Sem ele, fale direto com o atendimento pelos
-                  contatos no fim da página.
-                </p>
-              </noscript>
-            )
-          }
+          {secao.id === 'totem' && <SemJavaScript oQue="o totem de reserva" paraQue="reservar" />}
+          {secao.id === 'encomendas' && <SemJavaScript oQue="o envio de encomenda" paraQue="enviar a encomenda" />}
           {secao.pendenteDoPasso !== null && (
             <Pendente passo={secao.pendenteDoPasso} descricao={PENDENCIAS[secao.id] ?? ''} />
           )}

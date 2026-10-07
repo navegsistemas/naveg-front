@@ -57,6 +57,11 @@ export interface PropsDoTotem {
    * dizendo "as saídas são fictícias" sobre saídas reais seria mentira no sentido contrário.
    */
   readonly demonstracao: Demonstracao | null
+  /**
+   * O totem como a página inteira (`/totem`). Muda também o nível da pergunta do passo: na página, ela fica sob o
+   * título da seção (`h2`) e é `h3`; no quiosque não há seção, e ela é `h2`, logo abaixo do `h1` — pular um nível
+   * desorienta quem navega pelos títulos no leitor de tela.
+   */
   readonly quiosque?: boolean
   /**
    * O WhatsApp do atendimento, como se escreve — `(91) 98888-7777`. Com ele, a conclusão abre a conversa já com
@@ -261,6 +266,8 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const anuncio =
     roteiro !== null && envio.estado !== 'ENVIADA' ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}` : pergunta
 
+  const Pergunta = quiosque ? 'h2' : 'h3'
+
   return (
     <div ref={raiz} className={quiosque ? 'totem totem--quiosque' : 'totem'}>
       <p className="totem-aviso">{AVISO_RESERVA_NAO_VENDA}</p>
@@ -277,9 +284,9 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         {roteiro !== null && envio.estado !== 'ENVIADA' && (
           <IndicadorDePasso posicao={roteiro.posicaoAtual} total={roteiro.total} />
         )}
-        <h3 className="totem-pergunta" ref={titulo} tabIndex={-1}>
+        <Pergunta className="totem-pergunta" ref={titulo} tabIndex={-1}>
           {pergunta}
-        </h3>
+        </Pergunta>
         {ajuda !== undefined && <p className="totem-ajuda">{ajuda}</p>}
         {travessia !== null && envio.estado !== 'ENVIADA' && (
           <p className="totem-ajuda">

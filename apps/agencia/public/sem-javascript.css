@@ -1,0 +1,10 @@
+/*
+ * Só carrega sem JavaScript: o <link> mora num <noscript> (componentes/SemJavaScript.astro).
+ *
+ * A ilha chega pré-desenhada no HTML, e sem script ela pararia em "Carregando as saídas…" para sempre, em cima
+ * do aviso com o WhatsApp. Aqui ela some, e fica só o aviso. Arquivo do próprio site, e não <style> na página:
+ * a política de segurança o aceita sem hash nenhum.
+ */
+.totem {
+  display: none;
+}

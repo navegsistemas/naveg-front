@@ -23,7 +23,8 @@ const PRAZO_DO_ENVIO = { timeout: 20_000 }
 
 /** O totem, e só ele: na página há outros títulos, outras listas — e a seção de encomenda, com a mesma moldura. */
 const totem = (page: Page): Locator => page.locator('.totem:not(.totem--encomenda)')
-const pergunta = (page: Page): Locator => totem(page).getByRole('heading', { level: 3 })
+/** A pergunta do passo: `h3` na página, sob o título da seção; `h2` no quiosque, que não tem seção. */
+const pergunta = (page: Page): Locator => totem(page).locator('.totem-pergunta')
 
 /** Da lista ao botão "Confirmar reserva": ferry, passageiro, rede, inteira, Maria Souza. */
 async function preencherAteAConferencia(page: Page) {
@@ -110,6 +111,46 @@ test.describe('a reserva no quiosque', () => {
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()
     await expect.poll(() => api.pedidos.length, PRAZO_DO_ENVIO).toBe(2)
     expect(api.pedidos.every((p) => p.desafio === TOKEN_DE_TESTE_DO_TURNSTILE)).toBe(true)
+  })
+
+  test('só no teclado: a cada passo, o foco vai para a pergunta nova', async ({ page }) => {
+    await servirApiFalsa(page)
+    await page.goto('/totem')
+    await expect(totem(page).getByRole('listitem').first()).toBeVisible()
+
+    /** Aperta Tab até o foco chegar no alvo, como faz quem não usa mouse — e falha se ele nunca chegar. */
+    async function tabAte(alvo: Locator) {
+      for (let i = 0; i < 40; i++) {
+        if (await alvo.evaluate((elemento) => elemento === document.activeElement)) return
+        await page.keyboard.press('Tab')
+      }
+      throw new Error('o Tab não chega no alvo')
+    }
+
+    /** Escolhe com o teclado, e confere que o foco foi para a pergunta do passo seguinte. */
+    async function escolher(alvo: Locator, proxima: string) {
+      await tabAte(alvo)
+      await page.keyboard.press('Enter')
+      await expect(pergunta(page)).toHaveText(proxima)
+      await expect(pergunta(page)).toBeFocused()
+    }
+
+    const saida = totem(page).getByRole('listitem').filter({ hasText: 'Ferry de demonstração' }).first()
+    await escolher(saida.getByRole('button', { name: 'Reservar esta saída' }), 'O que vai embarcar?')
+    await escolher(page.getByRole('button', { name: 'Passageiro' }), 'Onde você quer viajar?')
+    await escolher(page.getByRole('button', { name: /^Rede/ }), 'Qual o tipo da passagem?')
+    await escolher(page.getByRole('button', { name: 'Inteira' }), 'Em nome de quem fica a reserva?')
+
+    await tabAte(page.getByLabel('Nome'))
+    await page.keyboard.type('Maria Souza')
+    await tabAte(page.getByLabel(/Celular com DDD/))
+    await page.keyboard.type('91988887777')
+    await escolher(page.getByRole('button', { name: 'Continuar' }), 'Confira a reserva')
+
+    await tabAte(page.getByRole('button', { name: 'Confirmar reserva' }))
+    await page.keyboard.press('Enter')
+    await expect(pergunta(page)).toHaveText('Reserva feita', PRAZO_DO_ENVIO)
+    await expect(pergunta(page)).toBeFocused()
   })
 
   test('sem catálogo, o totem diz que não carregou — e não um dia sem saídas', async ({ page }) => {

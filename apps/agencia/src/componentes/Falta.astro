@@ -29,6 +29,7 @@ const { campo, onde } = Astro.props
     border-radius: var(--radius);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
-    opacity: 0.85;
+    /* Sem `opacity`: no rodapé, ela levava o texto já esmaecido abaixo do contraste mínimo (o axe acusou, 13.2).
+       A borda tracejada e a fonte mono já dizem "isto falta". */
   }
 </style>

@@ -31,6 +31,7 @@ function montar(
     relogio?: () => Date
     demonstracao?: Demonstracao | null
     atendimento?: string | null
+    quiosque?: boolean
   } = {},
 ) {
   const repositorio = new ReservaEmMemoria()
@@ -42,6 +43,7 @@ function montar(
       inatividadeMs={opcoes.inatividadeMs ?? null}
       demonstracao={opcoes.demonstracao === undefined ? 'SAIDAS_E_ENVIO' : opcoes.demonstracao}
       atendimento={opcoes.atendimento ?? null}
+      quiosque={opcoes.quiosque ?? false}
       relogio={opcoes.relogio ?? (() => TERCA_8H)}
     />,
   )
@@ -238,6 +240,13 @@ describe('o tempo', () => {
     expect(pergunta()).toBe('Escolha a saída')
     /* E o ferry de hoje não está mais na lista. */
     expect(screen.getAllByRole('listitem')[0]?.textContent).not.toContain('13/10 · 18:00')
+  })
+
+  it('no quiosque, a pergunta do passo é h2 — não há título de seção acima dela, e pular um nível desorienta o leitor de tela', async () => {
+    montar({ quiosque: true })
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Escolha a saída')
+    expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
   })
 
   it('no quiosque, parado tempo demais, o totem zera — o dado do próximo não nasce com o do anterior', async () => {
