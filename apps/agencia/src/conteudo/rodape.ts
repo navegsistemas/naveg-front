@@ -103,8 +103,8 @@ export const LINKS_LEGAIS: readonly LinkLegal[] = [
 
 /** O canal do encarregado de dados (LGPD, art. 41). Um dos dois basta; os dois é melhor. */
 export const ENCARREGADO_LGPD: { readonly nome: string | null; readonly email: string | null } = {
-  /* O próprio PO (2026-10-07). O e-mail será o alias privacidade@gruponaveg.com.br, que ainda vai ser cadastrado
-     no Workspace: enquanto não existir, fica pendente — publicar um endereço que devolve a mensagem é pior. */
+  /* O próprio PO (2026-10-07). O e-mail é um alias no Workspace, que o PO conferiu com uma mensagem vinda de fora
+     (2026-10-07): publicar um endereço que devolve a mensagem seria pior do que deixá-lo pendente. */
   nome: 'Kurt Matheus Sampaio de Matos',
-  email: null,
+  email: 'privacidade@gruponaveg.com.br',
 }
