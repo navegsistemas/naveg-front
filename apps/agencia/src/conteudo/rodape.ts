@@ -7,8 +7,8 @@
  *
  * ### Os que a lei pede, e por que estão aqui desde já
  *
- * O totem vai **tratar dado pessoal** — nome, documento, data de nascimento, telefone de quem reserva. Isso
- * coloca a NAVEG na LGPD como controladora, e com ela vêm duas obrigações que aparecem no rodapé: a **política
+ * O site **trata dado pessoal** — o nome e o telefone de quem reserva; o documento e a data de nascimento, que a
+ * Capitania exige, só chegam com o cadastro da conta (7.4). Isso coloca a NAVEG na LGPD como controladora, e com ela vêm duas obrigações que aparecem no rodapé: a **política
  * de privacidade** e o **canal do encarregado** (art. 41). Declará-los como pendência agora é melhor do que
  * descobri-los no dia do lançamento do totem, quando já serão bloqueantes.
  */
@@ -49,10 +49,14 @@ export interface LinkLegal {
   readonly motivo: string
 }
 
+/**
+ * O controlador é o **MEI do PO** (2026-10-07): a razão social é o nome empresarial do cartão CNPJ, como está lá.
+ * O nome fantasia é o que a marca assina, e só entra no CNPJ depois do registro da marca no INPI.
+ */
 export const IDENTIFICACAO: Identificacao = {
   nomeFantasia: 'NAVEG — Turismo e Logística',
-  razaoSocial: null,
-  cnpj: null,
+  razaoSocial: '64.104.039 KURT MATHEUS SAMPAIO DE MATOS',
+  cnpj: '64.104.039/0001-31',
 }
 
 export const CONTATO: Contato = {
@@ -86,7 +90,7 @@ export const LINKS_LEGAIS: readonly LinkLegal[] = [
   {
     id: 'privacidade',
     rotulo: 'Política de Privacidade',
-    href: null,
+    href: '/privacidade/',
     motivo: 'Obrigatória: o totem trata dado pessoal de quem reserva.',
   },
   {
@@ -99,6 +103,8 @@ export const LINKS_LEGAIS: readonly LinkLegal[] = [
 
 /** O canal do encarregado de dados (LGPD, art. 41). Um dos dois basta; os dois é melhor. */
 export const ENCARREGADO_LGPD: { readonly nome: string | null; readonly email: string | null } = {
-  nome: null,
+  /* O próprio PO (2026-10-07). O e-mail será o alias privacidade@gruponaveg.com.br, que ainda vai ser cadastrado
+     no Workspace: enquanto não existir, fica pendente — publicar um endereço que devolve a mensagem é pior. */
+  nome: 'Kurt Matheus Sampaio de Matos',
   email: null,
 }

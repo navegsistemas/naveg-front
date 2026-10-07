@@ -1,0 +1,247 @@
+---
+/**
+ * **A política de privacidade** (passo 13.4) — a primeira página do site além da inicial e do quiosque.
+ *
+ * Ela descreve o site **de hoje**: a reserva de passagem, a reserva de encomenda, a proteção contra robôs e o
+ * WhatsApp. A conta e a compra entram com a 7.4 e a 7.6, cada uma mudando a versão e a data
+ * (`conteudo/privacidade.ts`). O que ainda depende de algo fora do ar aparece marcado como pendente, onde a
+ * promessa é feita — e, enquanto houver pendência, a página se declara rascunho no topo.
+ *
+ * Sem ilha e sem script: é um documento, e se lê inteiro com o JavaScript desligado (`e2e/rotas.ts`).
+ */
+import Pagina from '../layouts/Pagina.astro'
+import Topo from '../componentes/Topo.astro'
+import Rodape from '../componentes/Rodape.astro'
+import Falta from '../componentes/Falta.astro'
+
+import { SITE } from '../conteudo/site'
+import { ENCARREGADO_LGPD, IDENTIFICACAO } from '../conteudo/rodape'
+import {
+  DATA_DA_POLITICA,
+  DIAS_DE_GUARDA_DA_RESERVA,
+  PENDENCIAS_DA_POLITICA,
+  VERSAO_DA_POLITICA,
+  dataPorExtenso,
+} from '../conteudo/privacidade'
+
+const pendencias = Object.values(PENDENCIAS_DA_POLITICA)
+const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
+---
+
+<Pagina
+  titulo={`Política de Privacidade — ${SITE.nome}`}
+  descricao="Quais dados pessoais a agência virtual da NAVEG trata, para quê, com quem compartilha, por quanto tempo guarda e como você exerce os seus direitos."
+>
+  <Topo />
+
+  {/* `data-cobre`: a parte do site que esta versão descreve. O `conferir:build` exige a parte de cada página no
+     ar — a conta e a compra entram aqui com `data-cobre="conta"` e `data-cobre="compra"`, nas suas seções. */}
+  <main id="conteudo-principal" class="conteudo politica" data-cobre="hoje">
+    <h1>Política de Privacidade</h1>
+    <p class="politica__versao">
+      Versão {VERSAO_DA_POLITICA} · <time datetime={DATA_DA_POLITICA}>{dataPorExtenso(DATA_DA_POLITICA)}</time>
+    </p>
+
+    {
+      pendencias.length > 0 && (
+        <div class="politica__rascunho" role="note">
+          <p><strong>Rascunho em revisão.</strong> Esta versão ainda espera:</p>
+          <ul>
+            {pendencias.map((pendencia) => <li>{pendencia}</li>)}
+          </ul>
+        </div>
+      )
+    }
+
+    <p>
+      Esta política explica quais dados pessoais a agência virtual da {SITE.nome} trata quando você reserva uma
+      passagem ou uma encomenda por este site, para quê, com quem eles são compartilhados, por quanto tempo ficam
+      guardados e como você exerce os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº
+      13.709/2018, a LGPD).
+    </p>
+
+    <h2>1. Quem é responsável pelos seus dados</h2>
+    <p>
+      O controlador dos dados é <strong>{IDENTIFICACAO.razaoSocial}</strong>, CNPJ {IDENTIFICACAO.cnpj}, que atua
+      como {IDENTIFICACAO.nomeFantasia}.
+    </p>
+    <p>
+      O encarregado pelo tratamento de dados pessoais é <strong>{ENCARREGADO_LGPD.nome}</strong>. É com ele que
+      você fala sobre esta política e sobre os seus dados:{' '}
+      {
+        ENCARREGADO_LGPD.email === null ? (
+          <Falta campo="E-mail do encarregado" onde="conteudo/rodape.ts" />
+        ) : (
+          <a href={`mailto:${ENCARREGADO_LGPD.email}`}>{ENCARREGADO_LGPD.email}</a>
+        )
+      }.
+    </p>
+
+    <h2>2. O que este site faz, e o que ele não faz</h2>
+    <p>
+      Este site <strong>gera reservas, não vende passagens</strong>. A reserva é um pedido: quem emite a passagem,
+      ou recebe a encomenda, é o atendimento, que confere os dados com você. Por isso o site pede o mínimo para o
+      atendimento encontrar você — e nenhum documento de identidade.
+    </p>
+    <p>
+      O site não tem cadastro nem senha, não usa cookies próprios e não usa ferramentas de análise de audiência
+      nem de publicidade.
+    </p>
+
+    <h2>3. Quais dados, e para quê</h2>
+
+    <h3>Na reserva de passagem</h3>
+    <ul>
+      <li><strong>O seu nome</strong>, e <strong>o seu telefone</strong>, se você quiser informar.</li>
+      <li>
+        A viagem escolhida, quantas pessoas viajam, a acomodação e o tipo de passagem (inteira, meia ou
+        gratuidade); no caso de veículo, a classe e, na moto, a cilindrada.
+      </li>
+      <li>
+        Se a passagem for <strong>gratuidade</strong>, o tipo: pessoa idosa, pessoa com deficiência, criança até
+        5 anos ou passe federal. Dizer que alguém é pessoa com deficiência é um <strong>dado pessoal
+        sensível</strong> (LGPD, art. 5º, II). Ele é pedido só porque a gratuidade é um direito previsto em lei, e
+        o atendimento precisa saber qual é para conferir e conceder; não é usado para mais nada.
+      </li>
+    </ul>
+    <p>
+      <strong>Para quê:</strong> para o atendimento emitir a sua passagem. <strong>Base legal:</strong> os
+      procedimentos preliminares de um contrato, a seu pedido (art. 7º, V); para o tipo de gratuidade, o
+      cumprimento de obrigação legal (art. 11, II, "a").
+    </p>
+
+    <h3>Na reserva de encomenda</h3>
+    <ul>
+      <li><strong>O nome e o celular de quem manda.</strong></li>
+      <li>O que vai: o tipo do volume, a quantidade, uma descrição curta e a faixa de peso.</li>
+      <li>
+        Quem retira no destino e, se for outra pessoa, <strong>o nome e o celular dela</strong>.{' '}
+        <Falta campo="Sai do site" onde={PENDENCIAS_DA_POLITICA.semDestinatario} /> Nesse caso, você nos informa
+        dados de outra pessoa: avise-a de que eles serão usados só para o destino falar com ela quando a
+        encomenda chegar.
+      </li>
+    </ul>
+    <p>
+      <strong>Para quê:</strong> para o atendimento receber e despachar a sua encomenda. <strong>Base
+      legal:</strong> os procedimentos preliminares de um contrato, a seu pedido (art. 7º, V).
+    </p>
+
+    <h3>Na proteção contra robôs</h3>
+    <p>
+      Ao enviar uma reserva, o site confere se quem envia é uma pessoa, com o Turnstile da Cloudflare, que recebe
+      o <strong>endereço IP</strong> do seu aparelho e informações técnicas do navegador. Além disso, um
+      <strong>resumo irreversível do IP</strong> (que não permite voltar ao endereço) conta quantas reservas
+      saíram dele, e o contador some sozinho em 10 minutos. <strong>Para quê:</strong> impedir que robôs encham o
+      sistema de reservas falsas. <strong>Base legal:</strong> o legítimo interesse de manter o serviço seguro
+      (art. 7º, IX).
+    </p>
+
+    <h3>Na hospedagem</h3>
+    <p>
+      Como em qualquer site, o servidor que entrega as páginas registra o acesso — o endereço IP, a página e o
+      horário — por pouco tempo, para manter o site funcionando e investigar falhas. <strong>Base
+      legal:</strong> legítimo interesse (art. 7º, IX).
+    </p>
+
+    <h3>No WhatsApp</h3>
+    <p>
+      Depois de reservar, você pode tocar em "Enviar ao atendimento": o seu WhatsApp abre com a reserva escrita,
+      e só é enviada se você enviar. A partir daí, a conversa — e o seu número de WhatsApp — passa a valer também
+      pelos termos e pela política de privacidade do WhatsApp.
+    </p>
+
+    <h2>4. Com quem os dados são compartilhados</h2>
+    <p>Os seus dados não são vendidos nem usados para publicidade. Eles passam por:</p>
+    <ul>
+      <li>
+        <strong>O atendimento da {SITE.nome} e a empresa de navegação da viagem</strong>, que tratam a reserva no
+        sistema de gestão (FluviApp) e emitem a passagem ou recebem a encomenda.
+      </li>
+      <li><strong>Google (Firebase)</strong>, onde a reserva fica guardada.</li>
+      <li><strong>Vercel</strong>, que hospeda o site e o serviço que grava a reserva.</li>
+      <li><strong>Cloudflare</strong> (Turnstile) e <strong>Upstash</strong>, na proteção contra robôs.</li>
+      <li><strong>WhatsApp (Meta)</strong>, só quando você decide enviar a reserva por lá.</li>
+    </ul>
+    <p>
+      Alguns desses serviços guardam ou processam dados em servidores fora do Brasil. Essa transferência
+      internacional segue as garantias da LGPD (art. 33) e os contratos de cada serviço.
+    </p>
+
+    <h2>5. Por quanto tempo os dados ficam guardados</h2>
+    <p>
+      A reserva vale até o dia da viagem. <strong>{semanas} semanas depois da data da viagem</strong>, os dados
+      que identificam você (nome e telefone, e os de quem retira a encomenda) são apagados da reserva, e o que
+      sobra — a viagem, a categoria, as quantidades — fica só para estatística, sem identificar ninguém.{' '}
+      <Falta campo="Em implantação" onde={PENDENCIAS_DA_POLITICA.anonimizacao} />
+    </p>
+    <p>
+      Se a reserva virar passagem ou encomenda, os dados passam a ser os da passagem ou da encomenda, guardados
+      pelo prazo que a lei exige para elas.
+    </p>
+
+    <h2>6. Os seus direitos</h2>
+    <p>Pela LGPD (art. 18), você pode pedir, a qualquer momento:</p>
+    <ul>
+      <li>a confirmação de que tratamos dados seus, e o acesso a eles;</li>
+      <li>a correção de dados incompletos, inexatos ou desatualizados;</li>
+      <li>a anonimização, o bloqueio ou a eliminação de dados desnecessários ou tratados em desacordo com a lei;</li>
+      <li>a portabilidade dos dados a outro fornecedor;</li>
+      <li>a informação de com quem os seus dados foram compartilhados;</li>
+      <li>a revisão de decisões tomadas só por meios automatizados (este site não toma nenhuma).</li>
+    </ul>
+    <p>
+      Para exercer qualquer um deles, escreva ao encarregado (item 1). Respondemos em até 15 dias. Você também
+      pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD), em{' '}
+      <a href="https://www.gov.br/anpd">gov.br/anpd</a>.
+    </p>
+
+    <h2>7. Segurança</h2>
+    <p>
+      O site só funciona por conexão criptografada (HTTPS). A reserva é gravada por um serviço próprio, e não
+      direto pelo navegador; quem a lê no sistema de gestão é só o atendimento, com login. Nenhum documento de
+      identidade é pedido aqui.
+    </p>
+
+    <h2>8. Mudanças nesta política</h2>
+    <p>
+      Quando o site passar a fazer algo novo com dados pessoais — como o cadastro e a compra online —, esta
+      política muda antes, com versão e data novas no topo da página.
+    </p>
+  </main>
+
+  <Rodape />
+</Pagina>
+
+<style>
+  .politica {
+    max-width: 72ch;
+    padding-block: var(--espaco-6) calc(var(--espaco-6) * 2);
+  }
+
+  .politica h2 {
+    margin-top: var(--espaco-6);
+  }
+
+  .politica h3 {
+    margin-top: var(--espaco-5);
+  }
+
+  .politica__versao {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .politica__rascunho {
+    margin-block: var(--espaco-6);
+    padding: var(--espaco-4);
+    border: 1px dashed var(--border-forte);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+
+  .politica__rascunho p,
+  .politica__rascunho ul {
+    margin: 0;
+  }
+</style>

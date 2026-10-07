@@ -114,7 +114,8 @@ if (!/frame-ancestors 'none'/.test(cabecalhos['content-security-policy'] ?? ''))
 
 /* O mapa do site (passo 13.3, `apps/agencia/src/conteudo/meta.ts`): toda página que aceita busca está nele, e
    nada nele é página que recusa a busca ou que não existe. O `robots.txt` aponta para ele. */
-const naRaiz = (nome) => todos.find((a) => relative(DIST, a) === nome)
+/* O caminho com `/` também no Windows, onde o `relative` devolve `\`. */
+const naRaiz = (nome) => todos.find((a) => relative(DIST, a).replaceAll('\\', '/') === nome)
 const mapa = naRaiz('sitemap.xml') && readFileSync(naRaiz('sitemap.xml'), 'utf8')
 const robots = naRaiz('robots.txt') && readFileSync(naRaiz('robots.txt'), 'utf8')
 if (!mapa) falhas.push('sem sitemap.xml')
@@ -132,6 +133,31 @@ if (mapa) {
   for (const caminho of noMapa) falhas.push(`${caminho}: está no sitemap.xml, mas não existe no build`)
 }
 
+/* A política de privacidade acompanha o site (passo 13.4, `apps/agencia/src/conteudo/privacidade.ts`). Toda
+   página declara aqui que parte da política a cobre: `hoje` (a reserva), `conta` (7.4) ou `compra` (7.6). Uma
+   página nova que não esteja na tabela é build vermelho — quem a cria decide, ali, se a política precisa mudar.
+   E a política tem de ter a parte (`data-cobre="…"`) de cada página no ar: a conta ou a compra não vão ao ar com
+   a política ainda descrevendo um site que só reserva. */
+const COBERTURA_DA_POLITICA = {
+  '/': 'hoje',
+  '/totem/': 'hoje',
+  '/privacidade/': 'hoje',
+}
+const politicaDePrivacidade = naRaiz('privacidade/index.html') && readFileSync(naRaiz('privacidade/index.html'), 'utf8')
+if (!politicaDePrivacidade) falhas.push('sem a política de privacidade (privacidade/index.html)')
+else {
+  const partes = new Set([...politicaDePrivacidade.matchAll(/data-cobre="([a-z]+)"/g)].map(([, parte]) => parte))
+  for (const arquivo of todos.filter((a) => a.endsWith('.html'))) {
+    const caminho = `/${relative(DIST, arquivo).replaceAll('\\', '/')}`.replace(/index\.html$/, '')
+    const parte = COBERTURA_DA_POLITICA[caminho]
+    if (parte === undefined) {
+      falhas.push(`${caminho}: página nova sem parte da política declarada (COBERTURA_DA_POLITICA, em scripts/conferir-build.mjs)`)
+    } else if (!partes.has(parte)) {
+      falhas.push(`${caminho}: a política de privacidade não tem a parte "${parte}" (data-cobre) — ela muda antes da página ir ao ar`)
+    }
+  }
+}
+
 for (const arquivo of todos) {
   const texto = readFileSync(arquivo, 'latin1')
   for (const [oQue, padrao] of CARA_DE_CREDENCIAL) {
@@ -143,4 +169,4 @@ if (falhas.length > 0) {
   for (const falha of falhas) console.error(`✗ ${falha}`)
   process.exit(1)
 }
-console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, política em toda página, sitemap.xml fiel às páginas, nenhuma cara de credencial`)
+console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, política em toda página, sitemap.xml fiel às páginas, a política de privacidade cobrindo cada página, nenhuma cara de credencial`)

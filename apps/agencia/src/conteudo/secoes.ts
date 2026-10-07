@@ -91,6 +91,15 @@ export function menuDaPagina(): readonly ItemDoMenu[] {
   return [...daSecoes, { href: `#${ID_DO_RODAPE}`, rotulo: 'Contato' }]
 }
 
+/**
+ * **A âncora vista de outra página.** O menu e o rodapé apontam para seções da página inicial (`#totem`); numa
+ * página que não é ela (`/privacidade`), `#totem` não acha nada, e o link vira `/#totem`. O rodapé existe em
+ * toda página, então o "Contato" continua apontando para o dela.
+ */
+export function ancoraVistaDe(caminho: string, href: string): string {
+  return caminho === '/' || href === `#${ID_DO_RODAPE}` ? href : `/${href}`
+}
+
 /** Todos os alvos de âncora que a página oferece — é contra esta lista que o menu é conferido. */
 export function ancorasDaPagina(): readonly string[] {
   return [...SECOES.map((secao) => secao.id), ID_DO_RODAPE]

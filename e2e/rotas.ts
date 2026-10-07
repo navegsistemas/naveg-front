@@ -15,4 +15,5 @@ export interface Rota {
 export const ROTAS: readonly Rota[] = [
   { caminho: '/', ilhas: 2 },
   { caminho: '/totem/', ilhas: 1 },
+  { caminho: '/privacidade/', ilhas: 0 },
 ]
