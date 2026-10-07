@@ -6,9 +6,10 @@
  * ilha hidratando quando ela entra na tela, o Turnstile, o corpo que vai à API (`encomenda`, e não `respostas`),
  * o código do servidor e o `href` do WhatsApp. E o quiosque **sem** encomenda (C9).
  */
-import { expect, test, type Locator, type Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { CODIGO_DO_SERVIDOR, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
+import { expect, test } from './politica'
 
 const WHATSAPP_DA_NAVEG = '5591992035322'
 const PRAZO_DO_ENVIO = { timeout: 20_000 }

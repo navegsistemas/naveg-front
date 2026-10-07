@@ -7,9 +7,10 @@
  * `href` do WhatsApp que sai no fim. É isso que estes cenários conferem — e por isso a jornada é uma só, a
  * mais comum (rede, inteira), e as variações do roteiro continuam lá.
  */
-import { expect, test, type Locator, type Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { CODIGO_DO_SERVIDOR, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
+import { expect, test } from './politica'
 
 /** O WhatsApp da NAVEG (`conteudo/atendimento.ts`), como o `wa.me` o quer. */
 const WHATSAPP_DA_NAVEG = '5591992035322'

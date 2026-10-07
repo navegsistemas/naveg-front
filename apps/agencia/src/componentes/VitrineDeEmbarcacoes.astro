@@ -30,17 +30,14 @@
  *   O que existe é uma **lista de três itens**, inteira no HTML, na ordem certa: quem lê por leitor de tela
  *   recebe as três sempre, e não depende da animação para nada. A cópia é `aria-hidden`.
  */
-import { EMBARCACOES, duracaoDaVitrine, quadrosDaVitrine } from '../conteudo/embarcacoes'
+import { EMBARCACOES, folhaDaVitrine } from '../conteudo/embarcacoes'
 import Icone from './Icone.astro'
 
 const itens = EMBARCACOES
 const primeira = itens[0]
 
-/* Nome global — `@keyframes` não tem escopo em CSS, e fingir que tem seria mentira de comentário. */
-const ANIMACAO = 'naveg-vitrine-desfile'
-
-const folhaDeQuadros = `@keyframes ${ANIMACAO} {\n${quadrosDaVitrine(itens.length)}\n}`
-const duracao = `${duracaoDaVitrine(itens.length)}s`
+/* A página declara o hash desta folha na política (`index.astro`): mudou a folha, muda o hash junto. */
+const folhaDeQuadros = folhaDaVitrine(itens.length)
 ---
 
 <section class="vitrine" aria-labelledby="vitrine-titulo">
@@ -53,9 +50,7 @@ const duracao = `${duracaoDaVitrine(itens.length)}s`
   <input class="vitrine__interruptor" type="checkbox" id="vitrine-pausa" />
 
   <div class="vitrine__janela">
-    {/* A duração vai como atributo **neste** elemento, e não por `define:vars`: aquele carimba a variável
-        em todo elemento do componente, e só o trilho a consome. */}
-    <ul class="vitrine__trilho" style={`--vitrine-duracao: ${duracao}`}>
+    <ul class="vitrine__trilho">
       {
         itens.map((embarcacao) => (
           <li class="vitrine__item">

@@ -22,6 +22,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
+import { createHash } from 'node:crypto'
 
 const DIST = fileURLToPath(new URL('../apps/agencia/dist/', import.meta.url))
 
@@ -77,6 +78,39 @@ for (const arquivo of todos.filter((a) => a.endsWith('.html'))) {
   if (externos.length > 0) falhas.push(`${relative(DIST, arquivo)}: ${externos.length} <script src> — a página deveria ser estática`)
 }
 
+/* A política de cada página (passo 13.1, `apps/agencia/src/conteudo/seguranca.ts`). O Astro a escreve; aqui se
+   confere que nenhuma página ficou sem, que nada abriu `'unsafe-*'`, e que todo script e estilo escrito dentro
+   da página tem o seu hash nela — um que não tenha é uma parte do site que o navegador vai barrar. */
+const sha256 = (texto) => `'sha256-${createHash('sha256').update(texto).digest('base64')}'`
+for (const arquivo of todos.filter((a) => a.endsWith('.html'))) {
+  const html = readFileSync(arquivo, 'utf8')
+  const nome = relative(DIST, arquivo)
+  const politica = html.match(/<meta http-equiv="content-security-policy" content="([^"]*)"/i)?.[1]
+  if (politica === undefined) {
+    falhas.push(`${nome}: sem Content-Security-Policy`)
+    continue
+  }
+  if (/'unsafe-/.test(politica)) falhas.push(`${nome}: a política abre ${politica.match(/'unsafe-[a-z-]+'/)[0]}`)
+  if (/\sstyle="/.test(html)) falhas.push(`${nome}: tem atributo style="", que a política barra`)
+  if (/<[a-z][^>]*\son[a-z]+="/i.test(html)) falhas.push(`${nome}: tem atributo on…="", que a política barra`)
+  for (const [, tipo, corpo] of html.matchAll(/<(script|style)\b(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/\1>/g)) {
+    if (!politica.includes(sha256(corpo))) falhas.push(`${nome}: um <${tipo}> da página não tem o hash na política`)
+  }
+}
+
+/* O que a `<meta>` não alcança vai no cabeçalho (`apps/agencia/vercel.json`). */
+const cabecalhos = Object.fromEntries(
+  JSON.parse(readFileSync(new URL('../apps/agencia/vercel.json', import.meta.url), 'utf8'))
+    .headers.find((regra) => regra.source === '/(.*)')
+    ?.headers.map(({ key, value }) => [key.toLowerCase(), value]) ?? [],
+)
+for (const nome of ['strict-transport-security', 'x-content-type-options', 'referrer-policy', 'permissions-policy']) {
+  if (cabecalhos[nome] === undefined) falhas.push(`vercel.json: sem ${nome} em todas as rotas`)
+}
+if (!/frame-ancestors 'none'/.test(cabecalhos['content-security-policy'] ?? '')) {
+  falhas.push(`vercel.json: sem frame-ancestors 'none' em todas as rotas`)
+}
+
 for (const arquivo of todos) {
   const texto = readFileSync(arquivo, 'latin1')
   for (const [oQue, padrao] of CARA_DE_CREDENCIAL) {
@@ -88,4 +122,4 @@ if (falhas.length > 0) {
   for (const falha of falhas) console.error(`✗ ${falha}`)
   process.exit(1)
 }
-console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, nenhuma cara de credencial`)
+console.log(`✓ ${todos.length} arquivos conferidos: orçamento dentro do teto, política em toda página, nenhuma cara de credencial`)

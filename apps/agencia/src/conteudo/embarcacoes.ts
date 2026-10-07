@@ -111,3 +111,19 @@ export function duracaoDaVitrine(quantidade: number): number {
 function arredondar(valor: number): number {
   return Math.round(valor * 1000) / 1000
 }
+
+/**
+ * **A folha que a vitrine escreve na página**: os quadros e a duração, num `<style>` só.
+ *
+ * Ela mora aqui, e não no componente, porque a página precisa dela inteira: a política de segurança aceita o
+ * `<style>` pelo *hash* do texto, e quem declara o hash é a página (`index.astro`) — o Astro não alcança a
+ * `<meta>` da política a partir de um componente. A duração vai junto, e não num `style=""` do trilho, porque
+ * a política não aceita atributo de estilo nenhum.
+ */
+export function folhaDaVitrine(quantidade: number = EMBARCACOES.length): string {
+  /* Nome global — `@keyframes` não tem escopo em CSS, e fingir que tem seria mentira de comentário. */
+  return (
+    `@keyframes naveg-vitrine-desfile {\n${quadrosDaVitrine(quantidade)}\n}\n` +
+    `.vitrine__trilho { --vitrine-duracao: ${duracaoDaVitrine(quantidade)}s; }`
+  )
+}
