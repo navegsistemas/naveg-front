@@ -6,6 +6,10 @@
 jurídica só**. Cada parte entra na página no dia em que o site passar a fazer o que ela descreve — a conta com a
 7.4, a compra com a 7.6 —, mudando a versão e a data. Antes disso, nada daqui é prometido no ar.
 
+**O build não deixa esquecer:** toda página precisa declarar que parte da política a cobre (`COBERTURA_DA_POLITICA`,
+em `scripts/conferir-build.mjs`), e a política precisa ter essa parte (`data-cobre="conta"` ou `"compra"`). Sem
+isso, as páginas da conta ou da compra não passam no CI.
+
 Os trechos entre colchetes são o que ainda depende de decisão (do PO, do contador ou do jurídico).
 
 ---

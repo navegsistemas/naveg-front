@@ -34,7 +34,9 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
 >
   <Topo />
 
-  <main id="conteudo-principal" class="conteudo politica">
+  {/* `data-cobre`: a parte do site que esta versão descreve. O `conferir:build` exige a parte de cada página no
+     ar — a conta e a compra entram aqui com `data-cobre="conta"` e `data-cobre="compra"`, nas suas seções. */}
+  <main id="conteudo-principal" class="conteudo politica" data-cobre="hoje">
     <h1>Política de Privacidade</h1>
     <p class="politica__versao">
       Versão {VERSAO_DA_POLITICA} · <time datetime={DATA_DA_POLITICA}>{dataPorExtenso(DATA_DA_POLITICA)}</time>
