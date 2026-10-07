@@ -25,8 +25,6 @@ export const DIAS_DE_GUARDA_DA_RESERVA = 14
  * lista não estiver vazia a página se declara rascunho. A entrada sai daqui no dia em que a coisa estiver no ar.
  */
 export const PENDENCIAS_DA_POLITICA = {
-  /** O alias `privacidade@gruponaveg.com.br`, a cadastrar no Workspace (PO, 2026-10-07). */
-  emailDoEncarregado: 'o e-mail do encarregado (privacidade@gruponaveg.com.br, a cadastrar)',
   /** A tarefa que apaga o dado pessoal depois do prazo — naveg-api-vercel#21. */
   anonimizacao: 'a anonimização automática depois do prazo (naveg-api-vercel#21)',
   /** O site deixa de pedir quem retira a encomenda — fluviapp-kmp#41. */

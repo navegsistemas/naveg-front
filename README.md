@@ -93,7 +93,7 @@ página sem `noindex`, e só elas — a lista mora em [meta.ts](apps/agencia/src
 
 **A política de privacidade (13.4):** em [`/privacidade`](apps/agencia/src/pages/privacidade.astro), do site de
 hoje, com versão e data no topo ([privacidade.ts](apps/agencia/src/conteudo/privacidade.ts)). O controlador é o
-MEI do PO, e o encarregado é o próprio PO. Enquanto houver pendência — o e-mail do encarregado, a anonimização
+MEI do PO, e o encarregado é o próprio PO, em privacidade@gruponaveg.com.br. Enquanto houver pendência — a anonimização
 (naveg-api-vercel#21), a encomenda sem destinatário (fluviapp-kmp#41) e a revisão jurídica —, a página se declara
 rascunho no topo e marca cada uma onde a promessa é feita. A conta e a compra estão num
 [rascunho à parte](docs/rascunho-da-privacidade-da-conta-e-da-compra.md), para a mesma revisão (U7).
