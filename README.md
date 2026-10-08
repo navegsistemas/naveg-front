@@ -32,8 +32,8 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
 agora feito já com a compra em mente**, em seis PRs: da 13.1 à 13.3 (cabeçalhos e CSP, teclado e sem
-JavaScript, imagem de compartilhamento e sitemap) e a 13.4 (a política de privacidade) estão mergeadas, e **a
-próxima é a 13.5, o RUNBOOK**. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
+JavaScript, imagem de compartilhamento e sitemap) e a 13.4 (a política de privacidade) estão mergeadas, a 13.5
+(o [RUNBOOK](docs/RUNBOOK.md)) está feita, e **a próxima é a 13.6, o Lighthouse no CI**. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
 privacidade@gruponaveg.com.br, testado pelo PO). **Só
 depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
 seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
@@ -92,6 +92,11 @@ cartão do link, o JSON-LD, o `sitemap.xml` e o `robots.txt`. O cartão é a
 que fica fora da busca leva `noindex` na própria página. O `conferir:build` exige que o `sitemap.xml` tenha toda
 página sem `noindex`, e só elas — a lista mora em [meta.ts](apps/agencia/src/conteudo/meta.ts).
 
+**Quando algo falha (13.5):** o [RUNBOOK](docs/RUNBOOK.md) parte do sintoma — reserva barrada, catálogo
+atrasado, gravação recusada —, diz onde olhar e o que fazer, e traz a troca de cada chave e a promoção da API. A
+seção da venda online tem só os títulos, preenchidos na 7.6. **O quiosque físico carrega o catálogo uma vez:**
+depois de mudar o cadastro, recarregar a página dele.
+
 **A política de privacidade (13.4):** em [`/privacidade`](apps/agencia/src/pages/privacidade.astro), do site de
 hoje, com versão e data no topo ([privacidade.ts](apps/agencia/src/conteudo/privacidade.ts)). O controlador é o
 MEI do PO, e o encarregado é o próprio PO, em privacidade@gruponaveg.com.br. Enquanto houver pendência — a anonimização
@@ -103,8 +108,8 @@ rascunho no topo e marca cada uma onde a promessa é feita. A conta e a compra e
 celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o domínio, sem urgência.
 
 **O passo 13, endurecimento, está em andamento.** Feito: o **E2E da reserva** (`e2e/`), com o Turnstile de
-verdade e a API respondida pelo teste. Falta: só teclado, a página sem JavaScript, o axe, os cabeçalhos de
-segurança, meta e `RUNBOOK`, e o Lighthouse.
+verdade e a API respondida pelo teste. Depois, da 13.1 à 13.5: os cabeçalhos, o
+teclado, o sem-JavaScript e o axe, meta, a política de privacidade e o `RUNBOOK`. Falta o Lighthouse (13.6).
 
 **A reserva de encomenda** (a carga do plano do ERP do KMP, E3 e M6) tem plano próprio, em
 [docs/plano-da-reserva-de-encomenda.md](docs/plano-da-reserva-de-encomenda.md): uma seção à parte, com item na
