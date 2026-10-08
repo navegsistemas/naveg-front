@@ -71,14 +71,15 @@ API não tem o que registrar.
 |---|---|---|---|
 | `403` | `ORIGEM_NAO_PERMITIDA` | o front num endereço que não está em `ORIGENS_PERMITIDAS` | acrescentar a origem, sem barra no fim, e refazer o deploy da API |
 | `503` | `ENVIO_INDISPONIVEL` | falta `TURNSTILE_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` ou `FIREBASE_WEB_API_KEY` no escopo do deploy — a partida diz qual | preencher e refazer o deploy. O catálogo continua servindo enquanto isso |
-| `429` | `LIMITE_EXCEDIDO` | mais de **10 envios em 10 minutos** do mesmo IP | ver abaixo |
+| `429` | `LIMITE_EXCEDIDO` | mais de **20 envios em 10 minutos** do mesmo IP | ver abaixo |
 | `403` | `DESAFIO_INVALIDO` | o token do Turnstile foi recusado pela Cloudflare | ver abaixo |
 | `500` | — | `siteverify` fora do ar, ou outra falha não prevista | a linha `falha não prevista` diz qual; se for a Cloudflare, esperar — uma falha de rede **não** é contada como desafio inválido |
 
-**O `429` de gente de verdade.** Dez em dez minutos é mais do que uma família faz, mas **um IP pode ser muita
-gente**: o quiosque físico, o Wi-Fi de um porto, uma operadora móvel que põe milhares de celulares atrás do mesmo
-endereço. Se a queixa vem de um lugar só e se repete, o teto está em `LIMITE_PADRAO`, no
-`src/protecao/limite-upstash.ts` da API — subir é decisão do PO, com o motivo no commit. Na hora, o cliente
+**O `429` de gente de verdade.** Vinte em dez minutos é muito mais do que uma família faz, mas **um IP pode ser
+muita gente**: o quiosque físico, o Wi-Fi de um porto, uma operadora móvel que põe milhares de celulares atrás do
+mesmo endereço. Foi por isso que o teto subiu de 10 para 20 (PO, 2026-10-08, naveg-api-vercel#22). Se a queixa
+vem de um lugar só e se repete, o teto está em `LIMITE_PADRAO`, no `src/protecao/limite-upstash.ts` da API —
+subir de novo é decisão do PO, com o motivo no commit. Na hora, o cliente
 espera a janela (no máximo dez minutos) ou segue pelo WhatsApp.
 
 **O `403 DESAFIO_INVALIDO` de gente de verdade.** Um a um, é o Turnstile fazendo o trabalho dele. **Todos** de
@@ -105,7 +106,8 @@ pequenos, e um defeito que se parece com eles.
 2. **A página aberta não relê o catálogo.** O totem carrega o catálogo **uma vez**, quando a página abre
    ([oferta.ts](../apps/agencia/src/ilhas/oferta.ts)); o relógio corre a cada minuto, então saída que parte some
    sozinha, mas saída **nova** só aparece recarregando. **O quiosque físico (`/totem`) fica aberto o dia todo:
-   depois de mudar o cadastro, recarregar a página do quiosque.**
+   depois de mudar o cadastro, recarregar a página do quiosque.** A releitura automática foi descartada pelo PO
+   (2026-10-08): cadastro de viagem nova é raro, e recarregar à mão basta.
 3. **A viagem não é ofertável.** O site só mostra o que a concessão da NAVEG cobre, na janela de sete dias e
    com partida não vencida — e esconde a saída cuja embarcação ou porto não resolve. A linha
    `pool: … ofertável depois do recorte: …` do log diz onde ela caiu: falta viagem no pool, falta id na
