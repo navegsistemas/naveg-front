@@ -1,7 +1,7 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **a 1.1 (topo e menu) está decidida e com o wireframe para aceite** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
+**Situação:** **a 1.1 (topo e menu) está decidida, com o wireframe aceito** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
 decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 decidida** (§10), wireframe para aceite; as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 decidida, wireframe aceito** (§10), a implementar; as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -159,7 +159,7 @@ Uma por seção, na ordem em que andam: o levantamento, os achados, as decisões
 
 ### 1.1 — Topo e menu
 
-**Situação:** decidida (2026-10-08). O wireframe espera o aceite do PO; a implementação vem depois dele.
+**Situação:** decidida, e o wireframe aceito pelo PO (2026-10-08). Próximo: a implementação (passo 5).
 **Wireframe:** [Wireframe: 1.1 Topo e menu](https://claude.ai/artifact/KHnVE1gfFh9JtAuC5S7gP9) (privado do PO), com
 três telas de celular (fechado, que abre no toque; aberto; rolado), o tablet em pé e o computador.
 
