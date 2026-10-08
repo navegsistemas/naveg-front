@@ -1,7 +1,7 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **nenhuma seção começou** — o roteiro começa **depois do endurecimento** (13.1 a 13.6), por
+**Situação:** **a 1.1 (topo e menu) está decidida, com o wireframe aceito** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
 decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | a começar — **a primeira é a 1.1** |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 decidida, wireframe aceito** (§10), a implementar; as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -152,3 +152,49 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
 entregas do KMP (7.2, 7.3, 7.5). O roteiro anda no ritmo das decisões do PO, não no do código.
+
+## 10. As fichas
+
+Uma por seção, na ordem em que andam: o levantamento, os achados, as decisões do PO com data e o wireframe.
+
+### 1.1 — Topo e menu
+
+**Situação:** decidida, e o wireframe aceito pelo PO (2026-10-08). Próximo: a implementação (passo 5).
+**Wireframe:** [Wireframe: 1.1 Topo e menu](https://claude.ai/artifact/KHnVE1gfFh9JtAuC5S7gP9) (privado do PO), com
+três telas de celular (fechado, que abre no toque; aberto; rolado), o tablet em pé e o computador.
+
+**Levantamento** (2026-10-08, build de demonstração): logo, cinco itens (Reservar, Encomendas, Atendentes,
+Avaliações, Contato) e o botão "Reservar agora". Sem menu recolhido: os itens quebram em linha — decisão
+registrada no `Topo.astro`, para não depender de JavaScript.
+
+| largura | altura do topo | preso ao rolar |
+|---|---|---|
+| até 509px | 161px — 22% da tela num celular de 360px | não: some ao rolar |
+| 510–639px | 115px | não |
+| 640–789px (tablet em pé) | 115px, com o botão sozinho numa segunda linha | sim, 11% da tela o tempo todo |
+| 790px ou mais | 60px, numa linha | sim |
+
+O que está bom e fica: o título da seção não some sob o topo ao clicar num item; o foco do teclado aparece; o
+contraste passa no axe.
+
+**Achados:** o item "Reservar" repete o botão; o topo quebrado no tablet em pé; no celular, quem rola perde o menu e
+o botão de reservar (a página é longa); o lugar de "Minha conta"; e o texto do botão, que muda com a compra (fica
+para a 1.2, a 1.3 e a 5.1, com a U2).
+
+**Decisões do PO (2026-10-08):**
+
+| # | decisão |
+|---|---|
+| **A** | **"Reservar agora" é o destaque.** O menu fica com **Encomendas e Contato**; Atendentes, Avaliações e o item "Reservar" saem (as seções continuam na página) |
+| **B** | **Menu hambúrguer nas telas estreitas** (abaixo de 640px). Com dois itens, o tablet em pé cabe numa linha só, e o defeito de lá some |
+| **C** | **No celular, a primeira linha fica presa ao rolar**: o logo, "Reservar agora" e o botão do menu, 60px |
+| **D** | **"Minha conta" é um item do menu**, fixo (não muda entre "Entrar" e "Minha conta", para não pedir JavaScript em toda página). Entra com a 7.4; até lá, só o lugar no desenho |
+| **E** | **Um script mínimo fecha o menu ao tocar num item**, dentro da página e liberado por *hash* na CSP. Sem JavaScript, o menu abre e fecha no botão (`<details>` nativo) e só não fecha sozinho |
+
+Com isso, a decisão antiga de não ter menu recolhido (`Topo.astro`) cai: o hambúrguer é o `<details>` nativo, que
+funciona com teclado e sem script, e não o truque de CSS que ela temia.
+
+**Pedido do PO para outras seções:** recolher seções no celular (um "toque para abrir"). Fica para a análise de cada
+uma — candidatas a 1.5 (atendentes), 1.6 (avaliações) e 1.7 (rodapé); reserva e encomenda, não. O que já se sabe: o
+`<details>` nativo recolhe em toda largura; recolher só no celular pede JavaScript ou um truque que confunde o leitor
+de tela.
