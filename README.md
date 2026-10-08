@@ -28,13 +28,29 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
+**2026-10-08: o endurecimento fechou e a interface (a 7.1) começou.** Pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md),
+seção por seção (a ficha de cada uma está no §10):
+
+- **1.1, topo e menu — no ar** (#41 a ficha, #43 a implementação): o topo com 60px em toda largura e preso ao
+  rolar; o menu com Encomendas, Atendentes, Social e Contato, recolhido abaixo de 44rem (704px) num `<details>`
+  nativo; a rolagem suave que chega no lugar certo ([RolagemQueChega.astro](apps/agencia/src/componentes/RolagemQueChega.astro)).
+  Falta só a conferência do PO no celular, na homologação.
+- **1.2, capa — em análise, esperando o PO.** Levantamento e achados feitos; **seis perguntas (A–F) esperam a
+  decisão**: esconder a vitrine sem fotos, o WhatsApp direto, dois botões e um link, o destaque que repete o
+  título (falta um dado: a frequência das saídas ou a duração da viagem), o texto mais curto, e Macapá ou
+  Santana. Com as respostas: o wireframe, a ficha decidida, e a implementação.
+
+Também em 2026-10-08: o RUNBOOK (13.5, #38), o Lighthouse no CI (13.6, #39, mais firme no #42), o `npm audit fix`
+(#40) e, na API, o limite de 20 reservas por IP (naveg-api-vercel#22) — que, como o Hono 2, **só chega à
+homologação na próxima promoção**; conferir o catálogo e uma reserva gravada logo depois.
+
 **2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
 [docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O passo 13 (a entrega 6), feito já com a
 compra em mente, fecha com a 13.6**: da 13.1 à 13.5 (cabeçalhos e CSP, teclado e sem JavaScript, imagem de
 compartilhamento e sitemap, a política de privacidade e o [RUNBOOK](docs/RUNBOOK.md)) estão mergeadas, e a 13.6,
 o Lighthouse no CI, está feita. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
-privacidade@gruponaveg.com.br, testado pelo PO). **A próxima é a interface (a 7.1), com calma**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
+privacidade@gruponaveg.com.br, testado pelo PO). **Depois dele, a interface (a 7.1), com calma**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
 seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
 achado com prazo: a conta não funciona
 nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).

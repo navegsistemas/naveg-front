@@ -1,7 +1,7 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **a 1.1 (topo e menu) está decidida, com o wireframe aceito** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
+**Situação:** **a 1.1 (topo e menu) está no ar** (#43) **e a 1.2 (capa) em análise, esperando as decisões do PO** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
 decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 decidida, wireframe aceito** (§10), a implementar; as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 em análise**, perguntas A–F para o PO (§10); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -159,7 +159,7 @@ Uma por seção, na ordem em que andam: o levantamento, os achados, as decisões
 
 ### 1.1 — Topo e menu
 
-**Situação:** decidida, e o wireframe aceito pelo PO (2026-10-08). Próximo: a implementação (passo 5).
+**Situação:** no ar na homologação (PR #43, 2026-10-08), com os ajustes do mesmo dia (A e F). Falta a conferência do PO no celular.
 **Wireframe:** [Wireframe: 1.1 Topo e menu](https://claude.ai/artifact/KHnVE1gfFh9JtAuC5S7gP9) (privado do PO), com
 três telas de celular (fechado, que abre no toque; aberto; rolado), o tablet em pé e o computador.
 
@@ -199,3 +199,43 @@ funciona com teclado e sem script, e não o truque de CSS que ela temia.
 uma — candidatas a 1.5 (atendentes), 1.6 (avaliações) e 1.7 (rodapé); reserva e encomenda, não. O que já se sabe: o
 `<details>` nativo recolhe em toda largura; recolher só no celular pede JavaScript ou um truque que confunde o leitor
 de tela.
+
+### 1.2 — Capa
+
+**Situação:** em análise (passos 1 e 2 feitos, 2026-10-08). **Esperando as decisões do PO sobre A–F**; depois, o
+wireframe (passo 3).
+
+**Levantamento** (2026-10-08, build de demonstração): o título "Belém ⇄ Macapá, com reserva em um minuto", o texto
+de apresentação, três botões de mesmo peso (Reservar passagem, Enviar encomenda, Falar com atendente), três
+destaques (Belém ⇄ Macapá; 15 anos; 3 ferry boats) e a vitrine das embarcações, em carrossel de CSS.
+
+| | celular (360px) | computador (1280px) |
+|---|---|---|
+| altura da capa | 1,9 tela | 1,5 tela |
+| botões | três, empilhados, cerca de 200px | três, numa linha |
+| vitrine | começa no meio da segunda tela | na primeira dobra, cortada |
+
+**Achados:**
+
+1. **A vitrine mostra "Foto pendente" e o nome do arquivo** (`public/embarcacoes/regional.webp`) para o cliente —
+   o molde é para a equipe, não para quem visita;
+2. **"Falar com atendente" não abre o WhatsApp**: rola até a seção de atendentes. O motivo registrado em
+   `conteudo/capa.ts` (o número pendente) caiu — o WhatsApp (91) 99203-5322 já está no site;
+3. **três botões de mesmo peso**, empilhados no celular, quase um terço da tela — e o "Reservar agora" do topo já
+   fica sempre à vista;
+4. **o primeiro destaque repete o título** ("Belém ⇄ Macapá");
+5. **o texto de apresentação tem 6 linhas no celular** e empurra os botões para baixo;
+6. **Macapá ou Santana**: o título diz Macapá; o porto de chegada no catálogo é Santana/AP;
+7. **para depois**: "com reserva" no título e "sem cadastro" no texto mudam de sentido com a compra — decide-se na
+   5.1 (U2), não aqui.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | A vitrine sem fotos | **esconder até chegarem as fotos**; ela volta sozinha com a primeira. Se as fotos já existem, entram agora |
+| **B** | "Falar com atendente" | **abrir direto o WhatsApp**, com o ícone, como "Falar no WhatsApp" |
+| **C** | Os botões | **dois botões** (Reservar passagem, Enviar encomenda) e o WhatsApp como **link com ícone**, mais leve, abaixo |
+| **D** | O destaque repetido | **trocar por um fato novo** (a frequência das saídas, a duração da viagem) — **falta o dado**; sem um bom, ficam dois destaques |
+| **E** | O texto de apresentação | **encurtar** para 2–3 linhas no celular; o texto vem proposto no wireframe |
+| **F** | Macapá ou Santana | **"Macapá" no título** (é como se procura) e **"chegada no porto de Santana"** no texto — ou outra forma que o PO preferir |
