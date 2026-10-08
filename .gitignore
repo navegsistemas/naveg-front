@@ -18,3 +18,4 @@ Thumbs.db
 # O E2E: relatórios e traços do Playwright.
 test-results/
 playwright-report/
+lighthouse/
