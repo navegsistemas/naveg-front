@@ -2,7 +2,8 @@
  * **O topo e o menu** — a 1.1 do roteiro de UI/UX (`docs/roteiro-de-ui-ux.md`, §10), decidida pelo PO em
  * 2026-10-08.
  *
- * - **largo** (40rem ou mais, o tablet em pé incluído): uma linha só, com Encomendas, Contato e "Reservar agora";
+ * - **largo** (40rem ou mais, o tablet em pé incluído): uma linha só, com Encomendas, Social, Contato e
+ *   "Reservar agora";
  * - **estreito**: a linha do logo, do botão e do menu, presa ao rolar; o menu abre, e **fecha sozinho** ao tocar
  *   num item e no `Esc`;
  * - **sem JavaScript**, o menu continua abrindo — o `<details>` é do navegador.
@@ -23,12 +24,12 @@ const topo = (page: Page) => page.getByRole('banner')
 const reservarAgora = (page: Page) => topo(page).getByRole('link', { name: 'Reservar agora' })
 
 test.describe('o topo, largo', () => {
-  test('uma linha só, com as encomendas, o contato e o "Reservar agora" — e sem o botão do menu', async ({ page }) => {
+  test('uma linha só, com as encomendas, o social, o contato e o "Reservar agora" — e sem o botão do menu', async ({ page }) => {
     await servirApiFalsa(page)
     await page.setViewportSize(LARGO)
     await page.goto('/')
 
-    await expect(menuDoTopo(page).getByRole('link')).toHaveText(['Encomendas', 'Contato'])
+    await expect(menuDoTopo(page).getByRole('link')).toHaveText(['Encomendas', 'Social', 'Contato'])
     await expect(reservarAgora(page)).toBeVisible()
     await expect(botaoDoMenu(page)).toBeHidden()
     expect((await topo(page).boundingBox())?.height).toBeLessThanOrEqual(ALTURA_DE_UMA_LINHA)
@@ -53,7 +54,7 @@ test.describe('o topo, estreito', () => {
 
   test('o menu abre, e fecha sozinho quando se toca num item — com a seção à vista, sem nada por cima', async ({ page }) => {
     await botaoDoMenu(page).click()
-    await expect(menuDoTopo(page).getByRole('link')).toHaveText(['Encomendas', 'Contato'])
+    await expect(menuDoTopo(page).getByRole('link')).toHaveText(['Encomendas', 'Social', 'Contato'])
 
     await menuDoTopo(page).getByRole('link', { name: 'Encomendas' }).click()
     await expect(menuDoTopo(page)).toBeHidden()

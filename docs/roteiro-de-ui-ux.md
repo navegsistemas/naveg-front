@@ -185,7 +185,7 @@ para a 1.2, a 1.3 e a 5.1, com a U2).
 
 | # | decisão |
 |---|---|
-| **A** | **"Reservar agora" é o destaque.** O menu fica com **Encomendas e Contato**; Atendentes, Avaliações e o item "Reservar" saem (as seções continuam na página) |
+| **A** | **"Reservar agora" é o destaque.** O menu fica com **Encomendas, Social e Contato**; Atendentes e o item "Reservar" saem (as seções continuam na página). *Ajuste do mesmo dia:* as avaliações voltam ao menu com o nome **"Social"** (a seção junta as avaliações e as redes), já que o menu recolhido comporta mais itens; no rodapé, o atalho continua "Avaliações" (a 1.7) |
 | **B** | **Menu hambúrguer nas telas estreitas** (abaixo de 640px). Com dois itens, o tablet em pé cabe numa linha só, e o defeito de lá some |
 | **C** | **No celular, a primeira linha fica presa ao rolar**: o logo, "Reservar agora" e o botão do menu, 60px |
 | **D** | **"Minha conta" é um item do menu**, fixo (não muda entre "Entrar" e "Minha conta", para não pedir JavaScript em toda página). Entra com a 7.4; até lá, só o lugar no desenho |

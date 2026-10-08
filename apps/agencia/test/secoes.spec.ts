@@ -63,14 +63,14 @@ describe('o menu', () => {
     /* A contagem existe porque os outros cenários passariam com o menu **incompleto**: apontar só para
        âncoras válidas é condição necessária e não suficiente. Uma seção que sumisse do menu não quebraria
        nada — e é assim que ela sumiria em silêncio. */
-    const pedemMenu = SECOES.filter((secao) => secao.noTopo)
+    const pedemMenu = SECOES.filter((secao) => secao.rotuloNoTopo !== null)
 
     expect(menu).toHaveLength(pedemMenu.length + 1)
 
     for (const secao of pedemMenu) {
       expect(menu, `${secao.id} pede menu e não está nele`).toContainEqual({
         href: `#${secao.id}`,
-        rotulo: secao.rotulo,
+        rotulo: secao.rotuloNoTopo,
       })
     }
   })
@@ -84,13 +84,13 @@ describe('o menu', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length)
   })
 
-  it('o topo leva só ao que é ação: as encomendas e o contato — a reserva é o botão ao lado (1.1, PO, 2026-10-08)', () => {
-    expect(menu.map((item) => item.rotulo)).toEqual(['Encomendas', 'Contato'])
+  it('o topo tem as encomendas, o social e o contato — a reserva é o botão ao lado (1.1, PO, 2026-10-08)', () => {
+    expect(menu.map((item) => item.rotulo)).toEqual(['Encomendas', 'Social', 'Contato'])
   })
 
-  it('seção que vai ao topo tem rótulo — senão ela sumiria do menu em silêncio', () => {
-    for (const secao of SECOES.filter((s) => s.noTopo)) {
-      expect(secao.rotulo, `${secao.id} vai ao topo sem rótulo`).not.toBeNull()
+  it('nenhum rótulo do topo é vazio', () => {
+    for (const secao of SECOES) {
+      if (secao.rotuloNoTopo !== null) expect(secao.rotuloNoTopo.trim(), `${secao.id}`).not.toBe('')
     }
   })
 })
