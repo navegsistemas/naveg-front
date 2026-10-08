@@ -185,11 +185,12 @@ para a 1.2, a 1.3 e a 5.1, com a U2).
 
 | # | decisão |
 |---|---|
-| **A** | **"Reservar agora" é o destaque.** O menu fica com **Encomendas e Contato**; Atendentes, Avaliações e o item "Reservar" saem (as seções continuam na página) |
-| **B** | **Menu hambúrguer nas telas estreitas** (abaixo de 640px). Com dois itens, o tablet em pé cabe numa linha só, e o defeito de lá some |
+| **A** | **"Reservar agora" é o destaque.** O menu fica com **Encomendas, Atendentes, Social e Contato**; o item "Reservar" sai (é o botão). *Ajustes do mesmo dia:* as avaliações voltam como **"Social"** (a seção junta as avaliações e as redes) e os **Atendentes** voltam, já que o menu recolhido comporta mais itens; no rodapé, o atalho continua "Avaliações" (a 1.7). Com quatro itens, o menu recolhe **abaixo de 44rem** (704px), e não de 40rem: entre 640 e 700px os itens ficavam espremidos ao lado do botão |
+| **B** | **Menu hambúrguer nas telas estreitas** (abaixo de 44rem, ver A). O tablet em pé (768px) cabe numa linha só, e o defeito de lá some |
 | **C** | **No celular, a primeira linha fica presa ao rolar**: o logo, "Reservar agora" e o botão do menu, 60px |
 | **D** | **"Minha conta" é um item do menu**, fixo (não muda entre "Entrar" e "Minha conta", para não pedir JavaScript em toda página). Entra com a 7.4; até lá, só o lugar no desenho |
 | **E** | **Um script mínimo fecha o menu ao tocar num item**, dentro da página e liberado por *hash* na CSP. Sem JavaScript, o menu abre e fecha no botão (`<details>` nativo) e só não fecha sozinho |
+| **F** | **Rolagem suave ao tocar num item** (pedido do PO, pela sensação de fluidez). O CSS sozinho trazia de volta o defeito de 2026-10-05 — o totem cresce no caminho e o alvo é empurrado (15 falhas em 128 execuções do E2E) —, então um script pequeno acompanha a chegada e reposiciona o alvo se algo cresceu, desistindo ao primeiro gesto da pessoa. Com movimento reduzido no aparelho, a âncora salta, como antes |
 
 Com isso, a decisão antiga de não ter menu recolhido (`Topo.astro`) cai: o hambúrguer é o `<details>` nativo, que
 funciona com teclado e sem script, e não o truque de CSS que ela temia.

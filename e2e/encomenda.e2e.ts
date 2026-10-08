@@ -10,6 +10,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { CODIGO_DO_SERVIDOR, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
 import { expect, test } from './politica'
+import { irPeloMenu } from './topo'
 
 const WHATSAPP_DA_NAVEG = '5591992035322'
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
@@ -50,7 +51,7 @@ test.describe('a encomenda na página', () => {
     const api = await servirApiFalsa(page)
     await page.goto('/')
 
-    await page.getByRole('navigation', { name: 'Seções da página' }).getByRole('link', { name: 'Encomendas' }).click()
+    await irPeloMenu(page, 'Encomendas')
     const titulo = page.getByRole('heading', { level: 2, name: 'Envie sua encomenda' })
     await expect(titulo).toBeInViewport()
     /* E continua nela quando as saídas chegam: nada que hidrata acima pode empurrar a seção para baixo. */

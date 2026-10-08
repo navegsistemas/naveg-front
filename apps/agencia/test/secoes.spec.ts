@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { ID_DO_RODAPE, SECOES, ancorasDaPagina, menuDaPagina } from '../src/conteudo/secoes.js'
+import { ID_DO_RODAPE, SECOES, ancorasDaPagina, atalhosDaPagina, menuDaPagina } from '../src/conteudo/secoes.js'
 
 describe('as seções da página', () => {
   it('há seções, e nenhuma com id vazio', () => {
@@ -63,14 +63,14 @@ describe('o menu', () => {
     /* A contagem existe porque os outros cenários passariam com o menu **incompleto**: apontar só para
        âncoras válidas é condição necessária e não suficiente. Uma seção que sumisse do menu não quebraria
        nada — e é assim que ela sumiria em silêncio. */
-    const pedemMenu = SECOES.filter((secao) => secao.rotuloNoMenu !== null)
+    const pedemMenu = SECOES.filter((secao) => secao.rotuloNoTopo !== null)
 
     expect(menu).toHaveLength(pedemMenu.length + 1)
 
     for (const secao of pedemMenu) {
       expect(menu, `${secao.id} pede menu e não está nele`).toContainEqual({
         href: `#${secao.id}`,
-        rotulo: secao.rotuloNoMenu,
+        rotulo: secao.rotuloNoTopo,
       })
     }
   })
@@ -84,7 +84,27 @@ describe('o menu', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length)
   })
 
-  it('as encomendas têm porta própria, logo depois da reserva de passagem (plano da encomenda, §3.1)', () => {
-    expect(menu.map((item) => item.rotulo)).toEqual(['Reservar', 'Encomendas', 'Atendentes', 'Avaliações', 'Contato'])
+  it('o topo tem as encomendas, os atendentes, o social e o contato — a reserva é o botão ao lado (1.1, PO, 2026-10-08)', () => {
+    expect(menu.map((item) => item.rotulo)).toEqual(['Encomendas', 'Atendentes', 'Social', 'Contato'])
+  })
+
+  it('nenhum rótulo do topo é vazio', () => {
+    for (const secao of SECOES) {
+      if (secao.rotuloNoTopo !== null) expect(secao.rotuloNoTopo.trim(), `${secao.id}`).not.toBe('')
+    }
+  })
+})
+
+describe('os atalhos do rodapé', () => {
+  const atalhos = atalhosDaPagina()
+
+  it('toda seção com rótulo, na ordem da página — o rodapé não muda com o topo', () => {
+    expect(atalhos.map((item) => item.rotulo)).toEqual(['Reservar', 'Encomendas', 'Atendentes', 'Avaliações'])
+  })
+
+  it('todo atalho aponta para uma seção que existe', () => {
+    for (const item of atalhos) {
+      expect(ancorasDaPagina()).toContain(item.href.slice(1))
+    }
   })
 })
