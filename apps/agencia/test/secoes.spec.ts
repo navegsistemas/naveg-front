@@ -84,8 +84,8 @@ describe('o menu', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length)
   })
 
-  it('o topo tem as encomendas, o social e o contato — a reserva é o botão ao lado (1.1, PO, 2026-10-08)', () => {
-    expect(menu.map((item) => item.rotulo)).toEqual(['Encomendas', 'Social', 'Contato'])
+  it('o topo tem as encomendas, os atendentes, o social e o contato — a reserva é o botão ao lado (1.1, PO, 2026-10-08)', () => {
+    expect(menu.map((item) => item.rotulo)).toEqual(['Encomendas', 'Atendentes', 'Social', 'Contato'])
   })
 
   it('nenhum rótulo do topo é vazio', () => {

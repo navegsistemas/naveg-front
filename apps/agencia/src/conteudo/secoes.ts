@@ -70,7 +70,7 @@ export const SECOES: readonly SecaoDaPagina[] = [
       'Do outro lado não tem robô. Quem responde conhece a travessia, os horários das saídas e o que ' +
       'cabe em cada embarcação.',
     rotulo: 'Atendentes',
-    rotuloNoTopo: null,
+    rotuloNoTopo: 'Atendentes',
     pendenteDoPasso: null,
   },
   {

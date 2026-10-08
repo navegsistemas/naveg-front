@@ -3,9 +3,9 @@
  * **O cabeçalho.** Logo, navegação por âncora e a ação principal — a 1.1 do roteiro de UI/UX, decidida pelo PO
  * em 2026-10-08 (`docs/roteiro-de-ui-ux.md`, §10).
  *
- * - **"Reservar agora" é o destaque**, e o menu leva às encomendas, ao social (as avaliações e as redes) e ao
- *   contato. A reserva não aparece como item — seria o mesmo destino do botão, lado a lado;
- * - **abaixo de 40rem, o menu recolhe** atrás de um botão. Com três itens, de 40rem para cima tudo cabe numa
+ * - **"Reservar agora" é o destaque**, e o menu leva às encomendas, aos atendentes, ao social (as avaliações e
+ *   as redes) e ao contato. A reserva não aparece como item — seria o mesmo destino do botão, lado a lado;
+ * - **abaixo de 44rem, o menu recolhe** atrás de um botão. Com quatro itens, de 44rem para cima tudo cabe numa
  *   linha só, inclusive no tablet em pé, onde antes o botão caía sozinho para uma segunda linha;
  * - **o cabeçalho fica preso ao rolar em toda largura**: no celular ele tem uma linha só (logo, botão e menu),
  *   e quem rolou não perde o caminho de volta nem o botão de reservar;
@@ -217,7 +217,7 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
     font-size: 1.125rem;
   }
 
-  @media (max-width: 40rem) {
+  @media (max-width: 44rem) {
     .topo__nav--larga {
       display: none;
     }

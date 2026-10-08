@@ -14,6 +14,7 @@ import '@navegsistemas/design-system/tokens.css'
 import '@navegsistemas/design-system/base.css'
 import { COR_DA_MARCA } from '@navegsistemas/design-system'
 
+import RolagemQueChega from '../componentes/RolagemQueChega.astro'
 import { SITE } from '../conteudo/site'
 
 interface Props {
@@ -81,5 +82,6 @@ const dadosEstruturados = {
   <body>
     <a class="pular-para-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
     <slot />
+    <RolagemQueChega />
   </body>
 </html>

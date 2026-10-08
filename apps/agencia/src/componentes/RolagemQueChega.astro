@@ -1,0 +1,74 @@
+---
+/**
+ * **A rolagem suave que chega no lugar certo** — pedido do PO na 1.1 (2026-10-08): tocar num item do menu rola
+ * a página, em vez de saltar, pela sensação de fluidez.
+ *
+ * ### Por que não basta o `scroll-behavior: smooth` do CSS
+ *
+ * Ele já esteve aqui e saiu em 2026-10-05 (`base.css`): a caminho de "Encomendas", a rolagem atravessa o totem,
+ * a ilha dele hidrata no meio da animação, as saídas chegam, a seção cresce — e o alvo é empurrado para baixo.
+ * Quem tocou em "Encomendas" parava no meio das saídas do totem. Religado sem mais nada, o defeito voltou no E2E
+ * (15 de 128 execuções, 2026-10-08).
+ *
+ * ### O que este script acrescenta
+ *
+ * O navegador continua rolando sozinho (o CSS); o script só **acompanha a chegada**. Quando a rolagem para, ele
+ * confere se o alvo está onde a âncora o põe e, se algo cresceu no caminho, rola de novo até ele. Fica atento por
+ * alguns segundos — o catálogo pode chegar depois — e **desiste no primeiro gesto da pessoa** (dedo, roda,
+ * tecla): quem já está rolando por conta própria não pode ser puxado de volta.
+ *
+ * Com `prefers-reduced-motion: reduce` não há rolagem suave (o CSS respeita), e o script não faz nada: o salto da
+ * âncora é instantâneo e não atravessa as ilhas. Sem JavaScript, idem.
+ */
+---
+
+<script>
+  /** Quanto tempo o script acompanha um alvo: a rolagem, mais a folga do catálogo que chega depois. */
+  const PRAZO_MS = 4000
+  /** Diferença, em px, que não vale uma nova rolagem. */
+  const TOLERANCIA = 4
+  /** Quantos quadros parados contam como "a rolagem acabou". */
+  const QUADROS_PARADOS = 8
+
+  const reduzirMovimento = matchMedia('(prefers-reduced-motion: reduce)')
+  let acompanhando = 0
+
+  function desvioDe(alvo: HTMLElement): number {
+    const recuo = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0
+    return alvo.getBoundingClientRect().top - recuo
+  }
+
+  function acompanhar(alvo: HTMLElement) {
+    const esta = ++acompanhando
+    const limite = performance.now() + PRAZO_MS
+    let ultimaPosicao = -1
+    let parados = 0
+
+    const desistir = () => {
+      if (acompanhando === esta) acompanhando++
+    }
+    for (const gesto of ['wheel', 'touchstart', 'keydown']) {
+      addEventListener(gesto, desistir, { once: true, passive: true })
+    }
+
+    const quadro = () => {
+      if (acompanhando !== esta || performance.now() > limite) return
+      parados = scrollY === ultimaPosicao ? parados + 1 : 0
+      ultimaPosicao = scrollY
+      if (parados >= QUADROS_PARADOS && Math.abs(desvioDe(alvo)) > TOLERANCIA) {
+        alvo.scrollIntoView({ block: 'start' })
+        parados = 0
+      }
+      requestAnimationFrame(quadro)
+    }
+    requestAnimationFrame(quadro)
+  }
+
+  document.addEventListener('click', (evento) => {
+    if (reduzirMovimento.matches || !(evento.target instanceof Element)) return
+    const link = evento.target.closest<HTMLAnchorElement>('a[href^="#"]')
+    if (link === null || link.hash.length < 2) return
+    const alvo = document.getElementById(decodeURIComponent(link.hash.slice(1)))
+    if (alvo !== null) acompanhar(alvo)
+  })
+</script>
