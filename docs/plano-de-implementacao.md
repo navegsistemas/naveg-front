@@ -710,7 +710,7 @@ anônimo.
 - **O CI clona o `fluviapp-kmp`** (e o app Android legado, enquanto houver o que não foi portado) para rodar a camada 2 do contrato — sem isso, os 24 cenários que leem o Kotlin ficam pulados para sempre no CI, que é o mesmo que não existirem. Os dois repositórios já estão na org `navegsistemas` (D5): o CI lê o contrato com um token da org, só de leitura.
 - Meta: OG image, `sitemap.xml`, `robots.txt`.
 - **A política de privacidade** em `/privacidade` (a entrega 6 do MVP), com versão e data.
-- `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora.
+- `docs/RUNBOOK.md`: App Check bloqueando reservas legítimas; girar o certificado sem quebrar App Links; rebuild do catálogo fora de hora. *(Feito na 13.5, 2026-10-08, com o que mudou desde então: o App Check virou o Turnstile e o limite por IP, o rebuild virou o cache da API e o quiosque que não relê, e o App Link ficou com a regra escrita para quando existir.)*
 
 **Aceite**
 - CI verde: `typecheck`, `test` (com o contrato **executado**, não pulado), `e2e`, `axe`, orçamento de bundle.
