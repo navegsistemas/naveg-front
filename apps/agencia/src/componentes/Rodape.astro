@@ -19,7 +19,7 @@
  * estiver vazia: duas fileiras de chip tracejado na mesma página seriam a mesma cobrança feita duas vezes.
  */
 import { AVISO_DE_RESERVA } from '../conteudo/site'
-import { ancoraVistaDe, ID_DO_RODAPE, menuDaPagina } from '../conteudo/secoes'
+import { ancoraVistaDe, atalhosDaPagina, ID_DO_RODAPE } from '../conteudo/secoes'
 import { REDES } from '../conteudo/depoimentos'
 import { TipoDocumento } from '@navegsistemas/domain'
 import { formatarTelefone, linkDeTelefone } from '../conteudo/telefone'
@@ -35,9 +35,9 @@ import Icone from './Icone.astro'
 
 const ano = new Date().getFullYear()
 
-/* O próprio rodapé não entra na lista de atalhos dele. */
+/* Os atalhos são todas as seções com rótulo — mais do que o menu do topo, que só leva ao que é ação. */
 const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
-const atalhos = menuDaPagina().filter((item) => item.href !== `#${ID_DO_RODAPE}`)
+const atalhos = atalhosDaPagina()
 
 /**
  * Um CNPJ com dígito verificador errado **não é exibido**, e o build já terá quebrado antes disso

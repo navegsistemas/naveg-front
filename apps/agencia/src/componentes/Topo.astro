@@ -1,26 +1,37 @@
 ---
 /**
- * **O cabeçalho.** Logo, navegação por âncora e a ação principal.
+ * **O cabeçalho.** Logo, navegação por âncora e a ação principal — a 1.1 do roteiro de UI/UX, decidida pelo PO
+ * em 2026-10-08 (`docs/roteiro-de-ui-ux.md`, §10).
  *
- * ### Não há menu sanfona, e a ausência é decisão
+ * - **"Reservar agora" é o destaque**, e o menu leva só ao que é ação: as encomendas e o contato. A reserva não
+ *   aparece como item — seria o mesmo destino do botão, lado a lado;
+ * - **abaixo de 40rem, o menu recolhe** atrás de um botão. Com dois itens, de 40rem para cima tudo cabe numa
+ *   linha só, inclusive no tablet em pé, onde antes o botão caía sozinho para uma segunda linha;
+ * - **o cabeçalho fica preso ao rolar em toda largura**: no celular ele tem uma linha só (logo, botão e menu),
+ *   e quem rolou não perde o caminho de volta nem o botão de reservar;
+ * - **"Minha conta" entra aqui, como item fixo do menu, com a 7.4.** Fixo de propósito: um item que trocasse
+ *   entre "Entrar" e "Minha conta" pediria JavaScript em toda página.
  *
- * O padrão seria esconder a navegação atrás de um botão em telas estreitas. Aqui ela **quebra em linha**, e
- * fica toda visível. Três razões, nesta ordem:
+ * ### O menu recolhido é o `<details>` nativo
  *
- * 1. são cinco itens de uma palavra — o que se ganharia escondendo é pouco;
- * 2. toda sanfona sem JavaScript é um truque (`<details>` forçado por CSS, rótulo de `<input type=checkbox>`), e
- *    truque de disclosure é onde a navegação por teclado e por leitor de tela costuma quebrar;
- * 3. numa página só, o menu é atalho, não a única via: quem rola chega em tudo.
+ * Abre e fecha sem JavaScript, pelo teclado e pelo toque, e o leitor de tela anuncia o estado — o que um menu
+ * feito de `<input type=checkbox>` e CSS não faz. As duas navegações (a larga e a de dentro do menu) são a mesma
+ * lista, e só uma existe por vez: a outra está em `display: none`, fora da árvore de acessibilidade.
+ *
+ * O único JavaScript é o mínimo que o `<details>` não faz sozinho: **fechar o menu** quando a pessoa toca num
+ * item (senão ele continua aberto, preso no topo, cobrindo a seção para onde ela foi) e no `Esc`. Sem
+ * JavaScript, o menu continua abrindo e fechando no botão. O script vai dentro da página, com *hash* na política.
  *
  * ### A navegação vem de `menuDaPagina()`
  *
- * Nenhum item é escrito aqui. Acrescentar uma seção à lista de `conteudo/secoes.ts` a faz aparecer no menu, e um
+ * Nenhum item é escrito aqui. Marcar uma seção `noTopo` em `conteudo/secoes.ts` a faz aparecer no menu, e um
  * item apontando para âncora inexistente é cenário vermelho, não descoberta em produção.
  */
 import logo from '@navegsistemas/design-system/marca/horizontal.svg'
 
 import { SITE } from '../conteudo/site'
 import { ancoraVistaDe, menuDaPagina } from '../conteudo/secoes'
+import Icone from './Icone.astro'
 
 const menu = menuDaPagina()
 const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
@@ -33,7 +44,7 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
       <img src={logo.src} width={logo.width} height={logo.height} alt="" />
     </a>
 
-    <nav class="topo__nav" aria-label="Seções da página">
+    <nav class="topo__nav topo__nav--larga" aria-label="Seções da página">
       <ul>
         {menu.map((item) => (
           <li>
@@ -44,8 +55,39 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
     </nav>
 
     <a class="acao topo__acao" href={ancora('#totem')}>Reservar agora</a>
+
+    <details class="topo__menu" data-menu-do-topo>
+      <summary class="topo__alternar" aria-label="Menu">
+        {/* Os `<span>` são do topo, e não o `class` do ícone: o estilo daqui é restrito a este componente, e não
+            alcança o `<svg>` que o `Icone` desenha. */}
+        <span class="topo__icone topo__icone--abrir"><Icone slug="menu" tamanho={22} /></span>
+        <span class="topo__icone topo__icone--fechar"><Icone slug="fechar" tamanho={22} /></span>
+      </summary>
+      <nav class="topo__nav topo__nav--recolhida" aria-label="Seções da página">
+        <ul>
+          {menu.map((item) => (
+            <li>
+              <a href={ancora(item.href)}>{item.rotulo}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </details>
   </div>
 </header>
+
+<script>
+  for (const menu of document.querySelectorAll<HTMLDetailsElement>('[data-menu-do-topo]')) {
+    menu.addEventListener('click', (evento) => {
+      if (evento.target instanceof Element && evento.target.closest('a')) menu.open = false
+    })
+    menu.addEventListener('keydown', (evento: KeyboardEvent) => {
+      if (evento.key !== 'Escape' || !menu.open) return
+      menu.open = false
+      menu.querySelector('summary')?.focus()
+    })
+  }
+</script>
 
 <style>
   .topo {
@@ -64,7 +106,6 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
 
   .topo__linha {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: var(--espaco-3) var(--espaco-4);
     padding-block: var(--espaco-2);
@@ -81,14 +122,8 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
     width: auto;
   }
 
-  .topo__nav {
-    /* Empurra a ação para a direita e deixa a navegação colada ao logo. */
-    margin-inline-end: auto;
-  }
-
   .topo__nav ul {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--espaco-1) var(--espaco-4);
     margin: 0;
     padding: 0;
@@ -112,21 +147,108 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
   }
 
   .topo__acao {
+    /* Empurra a ação para a direita e deixa a navegação colada ao logo. */
+    margin-inline-start: auto;
     /* No cabeçalho o botão é compacto: o alvo cheio de 56px é do totem, não daqui. */
-    min-height: 40px;
-    padding-inline: var(--espaco-3);
+    min-height: 44px;
+    padding-inline: var(--espaco-4);
+    font-weight: 700;
+    /* Em duas linhas o topo dobra de altura: o texto não quebra, e quem cede espaço é o resto (abaixo). */
+    white-space: nowrap;
+  }
+
+  /* --- o menu recolhido: só nas telas estreitas --- */
+
+  .topo__menu {
+    display: none;
+  }
+
+  .topo__alternar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--header-texto-dim);
+    border-radius: var(--radius);
+    color: var(--header-texto);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .topo__alternar::-webkit-details-marker {
+    display: none;
+  }
+
+  .topo__menu[open] .topo__alternar {
+    border-color: var(--header-foco);
+  }
+
+  .topo__icone {
+    display: flex;
+  }
+
+  .topo__menu:not([open]) .topo__icone--fechar,
+  .topo__menu[open] .topo__icone--abrir {
+    display: none;
+  }
+
+  .topo__nav--recolhida {
+    /* Abre por cima da página, da largura do cabeçalho — que é o bloco de referência, por ser `sticky`. */
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    padding: var(--espaco-2) var(--espaco-4) var(--espaco-4);
+    background: var(--header-bg);
+    border-top: 1px solid var(--header-texto-dim);
+    box-shadow: var(--sombra);
+  }
+
+  .topo__nav--recolhida ul {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .topo__nav--recolhida a {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    color: var(--header-texto);
+    font-size: 1.125rem;
   }
 
   @media (max-width: 40rem) {
-    .topo {
-      /* Num cabeçalho que quebra em três linhas, grudar no topo come a tela do celular. */
-      position: static;
+    .topo__nav--larga {
+      display: none;
     }
 
-    .topo__nav {
-      order: 3;
-      flex-basis: 100%;
-      margin-inline-end: 0;
+    .topo__menu {
+      display: block;
+    }
+
+    .topo__linha {
+      gap: var(--espaco-3);
+    }
+
+    /* O logo cede primeiro: com 34px de altura ele não deixa o botão e o menu caberem numa linha de 360px. */
+    .topo__marca img {
+      height: 28px;
+    }
+
+    .topo__acao {
+      padding-inline: var(--espaco-3);
+    }
+  }
+
+  /* O celular de 320px: os espaços apertam, e o botão continua numa linha. */
+  @media (max-width: 21.25rem) {
+    .topo__linha {
+      gap: var(--espaco-2);
+      padding-inline: var(--espaco-3);
+    }
+
+    .topo__acao {
+      padding-inline: var(--espaco-2);
     }
   }
 </style>

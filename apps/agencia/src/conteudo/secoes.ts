@@ -19,8 +19,13 @@ export interface SecaoDaPagina {
   /** Título visível da seção. A capa não tem — ela abre com o `<h1>`. */
   readonly titulo: string | null
   readonly subtitulo: string | null
-  /** Como a seção se chama no menu. `null` = não vai ao menu. */
-  readonly rotuloNoMenu: string | null
+  /** Como a seção se chama nos atalhos (o rodapé e, se `noTopo`, o menu). `null` = não tem atalho. */
+  readonly rotulo: string | null
+  /**
+   * Se a seção vai ao menu do topo. Só o que leva a uma ação entra lá (1.1 do roteiro de UI/UX, decisão do PO
+   * em 2026-10-08): a reserva tem o botão "Reservar agora", e o resto da página se alcança rolando.
+   */
+  readonly noTopo: boolean
   /** Em que passo do plano o conteúdo desta seção entra. Some quando o passo fecha. */
   readonly pendenteDoPasso: number | null
 }
@@ -34,7 +39,8 @@ export const SECOES: readonly SecaoDaPagina[] = [
     titulo: null,
     subtitulo: null,
     /* A capa não entra no menu: o logo já leva ao topo, e um item "Início" numa página só é ruído. */
-    rotuloNoMenu: null,
+    rotulo: null,
+    noTopo: false,
     pendenteDoPasso: null,
   },
   {
@@ -43,7 +49,9 @@ export const SECOES: readonly SecaoDaPagina[] = [
     subtitulo:
       'Escolha a saída, diga o que vai embarcar e receba o código da reserva. ' +
       'Leva menos de um minuto, não pede cadastro nem documento.',
-    rotuloNoMenu: 'Reservar',
+    rotulo: 'Reservar',
+    /* No topo, a reserva é o botão "Reservar agora": um item com o mesmo destino ao lado dele seria repetição. */
+    noTopo: false,
     pendenteDoPasso: null,
   },
   {
@@ -51,7 +59,8 @@ export const SECOES: readonly SecaoDaPagina[] = [
     id: 'encomendas',
     titulo: 'Envie sua encomenda',
     subtitulo: 'Diga o que vai mandar e para quem. O atendente confirma pelo WhatsApp e você entrega no porto.',
-    rotuloNoMenu: 'Encomendas',
+    rotulo: 'Encomendas',
+    noTopo: true,
     pendenteDoPasso: null,
   },
   {
@@ -60,14 +69,16 @@ export const SECOES: readonly SecaoDaPagina[] = [
     subtitulo:
       'Do outro lado não tem robô. Quem responde conhece a travessia, os horários das saídas e o que ' +
       'cabe em cada embarcação.',
-    rotuloNoMenu: 'Atendentes',
+    rotulo: 'Atendentes',
+    noTopo: false,
     pendenteDoPasso: null,
   },
   {
     id: 'depoimentos',
     titulo: 'O que dizem os passageiros',
     subtitulo: 'Avaliações de quem já viajou com a gente.',
-    rotuloNoMenu: 'Avaliações',
+    rotulo: 'Avaliações',
+    noTopo: false,
     pendenteDoPasso: null,
   },
 ]
@@ -77,15 +88,20 @@ export interface ItemDoMenu {
   readonly rotulo: string
 }
 
+/** Os atalhos do rodapé: toda seção que tem rótulo, na ordem da página. */
+export function atalhosDaPagina(): readonly ItemDoMenu[] {
+  return SECOES.flatMap((secao) => (secao.rotulo === null ? [] : [{ href: `#${secao.id}`, rotulo: secao.rotulo }]))
+}
+
 /**
- * O menu, derivado: as seções que pedem para aparecer, mais o rodapé.
+ * O menu do topo, derivado: as seções marcadas `noTopo`, mais o rodapé.
  *
  * O rodapé entra à mão e no fim porque ele é a única âncora que não é uma `<Secao>` — e declarar essa exceção
  * aqui é mais honesto do que inventar uma seção fantasma na lista acima só para o menu ficar uniforme.
  */
 export function menuDaPagina(): readonly ItemDoMenu[] {
   const daSecoes = SECOES.flatMap((secao) =>
-    secao.rotuloNoMenu === null ? [] : [{ href: `#${secao.id}`, rotulo: secao.rotuloNoMenu }],
+    secao.noTopo && secao.rotulo !== null ? [{ href: `#${secao.id}`, rotulo: secao.rotulo }] : [],
   )
 
   return [...daSecoes, { href: `#${ID_DO_RODAPE}`, rotulo: 'Contato' }]

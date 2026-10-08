@@ -286,9 +286,11 @@ token com `write:packages`.
 
 ### O orçamento
 
-A página institucional entrega **0 kB de JavaScript até alguém rolar até o totem**. A única ilha é o totem,
+A página institucional não baixa **nenhum arquivo de JavaScript até alguém rolar até o totem**. A única ilha é o totem,
 com `client:visible`: o código dele só desce quando a seção entra na tela. No quiosque (`/totem`) ele é
 `client:load`, porque lá o totem **é** a página. Sem JavaScript, a seção diz para falar com o atendimento.
+A exceção, desde a 1.1 (2026-10-08), são as poucas linhas que fecham o menu do topo ao tocar num item —
+menos de 300 bytes, dentro da própria página, com *hash* na política; o menu abre e fecha sem elas.
 
 Medido em 2026-09-25, com o envio pela API e o Turnstile (no passo 9, a ilha tinha 10,9 kB de gzip):
 
