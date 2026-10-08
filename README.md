@@ -30,12 +30,11 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 **2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
 com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
-[docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O próximo aqui é o passo 13 (a entrega 6),
-agora feito já com a compra em mente**, em seis PRs: da 13.1 à 13.3 (cabeçalhos e CSP, teclado e sem
-JavaScript, imagem de compartilhamento e sitemap) e a 13.4 (a política de privacidade) estão mergeadas, a 13.5
-(o [RUNBOOK](docs/RUNBOOK.md)) está feita, e **a próxima é a 13.6, o Lighthouse no CI**. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
-privacidade@gruponaveg.com.br, testado pelo PO). **Só
-depois do endurecimento, e com calma, a interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
+[docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O passo 13 (a entrega 6), feito já com a
+compra em mente, fecha com a 13.6**: da 13.1 à 13.5 (cabeçalhos e CSP, teclado e sem JavaScript, imagem de
+compartilhamento e sitemap, a política de privacidade e o [RUNBOOK](docs/RUNBOOK.md)) estão mergeadas, e a 13.6,
+o Lighthouse no CI, está feita. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
+privacidade@gruponaveg.com.br, testado pelo PO). **A próxima é a interface (a 7.1), com calma**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
 seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
 achado com prazo: a conta não funciona
 nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
@@ -64,7 +63,7 @@ Provado de ponta a ponta nesse dia.
   antiga.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
-fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
+fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) e `lighthouse` (desde 2026-10-08) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **494 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
 vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
@@ -109,7 +108,14 @@ celular, e a reserva vira `CONVERTIDA` com o evento. O que sobrou dele espera o 
 
 **O passo 13, endurecimento, está em andamento.** Feito: o **E2E da reserva** (`e2e/`), com o Turnstile de
 verdade e a API respondida pelo teste. Depois, da 13.1 à 13.5: os cabeçalhos, o
-teclado, o sem-JavaScript e o axe, meta, a política de privacidade e o `RUNBOOK`. Falta o Lighthouse (13.6).
+teclado, o sem-JavaScript e o axe, meta, a política de privacidade e o `RUNBOOK`; e o Lighthouse (13.6).
+
+**O Lighthouse (13.6):** cada rota de [e2e/rotas.ts](e2e/rotas.ts), no perfil de celular, com **90 ou mais** em
+desempenho, acessibilidade, boas práticas e SEO — a mediana de três medições
+([conferir-lighthouse.mjs](scripts/conferir-lighthouse.mjs), `npm run conferir:lighthouse`, que faz o próprio
+build). O build medido é o de demonstração, para a régua não depender da API; e a página com `noindex` (o
+quiosque) não perde ponto por não ser indexável. Medido em 2026-10-08: tudo 100, menos o desempenho do `/totem/`,
+96.
 
 **A reserva de encomenda** (a carga do plano do ERP do KMP, E3 e M6) tem plano próprio, em
 [docs/plano-da-reserva-de-encomenda.md](docs/plano-da-reserva-de-encomenda.md): uma seção à parte, com item na
@@ -237,6 +243,7 @@ npm install
 npm run dev         # a página em http://localhost:4321
 npm run build       # gera apps/agencia/dist
 npm run verify      # typecheck + astro check + cenários
+npm run conferir:lighthouse   # build de demonstração + Lighthouse de cada rota, no celular
 npm test            # só os cenários
 
 npm run publicar:domain -- --ensaio   # monta o pacote publicável, sem publicar

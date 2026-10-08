@@ -76,6 +76,26 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+  lighthouse:
+    name: lighthouse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Cada rota de e2e/rotas.ts, no perfil de celular, 90 ou mais nas quatro categorias. O script faz o build
+      # (com o catálogo de demonstração, para não depender da API) e usa o Chrome que o runner já traz.
+      - run: npm run conferir:lighthouse
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: relatorio-do-lighthouse
+          path: lighthouse/
+          retention-days: 14
+
   contrato:
     name: contrato com o fluviapp
     runs-on: ubuntu-latest
