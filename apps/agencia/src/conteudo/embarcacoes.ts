@@ -14,6 +14,8 @@
  */
 import type { SlugIcone } from '@navegsistemas/design-system'
 
+import fotoDoMariaIvanir from '../assets/embarcacoes/maria-ivanir.jpg'
+
 export interface Embarcacao {
   readonly id: string
   /** Como o nome aparece na tela. No casco ele vai em caixa alta; em texto corrido, capitulado lê melhor. */
@@ -22,10 +24,11 @@ export interface Embarcacao {
   /** Uma linha sobre o que ela faz. */
   readonly descricao: string
   /**
-   * O arquivo em `public/embarcacoes/`. `null` enquanto a foto não chega — e é isso que faz a vitrine
-   * desenhar o **wireframe** no lugar, com o nome do arquivo que ela espera.
+   * A foto **original**, importada de `src/assets/embarcacoes/` (o `LEIA-ME.md` de lá diz como). O Astro gera os
+   * tamanhos e os formatos no build; o arquivo guardado é o que chegou, sem recorte. `null` enquanto a foto não
+   * chega — e a embarcação fica fora da vitrine.
    */
-  readonly imagem: string | null
+  readonly imagem: ImageMetadata | null
   /** O texto alternativo da foto. Obrigatório quando há foto; é cobrado por cenário. */
   readonly alt: string | null
 }
@@ -44,8 +47,8 @@ export const EMBARCACOES: readonly Embarcacao[] = [
     nome: 'F/B Maria Ivanir',
     tipo: 'Ferry Boat',
     descricao: 'Rede, suíte e camarote, com praça para carga rodante.',
-    imagem: null,
-    alt: null,
+    imagem: fotoDoMariaIvanir,
+    alt: 'O ferry boat Maria Ivanir navegando ao pôr do sol, com o céu alaranjado refletido na água.',
   },
   {
     id: 'maria-eduarda',
@@ -56,6 +59,22 @@ export const EMBARCACOES: readonly Embarcacao[] = [
     alt: null,
   },
 ]
+
+/**
+ * **As embarcações que a vitrine mostra: só as que têm foto.** Um molde "Foto pendente" com o nome do arquivo é
+ * recado para a equipe, não para quem visita (achado 1 da ficha 1.2).
+ */
+export const EMBARCACOES_DA_VITRINE: readonly Embarcacao[] = EMBARCACOES.filter(
+  (embarcacao) => embarcacao.imagem !== null,
+)
+
+/**
+ * **A vitrine só aparece a partir da segunda foto** (decisão do PO, 2026-10-08). Com uma, a foto já é o fundo
+ * da capa logo acima, e a vitrine repetiria a mesma imagem; com duas, ela volta sozinha.
+ */
+export const FOTOS_PARA_A_VITRINE = 2
+
+export const VITRINE_VISIVEL = EMBARCACOES_DA_VITRINE.length >= FOTOS_PARA_A_VITRINE
 
 /** O ícone da flotilha, para a faixa de credibilidade e a legenda da vitrine. */
 export const ICONE_DA_FLOTILHA: SlugIcone = 'barco'
@@ -120,7 +139,7 @@ function arredondar(valor: number): number {
  * `<meta>` da política a partir de um componente. A duração vai junto, e não num `style=""` do trilho, porque
  * a política não aceita atributo de estilo nenhum.
  */
-export function folhaDaVitrine(quantidade: number = EMBARCACOES.length): string {
+export function folhaDaVitrine(quantidade: number = EMBARCACOES_DA_VITRINE.length): string {
   /* Nome global — `@keyframes` não tem escopo em CSS, e fingir que tem seria mentira de comentário. */
   return (
     `@keyframes naveg-vitrine-desfile {\n${quadrosDaVitrine(quantidade)}\n}\n` +
