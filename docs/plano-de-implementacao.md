@@ -714,7 +714,7 @@ anônimo.
 
 **Aceite**
 - CI verde: `typecheck`, `test` (com o contrato **executado**, não pulado), `e2e`, `axe`, orçamento de bundle.
-- Lighthouse mobile ≥90 nas quatro categorias.
+- Lighthouse mobile ≥90 nas quatro categorias. *(Feito na 13.6, 2026-10-08: o job `lighthouse`, por rota, com a mediana de três medições.)*
 
 ---
 
