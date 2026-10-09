@@ -28,13 +28,21 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-09: a 1.3 virou calendário, e o contexto do projeto está no repositório.**
+**2026-10-09: a 1.3 está no ar como calendário (#49), e o PO segue agora pelo fluviapp-kmp.**
 
-- **Próximo passo:** o PO confere a prévia do PR `ui/1.3-calendario`: a reserva na página começa pelo dia, num
-  calendário de 90 dias, com 7 clicáveis até o arcabouço de ocorrências do fluviapp-kmp chegar. Depois do merge, a
-  1.4 (Envie sua encomenda).
-- **Espera outro repositório:** as ocorrências até 90 dias e a lotação vêm do arcabouço em andamento no
-  fluviapp-kmp, e depois pela API (`/catalogo`). A issue na API sai quando o desenho do KMP fechar.
+- **Próximo passo aqui (pedido do PO, 2026-10-09):** as fases do totem **depois da escolha da saída** — o que vai
+  embarcar, os dados, a conferência e a conclusão —, pelo ritual do roteiro (a etapa 2, §4). O PO retoma primeiro
+  no fluviapp-kmp, onde está o arcabouço das ocorrências até 90 dias.
+- **Espera outro repositório:** as ocorrências até 90 dias e a lotação vêm desse arcabouço, e depois pela API
+  (`/catalogo`). A issue na API sai quando o desenho do KMP fechar.
+- **Prévia de PR sem catálogo:** a API só libera o CORS para a homologação, e a prévia de cada PR tem endereço
+  próprio — o catálogo não carrega. No #49, uma variável só daquele branch (`PUBLIC_URL_DA_API=demonstracao`, já
+  apagada depois do merge) resolveu. **Decisão pendente do PO:** recomendado o catálogo de demonstração em toda
+  prévia (variável de Preview, sem tocar na API); a alternativa é a API aceitar as prévias do time. Na Vercel, criar
+  a variável pelo Git Bash (`printf 'demonstracao' | vercel env add …`): pelo PowerShell 5.1 entra um BOM no valor.
+- **Na máquina (2026-10-09):** `gh` e `vercel` instalados e logados; falta o PO rodar
+  `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` (o perfil com o `NPM_TOKEN` só roda depois) e
+  `gh auth refresh -s read:packages` (a API precisa para o `npm ci`).
 - **Esperam o PO, além disso:** conferir a 1.1 e a 1.2 no celular, na homologação; promover a API (a `main` dela
   está à frente da homologação, ver o "Retomar daqui" de lá); os grupos pequenos do Dependabot (#46 aqui, #23 na
   API). O major do TypeScript 7 segue parado de propósito (`CLAUDE.md`).
@@ -52,10 +60,11 @@ está no §10):
   B, C e E aceitas; D = "Saída todos os dias"; F = só Macapá, sem Santana; A = a foto do F/B Maria Ivanir
   (original em `src/assets/embarcacoes/`) só na capa, como fundo da primeira seção, com o texto branco sobre a
   foto escurecida, e a vitrine escondida até existir a segunda foto. Falta a conferência do PO no celular.
-- **1.3, reserve sua passagem — decidida e implementada, a conferir na prévia** (ficha no §10 do roteiro). Decisões
+- **1.3, reserve sua passagem — no ar** (#49, conferida pelo PO na prévia; ficha no §10 do roteiro). Decisões
   de 2026-10-09: o dia primeiro, num calendário; cada dia diz de onde o barco sai, e o sentido é filtro; 90 dias à
   vista, só a janela de 7 clicável e o resto com o WhatsApp; no computador, calendário e saídas lado a lado; um texto
-  só no lugar do subtítulo e do aviso. O dia lotado (riscado) espera a API saber da lotação. O quiosque não muda.
+  só no lugar do subtítulo e do aviso. Pedido na prévia: escolhido o dia, a página leva até as saídas (no celular
+  elas ficam abaixo do calendário). O dia lotado (riscado) espera a API saber da lotação. O quiosque não muda.
 - **Guardado para seções futuras:** recolher seções no celular (1.5/1.6/1.7); na 7.4, "Minha conta" como 5º
   item pode não caber no tablet de 768px — remedir o ponto de recolher.
 

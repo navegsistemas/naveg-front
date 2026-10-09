@@ -61,6 +61,11 @@ de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/R
 - **Rolagem suave:** o CSS sozinho reabre o defeito de 2026-10-05 (15/128 falhas no E2E); quem resolve é o
   `RolagemQueChega.astro`.
 - Se `git`/`node` sumirem da sessão, o PATH está velho: reabrir o VS Code; usar `npm.cmd`.
+- **PowerShell 5.1 e texto para programa:** um pipe põe BOM no valor (`'x' | vercel env add` gravou `﻿x`), e
+  `gh pr create --body` com aspas quebra os argumentos. Valor de variável pelo Git Bash (`printf`); corpo de PR por
+  arquivo (`--body-file`).
+- **E2E nesta máquina:** com os 6 workers do padrão, quase tudo cai por tempo; `--workers=2` passa. O WebKit não
+  instala aqui (fica para o CI).
 - **Não há Python na máquina** (o `python` do Windows abre a Microsoft Store). Script de apoio é em Node; troca de
   texto, com a ferramenta de edição.
 
