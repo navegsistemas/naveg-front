@@ -170,6 +170,20 @@ test.describe('a reserva na página', () => {
     await page.locator('#totem').scrollIntoViewIfNeeded()
     await catalogoPedido
 
+    /* Na página, a reserva começa pelo dia (UI 1.3). O calendário abre no primeiro dia com saída, que tarde da
+       noite pode não ter mais o ferry; o segundo dia com saída é um dia inteiro, e tem. */
+    await expect(pergunta(page)).toHaveText('Escolha o dia')
+    const dias = totem(page).locator('.calendario-dia--reservavel')
+    await expect(dias.first()).toBeVisible()
+    if ((await dias.count()) > 1) await dias.nth(1).click()
+    else {
+      await page.getByRole('button', { name: 'Próximo mês' }).click()
+      await dias.first().click()
+    }
+    /* No celular, as saídas ficam abaixo do calendário: escolhido o dia, a página leva até elas (prévia da 1.3). */
+    await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeFocused()
+    await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeInViewport()
+
     await preencherAteAConferencia(page)
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()
     await expect(page.getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible(PRAZO_DO_ENVIO)

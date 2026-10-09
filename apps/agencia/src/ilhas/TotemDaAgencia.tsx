@@ -20,7 +20,7 @@ import '@navegsistemas/ui/totem.css'
 import { envioConfigurado, fonteConfigurada } from '../conteudo/api'
 import { WHATSAPP_DAS_RESERVAS } from '../conteudo/atendimento'
 import { CATALOGO_DE_DEMONSTRACAO } from '../conteudo/catalogo-de-demonstracao'
-import { FUSO_DA_OPERACAO, INATIVIDADE_DO_QUIOSQUE_MS } from '../conteudo/operacao'
+import { ALCANCE_DO_CALENDARIO_DIAS, FUSO_DA_OPERACAO, INATIVIDADE_DO_QUIOSQUE_MS } from '../conteudo/operacao'
 import { Totem, type Demonstracao } from './Totem'
 import { desafioTurnstile } from './turnstile'
 
@@ -58,6 +58,7 @@ export default function TotemDaAgencia({ modo }: PropsDaIlha) {
       demonstracao={DEMONSTRACAO}
       quiosque={quiosque}
       atendimento={WHATSAPP_DAS_RESERVAS}
+      alcanceDoCalendario={quiosque ? null : ALCANCE_DO_CALENDARIO_DIAS}
     />
   )
 }

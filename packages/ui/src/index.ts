@@ -5,6 +5,23 @@
  * `textos.ts`, que o compilador obriga a acompanhar o domínio. A folha de estilo é `@navegsistemas/ui/totem.css`, e
  * só consome tokens.
  */
+export { CalendarioDeSaidas } from './CalendarioDeSaidas.js'
+export type { PropsDoCalendario } from './CalendarioDeSaidas.js'
+export {
+  NOMES_DOS_MESES,
+  mesesDoCalendario,
+  origensDaOferta,
+  primeiroDiaReservavel,
+  rotuloDoDia,
+  saidasDoDia,
+} from './calendario.js'
+export type {
+  DiaDoCalendario,
+  EntradaDoCalendario,
+  MesDoCalendario,
+  OrigemDaOferta,
+  SituacaoDoDia,
+} from './calendario.js'
 export { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 export type { OpcaoEmCartao, PropsDaEscolha } from './EscolhaEmCartoes.js'
 export { CampoDeCilindrada, FormularioDoCliente, FormularioDoVolume } from './Formularios.js'
