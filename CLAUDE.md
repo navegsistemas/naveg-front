@@ -61,6 +61,8 @@ de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/R
 - **Rolagem suave:** o CSS sozinho reabre o defeito de 2026-10-05 (15/128 falhas no E2E); quem resolve é o
   `RolagemQueChega.astro`.
 - Se `git`/`node` sumirem da sessão, o PATH está velho: reabrir o VS Code; usar `npm.cmd`.
+- **Não há Python na máquina** (o `python` do Windows abre a Microsoft Store). Script de apoio é em Node; troca de
+  texto, com a ferramenta de edição.
 
 ## Comandos
 
