@@ -132,6 +132,22 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     calendario === null
       ? 0
       : (mesEscolhido ?? Math.max(0, calendario.meses.findIndex((m) => m.dias.some((d) => d.data === dia))))
+
+  /* Escolhido o dia, as saídas dele: no celular a lista fica abaixo do calendário, fora da tela, e a pessoa teria
+     de rolar para achar (pedido do PO na prévia da 1.3). O foco vai para o título da lista, como a cada passo do
+     totem; a página só rola quando o título está na metade de baixo da tela ou além — no computador, ao lado do
+     calendário, ele já está à vista. A rolagem é a do CSS (suave, com o recuo do topo; instantânea com movimento
+     reduzido), e não atravessa nada que cresça: a lista já está desenhada. */
+  const tituloDasSaidas = useRef<HTMLHeadingElement>(null)
+  const levarAsSaidas = useRef(false)
+  useEffect(() => {
+    if (!levarAsSaidas.current) return
+    levarAsSaidas.current = false
+    const alvo = tituloDasSaidas.current
+    if (alvo === null) return
+    alvo.focus({ preventScroll: true })
+    if (alvo.getBoundingClientRect().top > window.innerHeight / 2) alvo.scrollIntoView({ block: 'start' })
+  }, [dia])
   /* A travessia fica guardada **inteira**, e não por id: se ela partir com a tela aberta, some da oferta — e
      é justamente aí que a conferência precisa dela para dizer "esta saída já partiu". */
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
@@ -274,6 +290,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           aoMudarDeMes={setMesEscolhido}
           escolhido={dia}
           aoEscolher={(data) => {
+            levarAsSaidas.current = data !== dia
             setDiaEscolhido(data)
             setMesEscolhido(null)
           }}
@@ -287,7 +304,11 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           atendimento={atendimento}
         />
         <div className="totem-saidas-do-dia">
-          {dia !== null && <h4 className="totem-saidas-do-dia__titulo">Saídas de {rotuloDoDia(dia)}</h4>}
+          {dia !== null && (
+            <h4 ref={tituloDasSaidas} className="totem-saidas-do-dia__titulo" tabIndex={-1}>
+              Saídas de {rotuloDoDia(dia)}
+            </h4>
+          )}
           <ListaDeTravessias travessias={dia === null ? [] : saidasDoDia(oferta, dia, origem)} aoEscolher={escolher} />
         </div>
       </div>

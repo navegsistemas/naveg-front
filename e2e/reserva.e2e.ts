@@ -180,6 +180,9 @@ test.describe('a reserva na página', () => {
       await page.getByRole('button', { name: 'Próximo mês' }).click()
       await dias.first().click()
     }
+    /* No celular, as saídas ficam abaixo do calendário: escolhido o dia, a página leva até elas (prévia da 1.3). */
+    await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeFocused()
+    await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeInViewport()
 
     await preencherAteAConferencia(page)
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()

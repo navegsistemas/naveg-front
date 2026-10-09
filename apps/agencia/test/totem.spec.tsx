@@ -141,10 +141,16 @@ describe('o calendário, na página (UI 1.3)', () => {
     expect(screen.getByRole('button', { name: /^terça-feira, 13 de outubro/ }).getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('escolher outro dia troca as saídas', async () => {
+  it('escolher outro dia troca as saídas, e o foco vai para elas', async () => {
     montarComCalendario()
-    fireEvent.click(await screen.findByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
-    expect(screen.getByRole('heading', { level: 4 }).textContent).toBe('Saídas de quarta-feira, 14 de outubro')
+    /* Ao abrir, o foco fica onde estava: puxá-lo no carregamento arrastaria a página até o totem. */
+    await screen.findByRole('heading', { level: 4 })
+    expect(document.activeElement).toBe(document.body)
+
+    fireEvent.click(screen.getByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
+    const titulo = screen.getByRole('heading', { level: 4 })
+    expect(titulo.textContent).toBe('Saídas de quarta-feira, 14 de outubro')
+    expect(document.activeElement).toBe(titulo)
     expect(saidasListadas().every((li) => li.textContent?.includes('14/10'))).toBe(true)
   })
 
