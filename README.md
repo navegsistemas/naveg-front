@@ -35,11 +35,12 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
   no fluviapp-kmp, onde está o arcabouço das ocorrências até 90 dias.
 - **Espera outro repositório:** as ocorrências até 90 dias e a lotação vêm desse arcabouço, e depois pela API
   (`/catalogo`). A issue na API sai quando o desenho do KMP fechar.
-- **Prévia de PR sem catálogo:** a API só libera o CORS para a homologação, e a prévia de cada PR tem endereço
-  próprio — o catálogo não carrega. No #49, uma variável só daquele branch (`PUBLIC_URL_DA_API=demonstracao`, já
-  apagada depois do merge) resolveu. **Decisão pendente do PO:** recomendado o catálogo de demonstração em toda
-  prévia (variável de Preview, sem tocar na API); a alternativa é a API aceitar as prévias do time. Na Vercel, criar
-  a variável pelo Git Bash (`printf 'demonstracao' | vercel env add …`): pelo PowerShell 5.1 entra um BOM no valor.
+- **A prévia de PR usa o catálogo de demonstração** (decisão do PO, 2026-10-09). A API só libera o CORS para a
+  homologação, e a prévia de cada PR tem endereço próprio. Na Vercel, `PUBLIC_URL_DA_API` vale `demonstracao` para
+  as prévias em geral e a URL da API **só para o branch `main`** (a homologação). O catálogo real se confere na
+  homologação, depois do merge. A CLI não separa as duas variáveis de mesmo nome (`env rm`/`update` dão
+  `multiple_envs`): mudar uma delas é pela API REST da Vercel, pelo id. E valor de variável pelo Git Bash: pelo
+  PowerShell 5.1 entra um BOM.
 - **Na máquina (2026-10-09):** `gh` e `vercel` instalados e logados; falta o PO rodar
   `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` (o perfil com o `NPM_TOKEN` só roda depois) e
   `gh auth refresh -s read:packages` (a API precisa para o `npm ci`).
