@@ -97,9 +97,128 @@ describe('a lista de saídas', () => {
     expect(screen.queryByText(/Demonstração\./)).toBeNull()
   })
 
-  it('o aviso de reserva, não venda, acompanha o totem', async () => {
-    montar()
+  it('o aviso de reserva, não venda, acompanha o quiosque; na página, quem o diz é o subtítulo da seção (UI 1.3)', async () => {
+    montar({ quiosque: true })
     expect(await screen.findByText(/Isto é uma reserva, não uma venda/)).toBeTruthy()
+    cleanup()
+
+    montar()
+    await screen.findAllByRole('listitem')
+    expect(screen.queryByText(/Isto é uma reserva, não uma venda/)).toBeNull()
+  })
+})
+
+describe('o calendário, na página (UI 1.3)', () => {
+  const NOVENTA_DIAS = 90
+
+  function montarComCalendario(opcoes: { atendimento?: string | null } = {}) {
+    render(
+      <Totem
+        fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
+        envio={envioLocal(new ReservaEmMemoria())}
+        fuso={FUSO_DA_OPERACAO}
+        inatividadeMs={null}
+        demonstracao="SAIDAS_E_ENVIO"
+        atendimento={opcoes.atendimento ?? null}
+        alcanceDoCalendario={NOVENTA_DIAS}
+        relogio={() => TERCA_8H}
+      />,
+    )
+  }
+
+  /** As saídas listadas — só as da lista do dia, e não os itens da legenda do calendário. */
+  function saidasListadas(): HTMLElement[] {
+    const lista = document.querySelector('.totem-travessias') as HTMLElement | null
+    return lista === null ? [] : within(lista).queryAllByRole('listitem')
+  }
+
+  it('abre no primeiro dia com saída, e lista só as saídas daquele dia (decisão E)', async () => {
+    montarComCalendario()
+    expect(await screen.findByRole('heading', { level: 4, name: 'Saídas de terça-feira, 13 de outubro' })).toBeTruthy()
+    expect(pergunta()).toBe('Escolha o dia')
+    expect(saidasListadas().length).toBeGreaterThan(0)
+    expect(saidasListadas().every((li) => li.textContent?.includes('13/10'))).toBe(true)
+    expect(screen.getByRole('button', { name: /^terça-feira, 13 de outubro/ }).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('escolher outro dia troca as saídas', async () => {
+    montarComCalendario()
+    fireEvent.click(await screen.findByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
+    expect(screen.getByRole('heading', { level: 4 }).textContent).toBe('Saídas de quarta-feira, 14 de outubro')
+    expect(saidasListadas().every((li) => li.textContent?.includes('14/10'))).toBe(true)
+  })
+
+  it('o dia diz de onde sai, e um dia com os dois sentidos diz isso (decisão A)', async () => {
+    montarComCalendario()
+    const dia = await screen.findByRole('button', { name: /^quarta-feira, 14 de outubro/ })
+    expect(dia.getAttribute('aria-label')).toBe('quarta-feira, 14 de outubro, saídas de Cidade Exemplo A e Cidade Exemplo B')
+    expect(dia.textContent).toBe('14⇄')
+  })
+
+  it('o filtro de origem deixa só as saídas daquela cidade', async () => {
+    montarComCalendario()
+    await screen.findByRole('heading', { level: 4 })
+    fireEvent.click(screen.getByRole('button', { name: 'Cidade Exemplo A' }))
+    expect(screen.getByRole('button', { name: 'Cidade Exemplo A' }).getAttribute('aria-pressed')).toBe('true')
+    expect(saidasListadas().length).toBeGreaterThan(0)
+    expect(saidasListadas().every((li) => li.textContent?.includes('Cidade Exemplo A/PA →'))).toBe(true)
+    expect(screen.getByRole('button', { name: /^quarta-feira, 14 de outubro/ }).textContent).toBe('14CEA')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Todas' }))
+    expect(saidasListadas().some((li) => li.textContent?.includes('Cidade Exemplo B/PA →'))).toBe(true)
+  })
+
+  it('depois da janela de sete dias, o dia aparece, não se escolhe, e o aviso leva ao atendimento (decisão B)', async () => {
+    montarComCalendario({ atendimento: '(91) 99203-5322' })
+    await screen.findByRole('heading', { level: 4 })
+    /* A janela vai de 13 a 19/10: o dia 19 se reserva, o 20 não. */
+    expect(screen.getByRole('button', { name: /^segunda-feira, 19 de outubro/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^terça-feira, 20 de outubro/ })).toBeNull()
+    expect(screen.getByText(/^terça-feira, 20 de outubro, saídas de .*, reserva pelo atendimento$/)).toBeTruthy()
+    const link = screen.getByRole('link', { name: 'fale com o atendimento pelo WhatsApp' })
+    expect(link.getAttribute('href')).toBe('https://wa.me/5591992035322')
+  })
+
+  it('o mês anda de outubro até o do 90º dia, e não passa dele', async () => {
+    montarComCalendario()
+    await screen.findByRole('heading', { level: 4 })
+    const anterior = screen.getByRole('button', { name: 'Mês anterior' }) as HTMLButtonElement
+    expect(anterior.disabled).toBe(true)
+    expect(screen.getByText('outubro de 2026')).toBeTruthy()
+
+    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Próximo mês' }))
+    /* 13/10/2026 + 89 dias = 10/01/2027. */
+    expect(screen.getByText('janeiro de 2027')).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Próximo mês' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText(/^domingo, 10 de janeiro, saídas de/)).toBeTruthy()
+    expect(screen.getByText('segunda-feira, 11 de janeiro')).toBeTruthy()
+  })
+
+  it('escolher a saída leva ao roteiro, e voltar devolve ao mesmo dia', async () => {
+    montarComCalendario()
+    fireEvent.click(await screen.findByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
+    const ferry = saidasListadas().find((li) => li.textContent?.includes('Ferry de demonstração')) as HTMLElement
+    fireEvent.click(within(ferry).getByRole('button', { name: 'Reservar esta saída' }))
+    expect(pergunta()).toBe('O que vai embarcar?')
+
+    tocar('Voltar')
+    expect(pergunta()).toBe('Escolha o dia')
+    expect(screen.getByRole('heading', { level: 4 }).textContent).toBe('Saídas de quarta-feira, 14 de outubro')
+  })
+
+  it('no teclado, só um dia entra no Tab, e as setas andam entre os dias com saída', async () => {
+    montarComCalendario()
+    const hoje = await screen.findByRole('button', { name: /^terça-feira, 13 de outubro/ })
+    expect(hoje.tabIndex).toBe(0)
+    expect(screen.getByRole('button', { name: /^quarta-feira, 14 de outubro/ }).tabIndex).toBe(-1)
+
+    hoje.focus()
+    fireEvent.keyDown(hoje, { key: 'ArrowRight' })
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 14 de outubro/)
+    fireEvent.keyDown(document.activeElement as Element, { key: 'ArrowDown' })
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 14 de outubro/)
+    fireEvent.keyDown(document.activeElement as Element, { key: 'End' })
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^segunda-feira, 19 de outubro/)
   })
 })
 

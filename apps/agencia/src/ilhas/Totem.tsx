@@ -10,13 +10,16 @@
  * cenários dirigirem o totem inteiro sem rede e sem esperar o relógio. A ilha da página
  * (`TotemDaAgencia.tsx`) é quem as constrói.
  */
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import {
+  InstanteLocal,
   linkDaReserva,
   montarReserva,
   roteiroDaReserva,
+  travessiasOfertadas,
   voltar,
+  type DataCalendario,
   type PendenciaDaReserva,
   type Reserva,
   type RespostasDaReserva,
@@ -25,13 +28,19 @@ import {
 import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
+  CalendarioDeSaidas,
   Conferencia,
   IndicadorDePasso,
   ListaDeTravessias,
   PassoDaReserva,
   ReservaConcluida,
   TEXTO_DO_PASSO,
+  mesesDoCalendario,
+  origensDaOferta,
+  primeiroDiaReservavel,
   resumoDaReserva,
+  rotuloDoDia,
+  saidasDoDia,
 } from '@navegsistemas/ui'
 
 import { useAncoraNoCarregamento } from './ancora'
@@ -68,6 +77,11 @@ export interface PropsDoTotem {
    * a reserva escrita (passo 11); `null` enquanto o número não chega, e a conclusão orienta a informar o código.
    */
   readonly atendimento?: string | null
+  /**
+   * Quantos dias o calendário mostra (UI 1.3). Na página, a reserva começa pelo dia, num calendário; `null` mantém
+   * a lista das saídas da semana, que é o que o quiosque usa ("o totem mantém seu funcionamento", PO, 2026-10-09).
+   */
+  readonly alcanceDoCalendario?: number | null
   /** O relógio. Os cenários passam um fixo; a página, o do sistema. */
   readonly relogio?: () => Date
 }
@@ -86,8 +100,38 @@ const CODIGO_DA_PREVIA = 'NVG-000000'
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, relogio = relogioDoSistema }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema }: PropsDoTotem) {
   const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(fonte, fuso, relogio)
+
+  /* O calendário guarda só os gestos — a origem do filtro, o dia e o mês que a pessoa escolheu. O dia em vigor é
+     derivado: se o escolhido deixou de se reservar (partiu, ou o filtro o apagou), vale o primeiro que se reserva. */
+  const [origem, setOrigem] = useState<string | null>(null)
+  const [diaEscolhido, setDiaEscolhido] = useState<DataCalendario | null>(null)
+  const [mesEscolhido, setMesEscolhido] = useState<number | null>(null)
+  const calendario = useMemo(() => {
+    if (alcanceDoCalendario === null || catalogo === null) return null
+    const previstas = travessiasOfertadas(catalogo, agora, alcanceDoCalendario)
+    const origens = origensDaOferta(previstas, catalogo.localidades)
+    const meses = mesesDoCalendario({
+      hoje: InstanteLocal.data(agora),
+      alcanceDias: alcanceDoCalendario,
+      reservaveis: oferta,
+      previstas,
+      origens,
+      origemEscolhida: origem,
+    })
+    return { origens, meses }
+  }, [alcanceDoCalendario, catalogo, agora, oferta, origem])
+  const dia =
+    calendario === null
+      ? null
+      : calendario.meses.some((m) => m.dias.some((d) => d.data === diaEscolhido && d.situacao === 'RESERVAVEL'))
+        ? diaEscolhido
+        : primeiroDiaReservavel(calendario.meses)
+  const mesVisivel =
+    calendario === null
+      ? 0
+      : (mesEscolhido ?? Math.max(0, calendario.meses.findIndex((m) => m.dias.some((d) => d.data === dia))))
   /* A travessia fica guardada **inteira**, e não por id: se ela partir com a tela aberta, some da oferta — e
      é justamente aí que a conferência precisa dela para dizer "esta saída já partiu". */
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
@@ -215,13 +259,38 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       />
     )
   } else if (travessia === null || roteiro === null) {
-    pergunta = 'Escolha a saída'
+    pergunta = alcanceDoCalendario === null ? 'Escolha a saída' : 'Escolha o dia'
     corpo = catalogoFalhou ? (
       <p className="totem-vazio">Não foi possível carregar as saídas. Tente de novo em instantes.</p>
     ) : catalogo === null ? (
       <p className="totem-vazio">Carregando as saídas…</p>
-    ) : (
+    ) : calendario === null ? (
       <ListaDeTravessias travessias={oferta} aoEscolher={escolher} />
+    ) : (
+      <div className="totem-dia-e-saidas">
+        <CalendarioDeSaidas
+          meses={calendario.meses}
+          mesVisivel={mesVisivel}
+          aoMudarDeMes={setMesEscolhido}
+          escolhido={dia}
+          aoEscolher={(data) => {
+            setDiaEscolhido(data)
+            setMesEscolhido(null)
+          }}
+          origens={calendario.origens}
+          origemEscolhida={origem}
+          aoFiltrar={(escolhida) => {
+            setOrigem(escolhida)
+            setDiaEscolhido(null)
+            setMesEscolhido(null)
+          }}
+          atendimento={atendimento}
+        />
+        <div className="totem-saidas-do-dia">
+          {dia !== null && <h4 className="totem-saidas-do-dia__titulo">Saídas de {rotuloDoDia(dia)}</h4>}
+          <ListaDeTravessias travessias={dia === null ? [] : saidasDoDia(oferta, dia, origem)} aoEscolher={escolher} />
+        </div>
+      </div>
     )
   } else if (atual === null || atual.passo === 'CONFERENCIA') {
     pergunta = TEXTO_DO_PASSO.CONFERENCIA.pergunta
@@ -269,8 +338,15 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const Pergunta = quiosque ? 'h2' : 'h3'
 
   return (
-    <div ref={raiz} className={quiosque ? 'totem totem--quiosque' : 'totem'}>
-      <p className="totem-aviso">{AVISO_RESERVA_NAO_VENDA}</p>
+    <div
+      ref={raiz}
+      className={
+        quiosque ? 'totem totem--quiosque' : calendario !== null && chaveDaTela === 'lista' ? 'totem totem--calendario' : 'totem'
+      }
+    >
+      {/* Na página, o subtítulo da seção já diz o que o aviso dizia (UI 1.3); a caixa fica no quiosque, que não tem
+          subtítulo. */}
+      {quiosque && <p className="totem-aviso">{AVISO_RESERVA_NAO_VENDA}</p>}
       {demonstracao !== null && (
         <p className="totem-demonstracao">
           <strong>Demonstração.</strong>{' '}

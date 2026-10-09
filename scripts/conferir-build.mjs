@@ -33,9 +33,12 @@ const DIST = fileURLToPath(new URL('../apps/agencia/dist/', import.meta.url))
  * Em 2026-10-05 a segunda ilha (a encomenda, `docs/plano-da-reserva-de-encomenda.md`, §6) levou o resto a 22,8 (23,1 com a âncora no carregamento):
  * o pedaço comum das duas (domínio e telas) 15,4, o carregador 3,0, e cada ilha 2,1 e 2,2. O teto do resto subiu
  * de 20 para 25 — o que o plano previa, e a folga de ~2 kB que o de 20 tinha.
+ *
+ * Em 2026-10-09 o calendário da reserva (UI 1.3) levou o resto a 25,7: +2,6 kB no pedaço comum, que agora tem a
+ * conta dos meses e a grade com o teclado. O teto sobe para 28, com a mesma folga de ~2 kB.
  */
 const TETO_DO_RUNTIME = 70
-const TETO_DO_RESTO = 25
+const TETO_DO_RESTO = 28
 
 const CARA_DE_CREDENCIAL = [
   ['chave privada', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],

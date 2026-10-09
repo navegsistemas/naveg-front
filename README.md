@@ -28,10 +28,13 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-09: a 1.3 espera o PO, e o contexto do projeto está no repositório.**
+**2026-10-09: a 1.3 virou calendário, e o contexto do projeto está no repositório.**
 
-- **Próximo passo:** o PO decide A–C da 1.3 (#48). Com as respostas, a ficha fica decidida, a implementação vem num
-  PR `ui/1.3-…`, e depois começa a 1.4 (Envie sua encomenda).
+- **Próximo passo:** o PO confere a prévia do PR `ui/1.3-calendario`: a reserva na página começa pelo dia, num
+  calendário de 90 dias, com 7 clicáveis até o arcabouço de ocorrências do fluviapp-kmp chegar. Depois do merge, a
+  1.4 (Envie sua encomenda).
+- **Espera outro repositório:** as ocorrências até 90 dias e a lotação vêm do arcabouço em andamento no
+  fluviapp-kmp, e depois pela API (`/catalogo`). A issue na API sai quando o desenho do KMP fechar.
 - **Esperam o PO, além disso:** conferir a 1.1 e a 1.2 no celular, na homologação; promover a API (a `main` dela
   está à frente da homologação, ver o "Retomar daqui" de lá); os grupos pequenos do Dependabot (#46 aqui, #23 na
   API). O major do TypeScript 7 segue parado de propósito (`CLAUDE.md`).
@@ -49,9 +52,10 @@ está no §10):
   B, C e E aceitas; D = "Saída todos os dias"; F = só Macapá, sem Santana; A = a foto do F/B Maria Ivanir
   (original em `src/assets/embarcacoes/`) só na capa, como fundo da primeira seção, com o texto branco sobre a
   foto escurecida, e a vitrine escondida até existir a segunda foto. Falta a conferência do PO no celular.
-- **1.3, reserve sua passagem — em análise, esperando o PO decidir A–C** (ficha no §10 do roteiro): a lista mostra
-  todas as saídas da semana, e a seção mede 7 a 11 telas no celular. Recomendado: as 4 próximas saídas com "Mostrar
-  mais saídas", um texto só no lugar do subtítulo e do aviso, e duas colunas no computador.
+- **1.3, reserve sua passagem — decidida e implementada, a conferir na prévia** (ficha no §10 do roteiro). Decisões
+  de 2026-10-09: o dia primeiro, num calendário; cada dia diz de onde o barco sai, e o sentido é filtro; 90 dias à
+  vista, só a janela de 7 clicável e o resto com o WhatsApp; no computador, calendário e saídas lado a lado; um texto
+  só no lugar do subtítulo e do aviso. O dia lotado (riscado) espera a API saber da lotação. O quiosque não muda.
 - **Guardado para seções futuras:** recolher seções no celular (1.5/1.6/1.7); na 7.4, "Minha conta" como 5º
   item pode não caber no tablet de 768px — remedir o ponto de recolher.
 
@@ -97,8 +101,8 @@ Provado de ponta a ponta nesse dia.
 fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) e `lighthouse` (desde 2026-10-08) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
 ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **494 cenários**,
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
-vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 23,1 kB de
-ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha (`npm run conferir:build`). `npm run e2e` dá cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 66 execuções e 6 puladas;
+vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 25,7 kB de
+ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha e para 28 com o calendário da 1.3 (`npm run conferir:build`). `npm run e2e` dá cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 66 execuções e 6 puladas;
 na primeira vez, `npx playwright install chromium webkit`.
 
 **A política de segurança (13.1):** toda página sai com uma `Content-Security-Policy` própria, que o Astro

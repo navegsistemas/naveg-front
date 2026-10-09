@@ -293,3 +293,197 @@
   color: var(--text);
   font-weight: 600;
 }
+
+/* ── O calendário (UI 1.3): o dia primeiro, e as saídas daquele dia ───────────────────────────── */
+
+/* No computador, o calendário e as saídas do dia ficam lado a lado (decisão D); os passos seguintes voltam à
+   coluna de texto. No celular, um embaixo do outro. */
+.totem--calendario {
+  max-width: none;
+}
+
+.totem-dia-e-saidas {
+  display: grid;
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+@media (min-width: 64rem) {
+  .totem-dia-e-saidas {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+  }
+}
+
+.totem-saidas-do-dia {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.totem-saidas-do-dia__titulo {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.125rem;
+}
+
+.calendario {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.calendario-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.calendario-filtro button {
+  min-height: 44px;
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--border-forte);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-body);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calendario-filtro button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.calendario-mes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.calendario-nome-do-mes {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.calendario-seta {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-forte);
+  border-radius: var(--radius-cartao);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.calendario-seta:disabled {
+  border-style: dashed;
+  border-color: var(--border);
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+/* Sete colunas que encolhem: no celular de 360px, cada casa fica com uns 40px de largura e 48px de altura, acima
+   dos 24px do critério 2.5.8 da WCAG 2.2. O alvo de 56px do quiosque não vale aqui: o calendário é só da página. */
+.calendario-grade {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--espaco-1);
+}
+
+.calendario-semana {
+  padding-block-end: var(--espaco-1);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.calendario-dia {
+  display: grid;
+  place-content: center;
+  min-height: 48px;
+  padding: 2px 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-cartao);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.calendario-dia__numero {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.calendario-dia__marca {
+  min-height: 1em;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.calendario-dia--reservavel {
+  border-color: var(--border-forte);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calendario-dia--reservavel:hover {
+  border-color: var(--accent);
+}
+
+.calendario-dia--reservavel[aria-pressed='true'] {
+  border-color: var(--acao-bg);
+  background: var(--acao-bg);
+  color: var(--acao-texto);
+}
+
+.calendario-dia--alem-do-alcance {
+  border: 1px dashed var(--border-forte);
+}
+
+.calendario-dia--passado .calendario-dia__numero {
+  text-decoration: line-through;
+}
+
+.calendario-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1) var(--espaco-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.calendario-legenda__sigla {
+  font-family: var(--font-mono);
+}
+
+.calendario-alem {
+  margin: 0;
+  padding: var(--espaco-3);
+  border-radius: var(--radius-cartao);
+  background: var(--surface-2);
+  color: var(--text-body);
+  font-size: 1rem;
+}
+
+.calendario-alem a {
+  color: var(--text);
+  font-weight: 600;
+}

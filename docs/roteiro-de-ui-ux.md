@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 em análise**, esperando o PO (§10); as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 implementada** (o calendário), a conferir na prévia (§10); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -261,10 +261,11 @@ quatro categorias.
 
 ### 1.3 — Reserve sua passagem
 
-**Situação:** em análise (2026-10-09), esperando o PO decidir A–C.
-**Wireframe:** [Wireframe: 1.3 Reserve sua passagem](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) (privado do
-PO): hoje e a proposta no celular, e a proposta no computador. Os horários estão como [hora]: o wireframe não inventa
-saída.
+**Situação:** decidida e implementada (2026-10-09), a conferir na prévia. A primeira proposta (A–C, abaixo) deu
+lugar à segunda, o calendário, depois da orientação do PO no mesmo dia (ver "A segunda proposta", no fim da ficha).
+**Wireframes** (privados do PO): o da [primeira proposta](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) e o da
+[segunda, o calendário](https://claude.ai/artifact/Ct5MBwxdfJsucJ2BpPKttU). Os horários estão como [hora]: o
+wireframe não inventa saída.
 
 **O que é desta seção e o que não é.** Aqui se olha a seção **como parte da página**: o título, o texto de
 apresentação, o aviso e quanto espaço ela ocupa. O fluxo da reserva (a forma de escolher a saída, os passos, a
@@ -309,3 +310,32 @@ cerca de 5.400px no celular, umas 7 telas.
 | **A** | O tamanho da lista | **mostrar as 4 próximas saídas** e um botão "Mostrar mais saídas", que acrescenta mais 4 por vez. A seção cai para cerca de 2 telas no celular. A forma da escolha (sentido primeiro, dia, horário) fica para a 2.1 |
 | **B** | O texto antes das saídas | **um texto só**, no subtítulo: "Escolha a saída e receba o código da reserva, sem cadastro. Nada é pago aqui: o atendimento confirma a passagem pelo WhatsApp, e a reserva vale até a saída do barco." A caixa do aviso sai da página e **fica no quiosque** (`/totem`), que não tem subtítulo. O rodapé mantém o aviso dele (a 1.7) |
 | **C** | O computador | **as saídas em duas colunas** a partir de 64rem; os passos depois da escolha continuam numa coluna só |
+
+**A segunda proposta: a reserva começa pelo dia** (PO, 2026-10-09). A orientação do PO: numa agência de viagens, a
+ordem é destino → data → viagem; com uma rota só (três navios, seis viagens semanais alternando Belém e Macapá), a
+reserva começa pela **data, num calendário**. As ocorrências hoje só existem por uma semana (dia da semana e hora), e
+uma data além disso não encaixa no centralizador; o fluviapp-kmp está fazendo primeiro o arcabouço que recebe as
+ocorrências escolhidas pelo usuário, **até 90 dias**. O quiosque (`/totem`) mantém o funcionamento de hoje.
+
+Um achado do wireframe: com os sentidos alternando, cada dia tem saída num sentido só. Um calendário que só marca
+"tem saída" leva quem quer ir a Macapá a um dia em que o barco vem de lá.
+
+**Decisões do PO (2026-10-09), todas pela recomendação:**
+
+| # | pergunta | decisão |
+|---|---|---|
+| **A** | O sentido entra antes do dia? | **Não.** O dia vem primeiro, cada dia mostra a sigla da cidade de onde sai (⇄ quando há os dois sentidos), e o sentido é um filtro opcional ("Saindo de") |
+| **B** | Antes do arcabouço do KMP | **Os 90 dias desde já**, com só a janela de hoje (7 dias) clicável; os dias seguintes tracejados, com o WhatsApp. Quando a API devolver as ocorrências de 90 dias, eles se acendem sem mudar a tela |
+| **C** | Dia lotado (ADR-0018 do KMP) | **Riscado, com "lotado"**, sem clique. **Espera a API** saber da lotação; não foi implementado |
+| **D** | O computador | **Calendário à esquerda, saídas do dia à direita**, um mês só, a partir de 64rem |
+| **E** | O dia que vem escolhido | **O primeiro dia com saída**, com as saídas dele abertas |
+
+E, do wireframe: **um texto só** no lugar do subtítulo e da caixa do aviso (a B da primeira proposta); a caixa fica no
+quiosque, e o rodapé mantém o aviso dele.
+
+**Implementação** (`ui/1.3-calendario`): a conta em `packages/ui/src/calendario.ts`, a grade em
+`CalendarioDeSaidas.tsx`, o alcance em `conteudo/operacao.ts` (`ALCANCE_DO_CALENDARIO_DIAS = 90`). O que se reserva
+continua sendo o que o domínio oferta (`DIAS_DA_JANELA`); os dias além dela vêm da mesma viagem semanal, calculada
+para 90 dias. No teclado, só um dia entra no Tab, e as setas andam entre os dias com saída. **Depende de outro
+repositório:** a lotação (C) e as ocorrências além da semana (B) chegam pela API, depois do arcabouço do KMP; a issue
+na API sai quando o desenho de lá fechar.
