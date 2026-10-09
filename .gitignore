@@ -19,3 +19,6 @@ Thumbs.db
 test-results/
 playwright-report/
 lighthouse/
+
+# O Claude Code: o que é de cada máquina (permissões locais). O CLAUDE.md e .claude/skills/ são do projeto.
+.claude/settings.local.json

@@ -186,7 +186,8 @@ vercel rollback                            # volta ao deploy anterior, sem rebui
 ```
 
 **Atenção na próxima promoção:** a homologação está no deploy do #17. A próxima leva junto o Hono 2 (o ponto de
-entrada trocado para `getRequestListener`) e o Vitest 5. A fumaça do preview passou; a conferência acima é
+entrada trocado para `getRequestListener`), o Vitest 5 e o limite de 20 reservas por IP (naveg-api-vercel#22).
+A fumaça do preview passou; a conferência acima é
 obrigatória mesmo assim.
 
 **O front** não tem promoção: a homologação é o preview da `main`. Voltar atrás é reverter o PR; um

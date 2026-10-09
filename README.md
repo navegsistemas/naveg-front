@@ -35,10 +35,12 @@ seção por seção (a ficha de cada uma está no §10):
   rolar; o menu com Encomendas, Atendentes, Social e Contato, recolhido abaixo de 44rem (704px) num `<details>`
   nativo; a rolagem suave que chega no lugar certo ([RolagemQueChega.astro](apps/agencia/src/componentes/RolagemQueChega.astro)).
   Falta só a conferência do PO no celular, na homologação.
-- **1.2, capa — em análise, esperando o PO.** Levantamento e achados feitos; **seis perguntas (A–F) esperam a
-  decisão**: esconder a vitrine sem fotos, o WhatsApp direto, dois botões e um link, o destaque que repete o
-  título (falta um dado: a frequência das saídas ou a duração da viagem), o texto mais curto, e Macapá ou
-  Santana. Com as respostas: o wireframe, a ficha decidida, e a implementação.
+- **1.2, capa — decidida e implementada, esperando o PO conferir a prévia do #45.** Decisões de 2026-10-08:
+  B, C e E aceitas; D = "Saída todos os dias"; F = só Macapá, sem Santana; A = a foto do F/B Maria Ivanir
+  (original em `src/assets/embarcacoes/`) só na capa, como fundo da primeira seção, com o texto branco sobre a
+  foto escurecida, e a vitrine escondida até existir a segunda foto. Depois do merge, a 1.3.
+- **Guardado para seções futuras:** recolher seções no celular (1.5/1.6/1.7); na 7.4, "Minha conta" como 5º
+  item pode não caber no tablet de 768px — remedir o ponto de recolher.
 
 Também em 2026-10-08: o RUNBOOK (13.5, #38), o Lighthouse no CI (13.6, #39, mais firme no #42), o `npm audit fix`
 (#40) e, na API, o limite de 20 reservas por IP (naveg-api-vercel#22) — que, como o Hono 2, **só chega à
