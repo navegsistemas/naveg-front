@@ -2,63 +2,200 @@
 /**
  * **A capa.** O que a NAVEG faz, para quem, e as duas saídas.
  *
- * A ordem é de filtro: a travessia aparece no título, nas credenciais e nada mais precisa ser lido para alguém
- * saber se a página serve. A vitrine vem depois — ela convence quem já sabe que serve.
+ * A ordem é de filtro: a travessia aparece no título, e nada mais precisa ser lido para alguém saber se a página
+ * serve. As credenciais vêm depois — elas convencem quem já sabe que serve.
  *
- * O `<h1>` é o LCP desta página e é **texto**, não imagem: não há o que baixar antes de a primeira coisa
- * aparecer. Quando as fotos das embarcações chegarem, elas seguem abaixo da dobra e `loading="lazy"`.
+ * ### Ela desenha a própria faixa
+ *
+ * É a única seção fora da `<Secao>`: a foto de fundo vai de borda a borda e encosta no topo, e a faixa comum tem
+ * respiro em cima (pedido do PO na 1.2 — o bloco de foto separado era espaço sobrando).
+ *
+ * ### A foto é `<img>`, e não `background-image`
+ *
+ * Com a foto, ela passa a ser o LCP da página no celular. Um fundo de CSS só é descoberto depois que a folha de
+ * estilo baixa; um `<img>` no HTML o navegador já vê na primeira leitura, e baixa com prioridade alta. Fica
+ * posicionada atrás do texto, com `alt=""`: ali ela é ambiente, e o texto por cima é que diz o que importa.
+ *
+ * ### O véu
+ *
+ * O texto por cima é claro, e a foto tem pôr do sol — o céu chega perto do branco. O véu navy a 72% é o que
+ * garante o mínimo de 4,5:1 até sobre o ponto mais claro: branco puro sob o véu resulta num azul médio (rgb 83 113 137), e o texto
+ * sobre esse tom dá 5,1:1 (branco, tema claro) e 4,6:1 (areia, tema escuro).
  */
+import { Picture } from 'astro:assets'
+
 import { CAPA } from '../conteudo/capa'
+import { VITRINE_VISIVEL } from '../conteudo/embarcacoes'
 import Icone from './Icone.astro'
 import VitrineDeEmbarcacoes from './VitrineDeEmbarcacoes.astro'
 ---
 
-<div class="capa">
-  <h1 class="capa__titulo">{CAPA.titulo}</h1>
-  <p class="capa__lead">{CAPA.lead}</p>
-
-  <p class="capa__acoes">
-    <a class="acao" href={CAPA.acaoPrimaria.href}>{CAPA.acaoPrimaria.rotulo}</a>
-    <a class="acao acao--secundaria" href={CAPA.acaoDaEncomenda.href}>{CAPA.acaoDaEncomenda.rotulo}</a>
-    <a class="acao acao--secundaria" href={CAPA.acaoSecundaria.href}>{CAPA.acaoSecundaria.rotulo}</a>
-  </p>
-
-  <ul class="credenciais">
+<section id="capa" class="capa" aria-labelledby="capa-titulo">
+  <div class="capa__palco">
     {
-      CAPA.credenciais.map((credencial) => (
-        <li class="credencial">
-          <span class="credencial__icone">
-            <Icone slug={credencial.icone} tamanho={22} />
-          </span>
-          <span class="credencial__texto">
-            <strong class="credencial__valor">{credencial.valor}</strong>
-            <span class="credencial__rotulo">{credencial.rotulo}</span>
-          </span>
-        </li>
-      ))
+      CAPA.foto !== null && (
+        <Picture
+          src={CAPA.foto}
+          alt=""
+          formats={['avif', 'webp']}
+          widths={[480, 800, 1200]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="capa__foto"
+          pictureAttributes={{ class: 'capa__moldura' }}
+        />
+      )
     }
-  </ul>
 
-  <VitrineDeEmbarcacoes />
-</div>
+    <div class="conteudo capa__texto">
+      <h1 id="capa-titulo" class="capa__titulo">{CAPA.titulo}</h1>
+      <p class="capa__lead">{CAPA.lead}</p>
+
+      <p class="capa__acoes">
+        <a class="acao" href={CAPA.acaoPrimaria.href}>{CAPA.acaoPrimaria.rotulo}</a>
+        <a class="acao capa__acao-clara" href={CAPA.acaoDaEncomenda.href}>{CAPA.acaoDaEncomenda.rotulo}</a>
+      </p>
+
+      {
+        CAPA.acaoDoWhatsapp !== null && (
+          <a class="capa__whatsapp" href={CAPA.acaoDoWhatsapp.href} target="_blank" rel="noopener noreferrer">
+            <Icone slug="whatsapp" tamanho={22} />
+            {CAPA.acaoDoWhatsapp.rotulo}
+            <span class="apenas-leitor">(abre em nova aba)</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+
+  <div class="conteudo capa__depois">
+    <ul class="credenciais">
+      {
+        CAPA.credenciais.map((credencial) => (
+          <li class="credencial">
+            <span class="credencial__icone">
+              <Icone slug={credencial.icone} tamanho={22} />
+            </span>
+            <span class="credencial__texto">
+              <strong class="credencial__valor">{credencial.valor}</strong>
+              <span class="credencial__rotulo">{credencial.rotulo}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+
+    {VITRINE_VISIVEL && <VitrineDeEmbarcacoes />}
+  </div>
+</section>
 
 <style>
+  /* ── O palco: a foto, o véu e o texto ─────────────────────────────────────────────────────────────
+     Navy nos dois temas, como o cabeçalho: os tokens são os dele, e é por isso que o texto claro e o anel de
+     foco valem aqui sem conta nova. Sem foto, o palco é navy liso, e o texto continua legível. */
+  .capa__palco {
+    position: relative;
+    isolation: isolate;
+    background: var(--header-bg);
+    color: var(--header-texto);
+    padding-block: var(--espaco-6);
+  }
+
+  .capa__moldura {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* O véu fica por cima da foto e por baixo do texto. */
+  .capa__moldura::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--header-bg) 72%, transparent);
+  }
+
+  .capa__foto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* O barco está no terço de baixo da foto, que é vertical. No computador a faixa é larga e o corte é em cima
+       e embaixo; no celular ela é quase quadrada. Os 68% seguram o casco no quadro nos dois. */
+    object-position: 50% 68%;
+  }
+
+  .capa__texto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-3);
+  }
+
   .capa__titulo {
     max-width: 16ch;
+    margin: 0;
+    color: var(--header-texto);
   }
 
   .capa__lead {
+    margin: 0;
     font-size: clamp(1.0625rem, 1rem + 0.5vw, 1.25rem);
-    color: var(--text-secondary);
-    max-width: var(--largura-texto);
+    color: var(--header-texto);
+    max-width: 36rem;
   }
 
   .capa__acoes {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--espaco-3);
+    gap: var(--espaco-2) var(--espaco-3);
     max-width: none;
-    margin-block: var(--espaco-4) var(--espaco-5);
+    margin: var(--espaco-2) 0 0;
+  }
+
+  /* O secundário de contorno sobre o escuro: o `.acao--secundaria` do design system é tinta escura, e some aqui. */
+  .capa__acao-clara {
+    background: transparent;
+    color: var(--header-texto);
+    border-color: var(--header-texto);
+  }
+
+  .capa__acao-clara:hover {
+    background: color-mix(in srgb, var(--header-texto) 14%, transparent);
+    color: var(--header-texto);
+  }
+
+  .capa__whatsapp {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2);
+    min-height: 44px;
+    color: var(--header-texto);
+    font-weight: 600;
+    text-underline-offset: 0.2em;
+  }
+
+  .capa__whatsapp:hover {
+    color: var(--header-texto);
+    text-decoration-thickness: 2px;
+  }
+
+  .capa__palco :focus-visible {
+    outline-color: var(--header-foco);
+  }
+
+  /* No celular os dois botões dividem a linha: empilhados, tomavam quase um terço da tela (achado 3). */
+  @media (max-width: 30rem) {
+    .capa__acoes .acao {
+      flex: 1 1 0;
+      padding-inline: var(--espaco-2);
+    }
+  }
+
+  /* ── Depois do palco: as credenciais e, a partir da segunda foto, a vitrine ───────────────────────── */
+  .capa__depois {
+    padding-block: var(--espaco-5);
   }
 
   .credenciais {

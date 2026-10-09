@@ -21,14 +21,15 @@ import TotemDaAgencia from '../ilhas/TotemDaAgencia'
 import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
 
 import { SECOES } from '../conteudo/secoes'
-import { folhaDaVitrine } from '../conteudo/embarcacoes'
+import { VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
 import { hashDoTrecho, politicaDaPagina, somarOTurnstile } from '../conteudo/seguranca'
 
 /* O que esta página soma à política do site (`conteudo/seguranca.ts`): o Turnstile, com que o totem e a
-   encomenda enviam; e a folha que a vitrine da capa gera, que o Astro não sabe calcular sozinho. */
+   encomenda enviam; e a folha que a vitrine da capa gera, que o Astro não sabe calcular sozinho — só quando a
+   vitrine aparece. */
 const politica = politicaDaPagina(Astro.csp)
 somarOTurnstile(politica)
-politica.insertStyleHash(hashDoTrecho(folhaDaVitrine()))
+if (VITRINE_VISIVEL) politica.insertStyleHash(hashDoTrecho(folhaDaVitrine()))
 
 /** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
 const PENDENCIAS: Readonly<Record<string, string>> = {}
@@ -39,9 +40,11 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
 
   <main id="conteudo-principal">
     {
-      SECOES.map((secao, indice) => (
+      /* A capa é a exceção à moldura única: a foto de fundo vai de borda a borda e encosta no topo, o que a
+         faixa comum — com o respiro dela em cima — não deixa (pedido do PO na 1.2). Ela entra na contagem do
+         índice como qualquer outra, e a alternância das seguintes não muda. */
+      SECOES.map((secao, indice) => secao.id === 'capa' ? <Capa /> : (
         <Secao secao={secao} indice={indice}>
-          {secao.id === 'capa' && <Capa />}
           {secao.id === 'atendentes' && <Atendimento />}
           {secao.id === 'depoimentos' && <Depoimentos />}
           {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}

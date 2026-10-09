@@ -1,7 +1,7 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **a 1.1 (topo e menu) está no ar** (#43) **e a 1.2 (capa) em análise, esperando as decisões do PO** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
+**Situação:** **a 1.1 (topo e menu) está no ar** (#43) **e a 1.2 (capa) implementada, esperando a conferência do PO na prévia** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
 decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 em análise**, perguntas A–F para o PO (§10); as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 implementada**, a conferir na prévia (§10); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -202,8 +202,9 @@ de tela.
 
 ### 1.2 — Capa
 
-**Situação:** em análise (passos 1 e 2 feitos, 2026-10-08). **Esperando as decisões do PO sobre A–F**; depois, o
-wireframe (passo 3).
+**Situação:** decidida e implementada (2026-10-08), no PR da 1.2. Falta a conferência do PO na prévia.
+**Wireframe:** [Wireframe: 1.2 Capa](https://claude.ai/artifact/An8JtBnPbybY1DpvXYuzMS) (privado do PO): celular,
+tablet em pé e computador, com a foto como fundo da primeira seção.
 
 **Levantamento** (2026-10-08, build de demonstração): o título "Belém ⇄ Macapá, com reserva em um minuto", o texto
 de apresentação, três botões de mesmo peso (Reservar passagem, Enviar encomenda, Falar com atendente), três
@@ -239,3 +240,21 @@ destaques (Belém ⇄ Macapá; 15 anos; 3 ferry boats) e a vitrine das embarcaç
 | **D** | O destaque repetido | **trocar por um fato novo** (a frequência das saídas, a duração da viagem) — **falta o dado**; sem um bom, ficam dois destaques |
 | **E** | O texto de apresentação | **encurtar** para 2–3 linhas no celular; o texto vem proposto no wireframe |
 | **F** | Macapá ou Santana | **"Macapá" no título** (é como se procura) e **"chegada no porto de Santana"** no texto — ou outra forma que o PO preferir |
+
+**Decisões do PO** (2026-10-08):
+
+- **A** — a foto do **F/B Maria Ivanir** (pôr do sol) é o **fundo da primeira seção**, de borda a borda e encostada
+  no topo: um bloco de foto separado era espaço sobrando. A vitrine mostra só embarcação com foto e **só aparece a
+  partir da segunda**; com uma, repetiria a do fundo. A foto fica **original** em `src/assets/embarcacoes/`, e o
+  Astro gera os tamanhos (AVIF e WebP); o recorte é CSS;
+- **B e C** — dois botões (Reservar passagem, Enviar encomenda) e "Falar no WhatsApp" como link com ícone, que abre a
+  conversa direto;
+- **D** — o destaque repetido vira **"Saída todos os dias"** ("Nos dois sentidos da travessia");
+- **E** — o texto encurta para "Reserve sua passagem ou mande sua encomenda por aqui, e o atendimento da NAVEG cuida
+  do resto." (3 linhas no celular);
+- **F** — só **Macapá**. Santana é o porto mais próximo, porque Macapá não atraca por questões geográficas, e quem
+  viaja sabe: a capa não explica.
+
+**Como ficou:** texto claro sobre a foto, com véu navy a 72% (o texto passa de 4,5:1 até sobre o céu mais claro); a
+foto é `<img>` com prioridade alta, e não fundo de CSS, porque vira o LCP no celular. Lighthouse no celular: 100 nas
+quatro categorias.
