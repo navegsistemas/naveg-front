@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 implementada**, a conferir na prévia (§10); as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 em análise**, esperando o PO (§10); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -202,7 +202,7 @@ de tela.
 
 ### 1.2 — Capa
 
-**Situação:** decidida e implementada (2026-10-08), no PR da 1.2. Falta a conferência do PO na prévia.
+**Situação:** no ar (#45, mergeado em 2026-10-09).
 **Wireframe:** [Wireframe: 1.2 Capa](https://claude.ai/artifact/An8JtBnPbybY1DpvXYuzMS) (privado do PO): celular,
 tablet em pé e computador, com a foto como fundo da primeira seção.
 
@@ -258,3 +258,54 @@ destaques (Belém ⇄ Macapá; 15 anos; 3 ferry boats) e a vitrine das embarcaç
 **Como ficou:** texto claro sobre a foto, com véu navy a 72% (o texto passa de 4,5:1 até sobre o céu mais claro); a
 foto é `<img>` com prioridade alta, e não fundo de CSS, porque vira o LCP no celular. Lighthouse no celular: 100 nas
 quatro categorias.
+
+### 1.3 — Reserve sua passagem
+
+**Situação:** em análise (2026-10-09), esperando o PO decidir A–C.
+**Wireframe:** [Wireframe: 1.3 Reserve sua passagem](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) (privado do
+PO): hoje e a proposta no celular, e a proposta no computador. Os horários estão como [hora]: o wireframe não inventa
+saída.
+
+**O que é desta seção e o que não é.** Aqui se olha a seção **como parte da página**: o título, o texto de
+apresentação, o aviso e quanto espaço ela ocupa. O fluxo da reserva (a forma de escolher a saída, os passos, a
+conferência, os erros) é da etapa 2, e os achados dele ficam anotados para lá.
+
+**Levantamento** (2026-10-09, build de demonstração): o título "Reserve sua passagem", o subtítulo ("Escolha a saída,
+diga o que vai embarcar e receba o código da reserva. Leva menos de um minuto, não pede cadastro nem documento."), e
+o totem num cartão: o aviso "reserva, não venda" numa caixa, a faixa "Demonstração" (só no build de demonstração),
+"Escolha a saída" e a lista de **todas** as saídas dos próximos sete dias, cada uma num cartão com o botão "Reservar
+esta saída".
+
+| | celular (360px) | computador (1280px) |
+|---|---|---|
+| altura da seção (demonstração, 20 saídas) | **8.756px, 11,2 telas** | 5.686px, 7,1 telas |
+| cartão de cada saída | 389px | 241px |
+| onde começa a primeira saída | a 650px do título, no fim da primeira tela | a 470px do título |
+| largura usada | toda | uma coluna de ~680px; metade da tela vazia |
+
+Com o catálogo de verdade, "saída todos os dias, nos dois sentidos" (a 1.2) dá 14 saídas na janela de sete dias:
+cerca de 5.400px no celular, umas 7 telas.
+
+**Achados:**
+
+1. **A lista de saídas empurra o resto da página para longe.** Quem chega pelo "Reservar passagem" da capa vê a
+   seção; quem rola a página para conhecer a NAVEG atravessa 7 a 11 telas de saídas antes de achar a encomenda, os
+   atendentes e as avaliações. A forma de escolher a saída é da 2.1, mas o tamanho que ela ocupa na página é daqui;
+2. **o mesmo recado duas vezes antes da primeira saída.** O subtítulo explica como funciona (escolha, código) e o
+   aviso, numa caixa logo abaixo, explica de novo (o atendimento confirma pelo WhatsApp). No celular são cerca de 10
+   linhas de texto antes de "Escolha a saída";
+3. **no computador, metade da largura fica vazia** ao lado do totem, e cada saída ocupa uma linha inteira;
+4. **para depois, na 5.1 (U2):** "leva menos de um minuto" e "não pede cadastro nem documento" mudam de sentido
+   quando houver compra; a capa tem o mesmo ponto ("com reserva em um minuto"). Decide-se lá, não aqui;
+5. **para a 2.1:** o trecho repete o porto e a cidade nos dois lados ("Porto Brilhante · Belém/PA → Porto do Grego ·
+   Santana/AP"), duas a três linhas no celular; cabe olhar se a escolha começa pelo sentido da travessia;
+6. **para a 2.6:** "Não foi possível carregar as saídas" e "Não há saídas disponíveis nos próximos sete dias" não
+   oferecem o WhatsApp, e a régua da §2 pede a saída para o atendimento em todo erro.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O tamanho da lista | **mostrar as 4 próximas saídas** e um botão "Mostrar mais saídas", que acrescenta mais 4 por vez. A seção cai para cerca de 2 telas no celular. A forma da escolha (sentido primeiro, dia, horário) fica para a 2.1 |
+| **B** | O texto antes das saídas | **um texto só**, no subtítulo: "Escolha a saída e receba o código da reserva, sem cadastro. Nada é pago aqui: o atendimento confirma a passagem pelo WhatsApp, e a reserva vale até a saída do barco." A caixa do aviso sai da página e **fica no quiosque** (`/totem`), que não tem subtítulo. O rodapé mantém o aviso dele (a 1.7) |
+| **C** | O computador | **as saídas em duas colunas** a partir de 64rem; os passos depois da escolha continuam numa coluna só |

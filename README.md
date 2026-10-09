@@ -28,17 +28,30 @@ O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](doc
 
 ## Retomar daqui
 
-**2026-10-08: o endurecimento fechou e a interface (a 7.1) começou.** Pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md),
-seção por seção (a ficha de cada uma está no §10):
+**2026-10-09: a 1.3 espera o PO, e o contexto do projeto está no repositório.**
+
+- **Próximo passo:** o PO decide A–C da 1.3 (#48). Com as respostas, a ficha fica decidida, a implementação vem num
+  PR `ui/1.3-…`, e depois começa a 1.4 (Envie sua encomenda).
+- **Esperam o PO, além disso:** conferir a 1.1 e a 1.2 no celular, na homologação; promover a API (a `main` dela
+  está à frente da homologação, ver o "Retomar daqui" de lá); os grupos pequenos do Dependabot (#46 aqui, #23 na
+  API). O major do TypeScript 7 segue parado de propósito (`CLAUDE.md`).
+- **O contexto do Claude mora no repositório** (#47 aqui, naveg-api-vercel#24): `CLAUDE.md` e as skills em
+  `.claude/skills/`. Numa máquina nova: clonar, rodar `/preparar-maquina` e depois `/retomar`.
+
+**A interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md), seção por seção (a ficha de cada uma
+está no §10):
 
 - **1.1, topo e menu — no ar** (#41 a ficha, #43 a implementação): o topo com 60px em toda largura e preso ao
   rolar; o menu com Encomendas, Atendentes, Social e Contato, recolhido abaixo de 44rem (704px) num `<details>`
   nativo; a rolagem suave que chega no lugar certo ([RolagemQueChega.astro](apps/agencia/src/componentes/RolagemQueChega.astro)).
   Falta só a conferência do PO no celular, na homologação.
-- **1.2, capa — decidida e implementada, esperando o PO conferir a prévia do #45.** Decisões de 2026-10-08:
+- **1.2, capa — no ar** (#45, 2026-10-09). Decisões de 2026-10-08:
   B, C e E aceitas; D = "Saída todos os dias"; F = só Macapá, sem Santana; A = a foto do F/B Maria Ivanir
   (original em `src/assets/embarcacoes/`) só na capa, como fundo da primeira seção, com o texto branco sobre a
-  foto escurecida, e a vitrine escondida até existir a segunda foto. Depois do merge, a 1.3.
+  foto escurecida, e a vitrine escondida até existir a segunda foto. Falta a conferência do PO no celular.
+- **1.3, reserve sua passagem — em análise, esperando o PO decidir A–C** (ficha no §10 do roteiro): a lista mostra
+  todas as saídas da semana, e a seção mede 7 a 11 telas no celular. Recomendado: as 4 próximas saídas com "Mostrar
+  mais saídas", um texto só no lugar do subtítulo e do aviso, e duas colunas no computador.
 - **Guardado para seções futuras:** recolher seções no celular (1.5/1.6/1.7); na 7.4, "Minha conta" como 5º
   item pode não caber no tablet de 768px — remedir o ponto de recolher.
 
