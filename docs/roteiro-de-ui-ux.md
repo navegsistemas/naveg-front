@@ -144,7 +144,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 implementada** (o calendário), a conferir na prévia (§10); as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário); **próximo, pedido do PO em 2026-10-09: as fases do totem depois da escolha da saída** (etapa 2); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -261,7 +261,8 @@ quatro categorias.
 
 ### 1.3 — Reserve sua passagem
 
-**Situação:** decidida e implementada (2026-10-09), a conferir na prévia. A primeira proposta (A–C, abaixo) deu
+**Situação:** no ar (#49, 2026-10-09), conferida pelo PO na prévia. Pedido na prévia: escolhido o dia, a página
+leva até as saídas — no celular elas ficam abaixo do calendário. A primeira proposta (A–C, abaixo) deu
 lugar à segunda, o calendário, depois da orientação do PO no mesmo dia (ver "A segunda proposta", no fim da ficha).
 **Wireframes** (privados do PO): o da [primeira proposta](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) e o da
 [segunda, o calendário](https://claude.ai/artifact/Ct5MBwxdfJsucJ2BpPKttU). Os horários estão como [hora]: o
