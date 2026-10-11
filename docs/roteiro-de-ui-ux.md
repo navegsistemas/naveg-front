@@ -262,7 +262,7 @@ quatro categorias.
 ### 1.3 — Reserve sua passagem
 
 **Situação:** no ar (#49, 2026-10-09), conferida pelo PO na prévia. Pedido na prévia: escolhido o dia, a página
-leva até as saídas — no celular elas ficam abaixo do calendário. A primeira proposta (A–C, abaixo) deu
+leva até as saídas — no celular elas ficam abaixo do calendário. Desde a #51 (2026-10-11), os 90 dias se reservam. A primeira proposta (A–C, abaixo) deu
 lugar à segunda, o calendário, depois da orientação do PO no mesmo dia (ver "A segunda proposta", no fim da ficha).
 **Wireframes** (privados do PO): o da [primeira proposta](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) e o da
 [segunda, o calendário](https://claude.ai/artifact/Ct5MBwxdfJsucJ2BpPKttU). Os horários estão como [hora]: o
@@ -340,3 +340,8 @@ continua sendo o que o domínio oferta (`DIAS_DA_JANELA`); os dias além dela v�
 para 90 dias. No teclado, só um dia entra no Tab, e as setas andam entre os dias com saída. **Depende de outro
 repositório:** a lotação (C) e as ocorrências além da semana (B) chegam pela API, depois do arcabouço do KMP; a issue
 na API sai quando o desenho de lá fechar.
+
+**Os 90 dias se acendem** (#51, 2026-10-11): o arcabouço fechou no fluviapp-kmp#44, e a B chegou ao fim previsto —
+na página, a passagem se reserva nos 90 dias, sem as datas que a transportadora suspendeu. A encomenda fica na
+semana, e o quiosque não muda. O estado "reserva pelo atendimento" continua no calendário, para o dia que ele
+mostrar além do que se reserva. A **lotação (C)** segue esperando a API.

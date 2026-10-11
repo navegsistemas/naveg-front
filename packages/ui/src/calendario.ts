@@ -2,11 +2,10 @@
  * **O calendário das saídas** — a conta por trás da reserva que começa pelo dia (UI 1.3, decisão do PO em
  * 2026-10-09).
  *
- * O cliente escolhe o dia e depois a saída daquele dia. O calendário vai até `alcanceDias` à frente (90), mas só
- * o que o domínio oferta hoje se reserva: a janela de `DIAS_DA_JANELA`, porque a ocorrência além da semana ainda
- * não existe no centralizador (o arcabouço está em andamento no fluviapp-kmp). Os dias depois da janela aparecem
- * com as saídas previstas pela viagem semanal e mandam para o atendimento. Quando a janela crescer, eles passam a
- * ser reserváveis sem mudar nada aqui.
+ * O cliente escolhe o dia e depois a saída daquele dia. O calendário vai até `alcanceDias` à frente (90), e se
+ * reserva o que o totem oferta: na página, desde a naveg-front#51, os mesmos 90 dias (o alcance da passagem,
+ * fluviapp-kmp#44), sem as datas suspensas. Se o calendário mostrar mais do que se reserva, os dias além aparecem
+ * com as saídas previstas pela viagem semanal e mandam para o atendimento (decisão B da 1.3).
  *
  * Tudo aqui é derivado: as travessias entram, os meses saem. O componente (`CalendarioDeSaidas.tsx`) só desenha.
  */
@@ -14,8 +13,8 @@ import { DataCalendario, DiaSemana, type Localidade, type TravessiaOfertada } fr
 
 /**
  * - `PASSADO`: antes de hoje, no mês corrente;
- * - `RESERVAVEL`: tem saída dentro da janela do domínio — o único dia que recebe clique;
- * - `ALEM_DO_ALCANCE`: tem saída prevista, mas depois da janela; a reserva é pelo atendimento;
+ * - `RESERVAVEL`: tem saída entre as que se reservam — o único dia que recebe clique;
+ * - `ALEM_DO_ALCANCE`: tem saída prevista, mas além do que se reserva; a reserva é pelo atendimento;
  * - `SEM_SAIDA`: dentro do calendário, sem saída (ou sem saída da cidade escolhida no filtro);
  * - `FORA_DO_CALENDARIO`: depois do último dia do alcance, no último mês.
  */
