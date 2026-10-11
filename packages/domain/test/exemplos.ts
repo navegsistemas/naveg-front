@@ -107,4 +107,9 @@ export const CATALOGO_DE_EXEMPLO: CatalogoDoFluviapp = {
     { id: 'v-rota-inativa', rotaId: 'r-inativa', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 11 * 60, ativo: true },
   ],
   atuacao: { embarcacaoIds: new Set(['e-ferry', 'e-lancha', 'e-outra']), portoIds: new Set(['p-bel', 'p-sou']) },
+  /* Uma de viagem que fica, fora da semana; outra de viagem que o recorte tira. */
+  suspensas: [
+    { viagemId: 'v-ferry', data: '2026-10-21' as DataCalendario },
+    { viagemId: 'v-nao-concedida', data: '2026-10-14' as DataCalendario },
+  ],
 }

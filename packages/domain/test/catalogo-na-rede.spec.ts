@@ -81,8 +81,22 @@ describe('o recorte pela concessão', () => {
 
   it('sem concessão, o recorte é vazio e continua sem concessão', () => {
     expect(recortarPelaConcessao({ ...POOL, atuacao: null })).toEqual({
-      viagens: [], rotas: [], portos: [], localidades: [], embarcacoes: [], atuacao: null,
+      viagens: [], rotas: [], portos: [], localidades: [], embarcacoes: [], atuacao: null, suspensas: [],
     })
+  })
+
+  it('a suspensão só sai com a viagem: a da viagem que o recorte tira fica no servidor', () => {
+    expect(recortado.suspensas.map((s) => `${s.viagemId}@${s.data}`)).toEqual(['v-ferry@2026-10-21'])
+  })
+
+  it('a data suspensa não é ofertada — no alcance de 90 dias, as outras saídas da viagem seguem', () => {
+    const oferta = travessiasOfertadas(recortado, instante('2026-10-13T08:00:00'), 90).map((t) => t.id)
+    expect(oferta).not.toContain('v-ferry@2026-10-21')
+    expect(oferta).toContain('v-lancha@2026-10-21')
+    expect(oferta).toContain('v-ferry@2026-10-28')
+    expect(travessiasOfertadas(recortado, instante('2026-10-13T08:00:00'), 90)).toEqual(
+      travessiasOfertadas(POOL, instante('2026-10-13T08:00:00'), 90),
+    )
   })
 })
 
@@ -110,6 +124,20 @@ describe('a ida e volta pelo JSON', () => {
     expect(travessiasOfertadas(volta as CatalogoDoFluviapp, agora)).toEqual(travessiasOfertadas(POOL, agora))
   })
 
+  it('a API de antes do 0.7.0, sem suspensas, ainda é catálogo — com a lista vazia', () => {
+    const { suspensas: _, ...antigo } = catalogoParaJson(CATALOGO_DE_EXEMPLO)
+    expect(catalogoDoJson(antigo)?.suspensas).toEqual([])
+  })
+
+  it('a suspensão passa pelo decodificador: sem viagem ou com data ilegível, some', () => {
+    const bom = catalogoParaJson(CATALOGO_DE_EXEMPLO)
+    const volta = catalogoDoJson({
+      ...bom,
+      suspensas: [...bom.suspensas, { id: 'x@2026-10-21', data: '2026-10-21' }, { id: 'v@31/10', viagemId: 'v', data: '31/10/2026' }],
+    })
+    expect(volta?.suspensas).toEqual(CATALOGO_DE_EXEMPLO.suspensas)
+  })
+
   it('sem concessão continua sem concessão', () => {
     expect(pelaRede({ ...POOL, atuacao: null })?.atuacao).toBeNull()
   })
@@ -118,7 +146,7 @@ describe('a ida e volta pelo JSON', () => {
     const bom = catalogoParaJson(CATALOGO_DE_EXEMPLO)
     const { viagens: _, ...semViagens } = bom
     const { atuacao: __, ...semConcessao } = bom
-    for (const torto of [null, [], 'catálogo', {}, semViagens, semConcessao, { ...bom, rotas: {} }, { ...bom, atuacao: { portoIds: [] } }]) {
+    for (const torto of [null, [], 'catálogo', {}, semViagens, semConcessao, { ...bom, rotas: {} }, { ...bom, suspensas: {} }, { ...bom, atuacao: { portoIds: [] } }]) {
       expect(catalogoDoJson(torto)).toBeNull()
     }
   })

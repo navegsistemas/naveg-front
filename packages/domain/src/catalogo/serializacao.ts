@@ -24,8 +24,10 @@ import {
   localidadeDoDocumento,
   portoDoDocumento,
   rotaDoDocumento,
+  suspensaoDoDocumento,
   viagemDoDocumento,
 } from './documentos.js'
+import { idDaSuspensao } from '../viagem/alcance-da-reserva.js'
 import type { CatalogoDoFluviapp } from './travessias.js'
 
 /** A forma do catálogo no fio. A concessão vira listas; o resto já é JSON. */
@@ -36,6 +38,8 @@ export interface CatalogoJson {
   readonly localidades: readonly Localidade[]
   readonly embarcacoes: readonly Embarcacao[]
   readonly atuacao: { readonly embarcacaoIds: readonly string[]; readonly portoIds: readonly string[] } | null
+  /** Como o documento de `suspensoes`, só com a ocorrência — e o id, como as outras listas. */
+  readonly suspensas: readonly { readonly id: string; readonly viagemId: string; readonly data: string }[]
 }
 
 export function catalogoParaJson(catalogo: CatalogoDoFluviapp): CatalogoJson {
@@ -49,6 +53,7 @@ export function catalogoParaJson(catalogo: CatalogoDoFluviapp): CatalogoJson {
       catalogo.atuacao === null
         ? null
         : { embarcacaoIds: [...catalogo.atuacao.embarcacaoIds], portoIds: [...catalogo.atuacao.portoIds] },
+    suspensas: catalogo.suspensas.map((s) => ({ id: idDaSuspensao(s), viagemId: s.viagemId, data: s.data })),
   }
 }
 
@@ -85,6 +90,11 @@ export function catalogoDoJson(dado: unknown): CatalogoDoFluviapp | null {
     atuacao = atuacaoDoDocumento(bruta)
   }
 
+  /* `suspensas` ausente é a API de antes do 0.7.0: lista vazia, e não falha de carga — o totem segue ofertando, e a
+     data suspensa a regra do servidor recusa. Presente e torta, é catálogo que não se lê. */
+  const suspensas = dado['suspensas'] ?? []
+  if (!Array.isArray(suspensas)) return null
+
   return {
     viagens: lerLista(dado['viagens'], viagemDoDocumento),
     rotas: lerLista(dado['rotas'], rotaDoDocumento),
@@ -92,5 +102,6 @@ export function catalogoDoJson(dado: unknown): CatalogoDoFluviapp | null {
     localidades: lerLista(dado['localidades'], localidadeDoDocumento),
     embarcacoes: lerLista(dado['embarcacoes'], embarcacaoDoDocumento),
     atuacao,
+    suspensas: lerLista(suspensas, suspensaoDoDocumento),
   }
 }

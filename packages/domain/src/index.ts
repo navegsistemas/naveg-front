@@ -53,6 +53,13 @@ export {
   ViagemSemana,
 } from './viagem/viagem.js'
 export type { Chegada, Viagem } from './viagem/viagem.js'
+export {
+  ALCANCE_DA_RESERVA_DIAS,
+  alcanceEmDias,
+  idDaSuspensao,
+  reservaveisAPartirDe,
+  saidaReservavel,
+} from './viagem/alcance-da-reserva.js'
 export { AtuacaoDaEmpresa } from './viagem/atuacao-da-empresa.js'
 
 // --- a agência: o catálogo do fluviapp, lido e oferecido ---
@@ -64,6 +71,7 @@ export {
   localidadeDoDocumento,
   portoDoDocumento,
   rotaDoDocumento,
+  suspensaoDoDocumento,
   viagemDoDocumento,
 } from './catalogo/documentos.js'
 export { travessiasOfertadas } from './catalogo/travessias.js'

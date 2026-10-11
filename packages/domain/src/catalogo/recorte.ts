@@ -27,7 +27,15 @@ function porId<T extends { readonly id: string }>(itens: readonly T[]): Readonly
 }
 
 /** Sem concessão, o catálogo recortado é vazio — e continua sem concessão, que é o que o diz. */
-const VAZIO: CatalogoDoFluviapp = { viagens: [], rotas: [], portos: [], localidades: [], embarcacoes: [], atuacao: null }
+const VAZIO: CatalogoDoFluviapp = {
+  viagens: [],
+  rotas: [],
+  portos: [],
+  localidades: [],
+  embarcacoes: [],
+  atuacao: null,
+  suspensas: [],
+}
 
 export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoFluviapp {
   const { atuacao } = catalogo
@@ -58,6 +66,9 @@ export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoF
   const localidadesMantidas: Localidade[] = catalogo.localidades.filter((l) => localidadesCitadas.has(l.id))
   const embarcacoesCitadas = new Set(viagens.map((viagem) => viagem.embarcacaoId))
   const embarcacoesMantidas: Embarcacao[] = catalogo.embarcacoes.filter((e) => embarcacoesCitadas.has(e.id))
+  /* A suspensão de viagem que não fica não diz nada ao totem — e a de outra transportadora não é dele. */
+  const viagensMantidas = new Set(viagens.map((viagem) => viagem.id))
+  const suspensas = catalogo.suspensas.filter((s) => viagensMantidas.has(s.viagemId))
 
   return {
     viagens,
@@ -66,5 +77,6 @@ export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoF
     localidades: localidadesMantidas,
     embarcacoes: embarcacoesMantidas,
     atuacao: { embarcacaoIds: embarcacoesCitadas, portoIds: portosCitados },
+    suspensas,
   }
 }

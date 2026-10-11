@@ -25,6 +25,7 @@ const CATALOGO: CatalogoDoFluviapp = {
   ],
   viagens: [{ id: 'v', rotaId: 'r', embarcacaoId: 'e', diaSemana: 'MONDAY', horaMin: 480, ativo: true }],
   atuacao: { embarcacaoIds: new Set(['e']), portoIds: new Set(['p-a', 'p-b']) },
+  suspensas: [],
 }
 
 /** Um `fetch` que devolve sempre a mesma resposta, e anota o que lhe pediram. */

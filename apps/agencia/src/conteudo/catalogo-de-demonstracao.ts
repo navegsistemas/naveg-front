@@ -61,4 +61,5 @@ export const CATALOGO_DE_DEMONSTRACAO: CatalogoDoFluviapp = {
     embarcacaoIds: new Set(['demo-ferry', 'demo-navio', 'demo-lancha']),
     portoIds: new Set(['demo-porto-a', 'demo-porto-b']),
   },
+  suspensas: [],
 }
