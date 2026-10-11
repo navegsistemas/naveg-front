@@ -19,10 +19,12 @@ repositório para valer em qualquer máquina: a memória local do Claude não vi
 
 Não há estado fora do repositório. Ao retomar, ler nesta ordem (a skill `retomar` faz isso):
 
-1. o **"Retomar daqui"** do [README](README.md) — onde paramos e o próximo passo;
+1. a **issue fixada "Onde paramos"** (rótulo `onde-paramos`) daqui e a do `naveg-api-vercel` — onde paramos, o que
+   espera o PO, o próximo passo. É uma issue, e não um arquivo, para não pedir PR a cada atualização (PO,
+   2026-10-11, o mesmo padrão do fluviapp-kmp#48);
 2. o [roteiro de UI/UX](docs/roteiro-de-ui-ux.md), **§10 (as fichas)** — o estado de cada seção da interface;
-3. o "Retomar daqui" do README do `naveg-api-vercel` (em `../naveg-api-vercel`);
-4. os PRs e issues abertos nos três repositórios (`navegsistemas/naveg-front`, `naveg-api-vercel`, `fluviapp-kmp`).
+3. os PRs e issues abertos nos três repositórios (`navegsistemas/naveg-front`, `naveg-api-vercel`, `fluviapp-kmp`);
+4. o `npm run verify` na `main` atualizada, nos dois checkouts — o estado dos testes é o de agora, não o da issue.
 
 O plano é um só, para front e API: [docs/plano-de-implementacao.md](docs/plano-de-implementacao.md). Decisões
 de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/RUNBOOK.md).
@@ -38,7 +40,7 @@ de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/R
   PO, o porquê, o que muda, a ordem entre repositórios e o que acontece enquanto não muda — não PR de docs nem
   nota em plano. Citar a issue no PR/README daqui. Padrão do PO desde fluviapp-kmp#41.
 - **Não mexer no checkout local do fluviapp-kmp**: ele pode estar num branch em andamento.
-- Ao encerrar, quando o PO pedir "salva onde paramos": skill `salvar-onde-paramos`.
+- Ao encerrar, quando o PO pedir "salva onde paramos": skill `salvar-onde-paramos`, que reescreve a issue (sem PR).
 
 ## O que só o PO faz
 

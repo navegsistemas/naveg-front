@@ -45,5 +45,5 @@ Registrar na ficha cada decisão com a data; "está bom como está" também é d
 ## Lembretes
 
 - CSP do Astro 7: script processado, não `is:inline`. Estilo escopado não alcança o `<svg>` do `Icone`.
-- Pedidos do PO já guardados para seções futuras ficam no "Retomar daqui" e nas fichas — conferir antes da
+- Pedidos do PO já guardados para seções futuras ficam na issue "Onde paramos" e nas fichas — conferir antes da
   análise (ex.: recolher seções no celular na 1.5/1.6/1.7; "Minha conta" no menu do tablet na 7.4).

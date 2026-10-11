@@ -26,77 +26,17 @@ pelo WhatsApp, que emite a passagem pelo aplicativo. A venda online com cadastro
 
 O plano completo, passo a passo, está em [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
-## Retomar daqui
+## Onde paramos
 
-**2026-10-09: a 1.3 está no ar como calendário (#49), e o PO segue agora pelo fluviapp-kmp.**
+O estado vivo — o que está no ar, o que espera o PO, o próximo passo — mora na **issue fixada "Onde paramos"**
+(rótulo `onde-paramos`, hoje a [#52](https://github.com/navegsistemas/naveg-front/issues/52)), e não aqui: ela é
+reescrita a cada vez, sem PR, e o histórico fica nas edições dela (pedido do PO, 2026-10-11, o mesmo padrão do
+fluviapp-kmp#48). A API tem a dela. A interface tem o estado de cada seção no
+[roteiro de UI/UX](docs/roteiro-de-ui-ux.md), §10.
 
-- **Próximo passo aqui (pedido do PO, 2026-10-09):** as fases do totem **depois da escolha da saída** — o que vai
-  embarcar, os dados, a conferência e a conclusão —, pelo ritual do roteiro (a etapa 2, §4). O PO retoma primeiro
-  no fluviapp-kmp, onde está o arcabouço das ocorrências até 90 dias.
-- **Espera outro repositório:** as ocorrências até 90 dias e a lotação vêm desse arcabouço, e depois pela API
-  (`/catalogo`). A issue na API sai quando o desenho do KMP fechar.
-- **A prévia de PR usa o catálogo de demonstração** (decisão do PO, 2026-10-09). A API só libera o CORS para a
-  homologação, e a prévia de cada PR tem endereço próprio. Na Vercel, `PUBLIC_URL_DA_API` vale `demonstracao` para
-  as prévias em geral e a URL da API **só para o branch `main`** (a homologação). O catálogo real se confere na
-  homologação, depois do merge. A CLI não separa as duas variáveis de mesmo nome (`env rm`/`update` dão
-  `multiple_envs`): mudar uma delas é pela API REST da Vercel, pelo id. E valor de variável pelo Git Bash: pelo
-  PowerShell 5.1 entra um BOM.
-- **Na máquina (2026-10-09):** `gh` e `vercel` instalados e logados; falta o PO rodar
-  `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` (o perfil com o `NPM_TOKEN` só roda depois) e
-  `gh auth refresh -s read:packages` (a API precisa para o `npm ci`).
-- **Esperam o PO, além disso:** conferir a 1.1 e a 1.2 no celular, na homologação; promover a API (a `main` dela
-  está à frente da homologação, ver o "Retomar daqui" de lá); os grupos pequenos do Dependabot (#46 aqui, #23 na
-  API). O major do TypeScript 7 segue parado de propósito (`CLAUDE.md`).
-- **O contexto do Claude mora no repositório** (#47 aqui, naveg-api-vercel#24): `CLAUDE.md` e as skills em
-  `.claude/skills/`. Numa máquina nova: clonar, rodar `/preparar-maquina` e depois `/retomar`.
+## Como está no ar
 
-**A interface (a 7.1)**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md), seção por seção (a ficha de cada uma
-está no §10):
-
-- **1.1, topo e menu — no ar** (#41 a ficha, #43 a implementação): o topo com 60px em toda largura e preso ao
-  rolar; o menu com Encomendas, Atendentes, Social e Contato, recolhido abaixo de 44rem (704px) num `<details>`
-  nativo; a rolagem suave que chega no lugar certo ([RolagemQueChega.astro](apps/agencia/src/componentes/RolagemQueChega.astro)).
-  Falta só a conferência do PO no celular, na homologação.
-- **1.2, capa — no ar** (#45, 2026-10-09). Decisões de 2026-10-08:
-  B, C e E aceitas; D = "Saída todos os dias"; F = só Macapá, sem Santana; A = a foto do F/B Maria Ivanir
-  (original em `src/assets/embarcacoes/`) só na capa, como fundo da primeira seção, com o texto branco sobre a
-  foto escurecida, e a vitrine escondida até existir a segunda foto. Falta a conferência do PO no celular.
-- **1.3, reserve sua passagem — no ar** (#49, conferida pelo PO na prévia; ficha no §10 do roteiro). Decisões
-  de 2026-10-09: o dia primeiro, num calendário; cada dia diz de onde o barco sai, e o sentido é filtro; 90 dias à
-  vista, só a janela de 7 clicável e o resto com o WhatsApp; no computador, calendário e saídas lado a lado; um texto
-  só no lugar do subtítulo e do aviso. Pedido na prévia: escolhido o dia, a página leva até as saídas (no celular
-  elas ficam abaixo do calendário). O dia lotado (riscado) espera a API saber da lotação. O quiosque não muda.
-- **Guardado para seções futuras:** recolher seções no celular (1.5/1.6/1.7); na 7.4, "Minha conta" como 5º
-  item pode não caber no tablet de 768px — remedir o ponto de recolher.
-
-Também em 2026-10-08: o RUNBOOK (13.5, #38), o Lighthouse no CI (13.6, #39, mais firme no #42), o `npm audit fix`
-(#40) e, na API, o limite de 20 reservas por IP (naveg-api-vercel#22) — que, como o Hono 2, **só chega à
-homologação na próxima promoção**; conferir o catálogo e uma reserva gravada logo depois.
-
-**2026-10-06: a venda online entrou no MVP** (a entrega 7 do KMP, fluviapp-kmp#39): conta do cliente e compra
-com PIX e cartão pelo Mercado Pago, ao lado da reserva, que não muda. O lado do site está em
-[docs/plano-da-venda-online.md](docs/plano-da-venda-online.md). **O passo 13 (a entrega 6), feito já com a
-compra em mente, fecha com a 13.6**: da 13.1 à 13.5 (cabeçalhos e CSP, teclado e sem JavaScript, imagem de
-compartilhamento e sitemap, a política de privacidade e o [RUNBOOK](docs/RUNBOOK.md)) estão mergeadas, e a 13.6,
-o Lighthouse no CI, está feita. O e-mail do domínio está pronto desde 2026-10-07 (o encarregado responde em
-privacidade@gruponaveg.com.br, testado pelo PO). **Depois dele, a interface (a 7.1), com calma**, pelo [roteiro de UI/UX](docs/roteiro-de-ui-ux.md):
-seção por seção, começando pelas seções vigentes (a 1.1, topo e menu). Ordem decidida pelo PO em 2026-10-06. Um
-achado com prazo: a conta não funciona
-nos endereços `*.vercel.app`, e a homologação precisa de subdomínios de `gruponaveg.com.br` antes da 7.4 (U8).
-
-**2026-10-05: a reserva de encomenda vai ao ar** — a entrega 3 do plano do MVP do KMP (`docs/plano-do-mvp.md`
-lá): o domínio 0.6.0 com a `ReservaDeEncomenda` no codec, a API gravando, e a seção "Envie sua encomenda" na
-página. **Provado de ponta a ponta no mesmo dia, pelo PO:** a encomenda reservada na homologação foi gravada em
-`reservas` (`categoria: ENCOMENDA`), apareceu em Reservas no painel do KMP e foi recebida como encomenda pelo
-botão Receber. **Próxima, pelo plano do MVP:** a 4 e a 5 (o caixa por viagem) são do KMP; aqui, a 6 — o resto do
-endurecimento e a política de privacidade. Em 2026-10-02 entraram os majors do Dependabot,
-menos o TypeScript 7. Em 2026-10-01 o passo 12 fechou no KMP e o 13 começou pelo E2E da reserva. Em 2026-09-25 o passo 11 tinha
-fechado com o caminho inteiro funcionando: o cliente reserva no totem de
-homologação, a API grava sob as Rules do `fluviapp-kmp`, e o botão **"Enviar ao atendimento"** abre o WhatsApp
-da NAVEG, `(91) 99203-5322`, com a reserva escrita. O atendente acha a reserva pelo código no painel do KMP.
-Provado de ponta a ponta nesse dia.
-
-**Como está no ar** (plano de ambientes, §3):
+Pelo plano de ambientes, §3:
 
 - **Homologação do front:** `naveg-front-agencia.vercel.app`, o preview da `main`, atrás do login da Vercel.
 - **A API:** `naveg-api-vercel.vercel.app`, o deploy de *produção*, sobre o `fluvi-app-dev`. Faz as vezes de
@@ -109,7 +49,7 @@ Provado de ponta a ponta nesse dia.
 
 **O que confere cada PR:** `verificar`, `build e orçamento`, `e2e da reserva` (obrigatório na `main` desde 2026-10-01) e `contrato com o
 fluviapp` (54 cenários contra o Kotlin do KMP e do app legado, nenhum pulado) e `lighthouse` (desde 2026-10-08) aqui; `verificar`, `auditoria`, `emulador` (a gravação de ponta a
-ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **494 cenários**,
+ponta sob as Rules) e `fumaca` (cada deploy responde de verdade) na API. `npm run verify` roda **522 cenários** (2026-10-11),
 um pulado, e pede **Node 22.22.2 ou mais**: abaixo disso o jsdom 30 deixa 7 cenários de tela do totem
 vermelhos (`useId` nulo) só na máquina, porque o CI já usa o Node 22 mais novo. O orçamento está em 65,8 kB de runtime e 25,7 kB de
 ilhas e carregador, de um teto que subiu de 20 para 25 com a segunda ilha e para 28 com o calendário da 1.3 (`npm run conferir:build`). `npm run e2e` dá cenários em 4 navegadores (Chromium e WebKit, desktop e celular), 66 execuções e 6 puladas;
