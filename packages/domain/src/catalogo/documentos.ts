@@ -20,6 +20,7 @@ import { Uf, type Localidade } from '../localidade/localidade.js'
 import type { Porto, Rota } from '../rota/rota.js'
 import type { AtuacaoDaEmpresa } from '../viagem/atuacao-da-empresa.js'
 import type { Embarcacao } from '../viagem/embarcacao.js'
+import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import { TipoEmbarcacao } from '../viagem/tipo-embarcacao.js'
 import type { Viagem } from '../viagem/viagem.js'
 
@@ -32,6 +33,8 @@ export const COLECOES_DO_FLUVIAPP = {
   viagens: 'viagens',
   /** `empresas/{empresaId}/atuacoes/{ATUACAO}` — o id do documento é o nome da atuação. */
   atuacoes: 'atuacoes',
+  /** `suspensoes/{viagemId}@{data}`, na raiz — as datas em que a viagem não sai (fluviapp-kmp#44). */
+  suspensoes: 'suspensoes',
 } as const
 
 /** A atuação que a agência virtual exerce. O id do documento da concessão. */
@@ -144,6 +147,15 @@ export function embarcacaoDoDocumento(id: string, dado: unknown): Embarcacao | n
     capacidadeCamarote: inteiro(dado, 'capacidadeCamarote'),
     empresaId: texto(dado, 'empresaId'),
   }
+}
+
+/**
+ * A saída suspensa: só a ocorrência, `viagemId` e `data` — o `SaidaSuspensaDocumento.paraDominio` do KMP, que
+ * recusa sem viagem ou com data ilegível. O motivo e quem suspendeu ficam no servidor (ver `alcance-da-reserva.ts`).
+ */
+export function suspensaoDoDocumento(_id: string, dado: unknown): OcorrenciaViagem | null {
+  if (!ehObjeto(dado)) return null
+  return OcorrenciaViagem.de(texto(dado, 'viagemId'), texto(dado, 'data'))
 }
 
 /** A concessão: `embarcacaoIds` e `portoIds`, como o `EmpresaFirestoreRepository` os lê. */

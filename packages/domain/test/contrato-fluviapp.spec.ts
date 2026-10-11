@@ -57,6 +57,8 @@ import { CAMPOS_DO_DOCUMENTO } from '../src/reserva/documento.js'
 import { CATEGORIAS_DE_RESERVA, PENDENCIAS_DA_RESERVA } from '../src/reserva/reserva.js'
 import { DIAS_DA_SEMANA } from '../src/primitivos/dia-semana.js'
 import { TIPOS_DE_EMBARCACAO, TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
+import { ALCANCE_DA_RESERVA_DIAS } from '../src/viagem/alcance-da-reserva.js'
+import { DIAS_DA_JANELA } from '../src/viagem/viagem.js'
 
 /** Um checkout do fluviapp: onde mora o domínio, onde moram os documentos, e se ele está nesta máquina. */
 interface Fonte {
@@ -304,6 +306,7 @@ const CHAVES_NO_KMP: Readonly<Record<string, readonly string[]>> = {
     'capacidadeCamarote',
     'empresaId',
   ],
+  'viagem/SaidaSuspensaDocumento.kt': ['viagemId', 'data'],
 }
 
 /**
@@ -316,7 +319,7 @@ const CHAVES_NO_ORIGINAL: Readonly<Record<string, readonly string[]>> = {
 }
 
 /** As coleções que a agência lê do fluviapp. */
-const COLECOES_LIDAS = ['localidades', 'portos', 'rotas', 'embarcacoes', 'viagens', 'empresas', 'atuacoes'] as const
+const COLECOES_LIDAS = ['localidades', 'portos', 'rotas', 'embarcacoes', 'viagens', 'empresas', 'atuacoes', 'suspensoes'] as const
 
 // ---------------------------------------------------------------------------------------------------------
 // Os cenários
@@ -490,6 +493,21 @@ describe(`camada 2 · a tabela bate com o fluviapp-kmp${ausente(KMP)}`, () => {
       for (const chave of chaves) expect(propriedades.has(chave), `${arquivo}: "${chave}"`).toBe(true)
     })
   }
+
+  /*
+   * O alcance (fluviapp-kmp#44): se o 90 ou o 7 divergirem do Kotlin — e da regra, que repete os dois —, o site
+   * oferece uma data que a gravação recusa.
+   */
+  it.skipIf(!KMP.presente)('o alcance da reserva e a janela do balcão, lidos do Kotlin e das Rules', () => {
+    const alcance = semRuido(kotlin(KMP, `${KMP.dominio}/viagem/AlcanceDaReserva.kt`))
+    expect(Number(/ALCANCE_DA_RESERVA_DIAS\s*:\s*Int\s*=\s*(\d+)/.exec(alcance)?.[1])).toBe(ALCANCE_DA_RESERVA_DIAS)
+    expect(alcance).toMatch(/ENCOMENDA\s*->\s*DIAS_DA_JANELA/)
+    const janela = semRuido(kotlin(KMP, `${KMP.dominio}/viagem/ViagemSemana.kt`))
+    expect(Number(/DIAS_DA_JANELA\s*(?::\s*Int\s*)?=\s*(\d+)/.exec(janela)?.[1])).toBe(DIAS_DA_JANELA)
+
+    const regras = readFileSync(join(KMP.raiz, 'firestore.rules'), 'utf8')
+    expect(regras).toContain(`d.categoria == 'ENCOMENDA' ? ${DIAS_DA_JANELA} : ${ALCANCE_DA_RESERVA_DIAS}`)
+  })
 
   it.skipIf(!KMP.presente)('a reserva: as chaves do ReservaDocumento.kt são as do CAMPOS_DO_DOCUMENTO, na ordem', () => {
     const fonte = kotlin(KMP, `${KMP.dados}/reserva/ReservaDocumento.kt`)

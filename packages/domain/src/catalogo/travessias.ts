@@ -33,6 +33,8 @@ import type { Porto, Rota } from '../rota/rota.js'
 import { AtuacaoDaEmpresa } from '../viagem/atuacao-da-empresa.js'
 import type { Embarcacao } from '../viagem/embarcacao.js'
 import { formatarHora } from '../viagem/hora-do-dia.js'
+import { idDaSuspensao } from '../viagem/alcance-da-reserva.js'
+import type { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import { TipoEmbarcacao } from '../viagem/tipo-embarcacao.js'
 import {
   chegadaEstimada,
@@ -52,6 +54,8 @@ export interface CatalogoDoFluviapp {
   readonly embarcacoes: readonly Embarcacao[]
   /** A concessão da agência (`empresas/{id}/atuacoes/AGENCIAMENTO`). Ausente = não oferta nada. */
   readonly atuacao: AtuacaoDaEmpresa | null
+  /** As saídas suspensas (`suspensoes`): a data em que a viagem não sai. Não são oferecidas (fluviapp-kmp#44). */
+  readonly suspensas: readonly OcorrenciaViagem[]
 }
 
 export interface TravessiaOfertada {
@@ -99,7 +103,9 @@ function rotuloDaChegada(chegada: Chegada): string {
 /**
  * **O catálogo público**: as travessias ofertáveis a partir de `agora`, ordenadas pela partida.
  *
- * `agora` é o relógio **no fuso da operação** (`InstanteLocal.emFuso`), pela razão escrita lá.
+ * `agora` é o relógio **no fuso da operação** (`InstanteLocal.emFuso`), pela razão escrita lá. `dias` é o
+ * alcance — `alcanceEmDias(categoria)` para o que se pode pedir. A saída suspensa nunca é ofertada: é o
+ * `reservaveisAPartirDe` do Kotlin, com o escopo e os rótulos do site.
  */
 export function travessiasOfertadas(
   catalogo: CatalogoDoFluviapp,
@@ -120,8 +126,10 @@ export function travessiasOfertadas(
     return rota !== undefined && rota.ativo && AtuacaoDaEmpresa.podeOfertar(atuacao, viagem, rota)
   })
 
-  /* 2 · a disponibilidade — e 3 · os rótulos. */
-  return disponiveisAPartirDe(noEscopo, agora, dias).flatMap((ocorrencia): TravessiaOfertada[] => {
+  /* 2 · a disponibilidade, menos as suspensas — e 3 · os rótulos. */
+  const suspensas = new Set(catalogo.suspensas.map(idDaSuspensao))
+  const disponiveis = disponiveisAPartirDe(noEscopo, agora, dias).filter((o) => !suspensas.has(ViagemSemana.id(o)))
+  return disponiveis.flatMap((ocorrencia): TravessiaOfertada[] => {
     const rota = rotas.get(ocorrencia.viagem.rotaId) as Rota
     const origem = portos.get(rota.portoOrigemId)
     const destino = portos.get(rota.portoDestinoId)
