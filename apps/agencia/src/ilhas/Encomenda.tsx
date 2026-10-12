@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import {
+  alcanceEmDias,
   linkDaEncomenda,
   montarEncomenda,
   roteiroDaEncomenda,
@@ -71,7 +72,8 @@ export function Encomenda({
   atendimento = null,
   relogio = relogioDoSistema,
 }: PropsDaEncomenda) {
-  const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(fonte, fuso, relogio)
+  /* A encomenda fica na semana (fluviapp-kmp#44): ninguém despacha volume com meses de antecedência. */
+  const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(fonte, fuso, relogio, alcanceEmDias('ENCOMENDA'))
   /* Guardada inteira, como no totem: se partir com a tela aberta, a conferência ainda precisa dela. */
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
   const [respostas, setRespostas] = useState<RespostasDaEncomenda>({})

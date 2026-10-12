@@ -174,15 +174,15 @@ describe('o calendário, na página (UI 1.3)', () => {
     expect(saidasListadas().some((li) => li.textContent?.includes('Cidade Exemplo B/PA →'))).toBe(true)
   })
 
-  it('depois da janela de sete dias, o dia aparece, não se escolhe, e o aviso leva ao atendimento (decisão B)', async () => {
+  it('os 90 dias se escolhem, sem o aviso do atendimento (naveg-front#51, fluviapp-kmp#44)', async () => {
     montarComCalendario({ atendimento: '(91) 99203-5322' })
     await screen.findByRole('heading', { level: 4 })
-    /* A janela vai de 13 a 19/10: o dia 19 se reserva, o 20 não. */
+    /* Até a #51, só a semana (13 a 19/10) se reservava, e o dia 20 mandava para o atendimento (decisão B). */
     expect(screen.getByRole('button', { name: /^segunda-feira, 19 de outubro/ })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /^terça-feira, 20 de outubro/ })).toBeNull()
-    expect(screen.getByText(/^terça-feira, 20 de outubro, saídas de .*, reserva pelo atendimento$/)).toBeTruthy()
-    const link = screen.getByRole('link', { name: 'fale com o atendimento pelo WhatsApp' })
-    expect(link.getAttribute('href')).toBe('https://wa.me/5591992035322')
+    fireEvent.click(screen.getByRole('button', { name: /^terça-feira, 20 de outubro/ }))
+    expect(saidasListadas().length).toBeGreaterThan(0)
+    expect(screen.queryByText(/reserva pelo atendimento$/)).toBeNull()
+    expect(screen.queryByRole('link', { name: 'fale com o atendimento pelo WhatsApp' })).toBeNull()
   })
 
   it('o mês anda de outubro até o do 90º dia, e não passa dele', async () => {
@@ -196,7 +196,7 @@ describe('o calendário, na página (UI 1.3)', () => {
     /* 13/10/2026 + 89 dias = 10/01/2027. */
     expect(screen.getByText('janeiro de 2027')).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Próximo mês' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.getByText(/^domingo, 10 de janeiro, saídas de/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^domingo, 10 de janeiro, saídas de/ })).toBeTruthy()
     expect(screen.getByText('segunda-feira, 11 de janeiro')).toBeTruthy()
   })
 
@@ -222,9 +222,14 @@ describe('o calendário, na página (UI 1.3)', () => {
     fireEvent.keyDown(hoje, { key: 'ArrowRight' })
     expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 14 de outubro/)
     fireEvent.keyDown(document.activeElement as Element, { key: 'ArrowDown' })
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 21 de outubro/)
+    fireEvent.keyDown(document.activeElement as Element, { key: 'ArrowUp' })
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 14 de outubro/)
+    /* Uma semana acima do 14 é o dia 7, que já passou: o foco fica onde está. */
+    fireEvent.keyDown(document.activeElement as Element, { key: 'ArrowUp' })
     expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^quarta-feira, 14 de outubro/)
     fireEvent.keyDown(document.activeElement as Element, { key: 'End' })
-    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^segunda-feira, 19 de outubro/)
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^sábado, 31 de outubro/)
   })
 })
 

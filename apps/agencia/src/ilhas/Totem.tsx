@@ -13,6 +13,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import {
+  alcanceEmDias,
+  DIAS_DA_JANELA,
   InstanteLocal,
   linkDaReserva,
   montarReserva,
@@ -101,7 +103,14 @@ const CODIGO_DA_PREVIA = 'NVG-000000'
 const relogioDoSistema = () => new Date()
 
 export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema }: PropsDoTotem) {
-  const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(fonte, fuso, relogio)
+  /* Com o calendário (a página), a passagem vai até o alcance da reserva — 90 dias, para passageiro e veículo
+     (fluviapp-kmp#44). Sem ele (o quiosque), a lista fica na semana: o quiosque não muda (UI 1.3). */
+  const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(
+    fonte,
+    fuso,
+    relogio,
+    alcanceDoCalendario === null ? DIAS_DA_JANELA : alcanceEmDias('PASSAGEIRO'),
+  )
 
   /* O calendário guarda só os gestos — a origem do filtro, o dia e o mês que a pessoa escolheu. O dia em vigor é
      derivado: se o escolhido deixou de se reservar (partiu, ou o filtro o apagou), vale o primeiro que se reserva. */

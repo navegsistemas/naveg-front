@@ -2,12 +2,18 @@
  * **As saídas ofertadas agora** — o que o totem de passagem e a seção de encomenda dividem.
  *
  * Carrega o catálogo uma vez, lê o relógio a cada minuto (uma saída pode partir com a tela aberta) e deriva a
- * oferta de `travessiasOfertadas`. Toda saída ofertada aceita encomenda (C7), então as duas ilhas mostram a
- * mesma lista.
+ * oferta de `travessiasOfertadas`. Toda saída ofertada aceita encomenda (C7); o que muda entre as ilhas é o
+ * alcance (fluviapp-kmp#44): a passagem na página vai a 90 dias, a encomenda e o quiosque ficam na semana.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { InstanteLocal, travessiasOfertadas, type CatalogoDoFluviapp, type TravessiaOfertada } from '@navegsistemas/domain'
+import {
+  DIAS_DA_JANELA,
+  InstanteLocal,
+  travessiasOfertadas,
+  type CatalogoDoFluviapp,
+  type TravessiaOfertada,
+} from '@navegsistemas/domain'
 import type { FonteDoCatalogo } from '@navegsistemas/dados'
 
 export interface Oferta {
@@ -20,7 +26,8 @@ export interface Oferta {
   readonly oferta: readonly TravessiaOfertada[]
 }
 
-export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => Date): Oferta {
+/** `dias`: o alcance do que se reserva — `alcanceEmDias(categoria)`, ou a semana. */
+export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => Date, dias = DIAS_DA_JANELA): Oferta {
   const lerAgora = useCallback(() => InstanteLocal.emFuso(relogio(), fuso), [relogio, fuso])
 
   const [catalogo, setCatalogo] = useState<CatalogoDoFluviapp | null>(null)
@@ -45,7 +52,10 @@ export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => D
     return () => clearInterval(intervalo)
   }, [lerAgora])
 
-  const oferta = useMemo(() => (catalogo === null ? [] : travessiasOfertadas(catalogo, agora)), [catalogo, agora])
+  const oferta = useMemo(
+    () => (catalogo === null ? [] : travessiasOfertadas(catalogo, agora, dias)),
+    [catalogo, agora, dias],
+  )
 
   return { lerAgora, agora, catalogo, catalogoFalhou, oferta }
 }
