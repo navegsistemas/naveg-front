@@ -185,10 +185,9 @@ até o painel do KMP. Se algo falhar:
 vercel rollback                            # volta ao deploy anterior, sem rebuild
 ```
 
-**Atenção na próxima promoção:** a homologação está no deploy do #17. A próxima leva junto o Hono 2 (o ponto de
-entrada trocado para `getRequestListener`), o Vitest 5 e o limite de 20 reservas por IP (naveg-api-vercel#22).
-A fumaça do preview passou; a conferência acima é
-obrigatória mesmo assim.
+**A promoção que falha antes do build** ("Git information retrieval failed", ou `403` de *secondary rate limit*
+do GitHub) não mexeu no ar: a homologação segue no deploy anterior, e não há o que voltar. É a Vercel buscando o
+commit no GitHub; esperar alguns minutos e promover de novo (2026-10-12, durante um incidente da Vercel).
 
 **O front** não tem promoção: a homologação é o preview da `main`. Voltar atrás é reverter o PR; um
 `PUBLIC_…` novo só vale num build novo da `main`.
