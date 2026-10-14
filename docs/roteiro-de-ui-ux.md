@@ -144,8 +144,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário); **próximo, pedido do PO em 2026-10-09: as fases do totem depois da escolha da saída** (etapa 2); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 em análise, esperando o PO** (pedido de 2026-10-09: as fases depois da escolha da saída; com o cais e o aviso de alteração da #56); as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -345,3 +345,41 @@ na API sai quando o desenho de lá fechar.
 na página, a passagem se reserva nos 90 dias, sem as datas que a transportadora suspendeu. A encomenda fica na
 semana, e o quiosque não muda. O estado "reserva pelo atendimento" continua no calendário, para o dia que ele
 mostrar além do que se reserva. A **lotação (C)** segue esperando a API.
+
+### 2.2 — O que vai embarcar
+
+**Situação:** em análise, esperando o PO (2026-10-14). É a primeira das fases depois da escolha da saída, o pedido do
+PO de 2026-10-09. Entra junto a parte visual da #56: o cais do dia e o aviso de alteração, no resumo da saída escolhida
+que acompanha todas as fases. **Wireframe** (privado do PO): [2.2](https://claude.ai/artifact/RYxFSUYBb5Fj8GctwXKZYQ).
+
+**Levantamento** (2026-10-14, build de demonstração, o fluxo inteiro depois da escolha, 360px e 1280px): uma
+pergunta por tela, com "Passo n de m" em cima, a pergunta, a ajuda quando há, e a saída numa linha de texto cinza
+("Cidade Exemplo A/PA → Cidade Exemplo B/PA · Quinta-feira, 15/10 · 18:00", três linhas no celular). As opções são
+cartões com o nome ("Passageiro", "Veículo"); a acomodação diz quantas pessoas cabem. Embaixo, "Voltar" e
+"Recomeçar" lado a lado. O caminho do passageiro de rede inteira: categoria, acomodação, tipo, quem reserva,
+conferência (5 passos); o do veículo: categoria, natureza, classe, e a cilindrada se for moto.
+
+**Achados:**
+
+1. **O total do indicador cresce**: "Passo 1 de 3", depois "2 de 4", depois "3 de 5". O código faz de propósito (o
+   caminho se revela com as respostas), mas para quem usa parece um formulário que não acaba;
+2. **a saída escolhida não diz de onde o barco sai.** A linha tem as cidades da rota e a hora, sem o cais e sem a
+   embarcação. Desde o #59, a rota é Belém → Macapá e o cais em Santana só aparece na mensagem do WhatsApp. A data
+   alterada (fluviapp-kmp#52) não avisa em lugar nenhum da tela;
+3. **as opções não dizem o que se escolhe.** "Veículo" não diz se quem dirige precisa de passagem própria; "Rede",
+   "Suíte" e "Camarote" dizem só a lotação. O texto precisa de fatos da operação;
+4. **"Recomeçar" tem o mesmo peso de "Voltar"** e apaga tudo sem perguntar;
+5. **no computador, cada opção ocupa a largura inteira** (uma palavra numa faixa de 630px);
+6. **para outras partes:** a conferência repete a travessia duas vezes, no cabeçalho e na primeira linha, e não deixa
+   corrigir um passo (a 2.4); a conclusão repete o resumo inteiro (a 2.5); o preço da tabela (a 7.2).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O resumo da saída escolhida | **um quadro só, igual em todas as fases**: dia e hora, as cidades da rota, o cais de embarque e o de desembarque com a cidade, a embarcação, e "Trocar" (volta ao calendário sem perder as respostas) |
+| **B** | O aviso da data alterada | **no quadro da saída, na conferência, na conclusão e na mensagem do WhatsApp**: "Embarque alterado nesta data: {motivo}", com o cais e a hora do dia, sem mostrar o cais de antes. A lista de saídas do dia (2.1) também, se o PO quiser |
+| **C** | O indicador | **as quatro etapas pelo nome**: Saída › Embarque › Seus dados › Conferir |
+| **D** | O texto das opções | **uma linha curta em cada opção**, com fatos que o PO dá: o que a rede inclui (o passageiro leva a rede?), se quem dirige o veículo precisa de passagem, o que distingue a suíte do camarote |
+| **E** | O "Recomeçar" | **um link discreto, com confirmação na tela**; "Voltar" fica como o botão |
+| **F** | O computador | **as opções em duas ou três colunas** |
