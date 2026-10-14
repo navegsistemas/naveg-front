@@ -19,7 +19,7 @@
  * O atendente precisa dele à vista, e ele pode não ser o da conversa.
  */
 import { formatarWhatsapp } from '../reserva/contato.js'
-import type { RotulosDaMensagem } from '../reserva/link-de-atendimento.js'
+import { linhasDaTravessia, type RotulosDaMensagem } from '../reserva/link-de-atendimento.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import type { ReservaDeEncomenda } from '../reserva/reserva.js'
 import { FaixaPeso, TipoVolume } from './volume.js'
@@ -53,7 +53,7 @@ export function quemRetira(reserva: ReservaDeEncomenda): string {
 export function mensagemDaEncomenda(reserva: ReservaDeEncomenda, rotulos: RotulosDaMensagem): string {
   return [
     `Encomenda ${reserva.codigo}`,
-    `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`,
+    ...linhasDaTravessia(rotulos),
     oQueVai(reserva),
     quemRetira(reserva),
     'Entregue no porto antes da partida.',

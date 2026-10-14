@@ -82,9 +82,10 @@ test.describe('a encomenda na página', () => {
     expect(`${link.origin}${link.pathname}`).toBe(`https://wa.me/${WHATSAPP_DA_NAVEG}`)
     const mensagem = (link.searchParams.get('text') ?? '').split('\n')
     expect(mensagem[0]).toBe(`Encomenda ${CODIGO_DO_SERVIDOR}`)
-    expect(mensagem[2]).toBe('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
-    expect(mensagem[3]).toBe('De Maria Souza para João Lima, (96) 98888-7777')
-    expect(mensagem[4]).toBe('Entregue no porto antes da partida.')
+    expect(mensagem[2]).toBe('Embarque: Porto de demonstração · Cidade Exemplo A/PA')
+    expect(mensagem[3]).toBe('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
+    expect(mensagem[4]).toBe('De Maria Souza para João Lima, (96) 98888-7777')
+    expect(mensagem[5]).toBe('Entregue no porto antes da partida.')
   })
 
   test('pelo botão "Enviar encomenda" da capa, do mesmo jeito', async ({ page }) => {

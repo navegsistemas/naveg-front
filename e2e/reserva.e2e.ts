@@ -83,9 +83,11 @@ test.describe('a reserva no quiosque', () => {
     expect(`${link.origin}${link.pathname}`).toBe(`https://wa.me/${WHATSAPP_DA_NAVEG}`)
     const mensagem = (link.searchParams.get('text') ?? '').split('\n')
     expect(mensagem[0]).toBe(`Reserva ${CODIGO_DO_SERVIDOR}`)
-    expect(mensagem[1]).toMatch(/^Porto de demonstração · Cidade Exemplo A\/PA → Porto de demonstração · Cidade Exemplo B\/PA · /)
-    expect(mensagem[2]).toBe('Rede · 1 pessoa · Maria Souza')
-    expect(mensagem[3]).toBe('Vale até a partida.')
+    /* As cidades da rota, e o cais do dia na linha de baixo (fluviapp-kmp#51). */
+    expect(mensagem[1]).toMatch(/^Cidade Exemplo A\/PA → Cidade Exemplo B\/PA · /)
+    expect(mensagem[2]).toBe('Embarque: Porto de demonstração · Cidade Exemplo A/PA')
+    expect(mensagem[3]).toBe('Rede · 1 pessoa · Maria Souza')
+    expect(mensagem[4]).toBe('Vale até a partida.')
   })
 
   test('a saída que partiu é recusada, e o totem oferece outra', async ({ page }) => {

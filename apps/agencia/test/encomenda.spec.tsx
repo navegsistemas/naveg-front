@@ -200,9 +200,12 @@ describe('a seção de encomenda', () => {
     const mensagem = new URL(link.getAttribute('href') ?? '').searchParams.get('text') ?? ''
     const linhas = mensagem.split('\n')
     expect(linhas[0]).toMatch(/^Encomenda NVG-[0-9A-Z]{6}$/)
-    expect(linhas[2]).toBe('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
-    expect(linhas[3]).toBe('Carlos Melo envia e retira no destino, (91) 98888-1234')
-    expect(linhas[4]).toBe('Entregue no porto antes da partida.')
+    expect(linhas[1]).toMatch(/^Cidade Exemplo A\/PA → Cidade Exemplo B\/PA · /)
+    /* O cais do dia, para o atendimento confirmar onde a pessoa entrega (fluviapp-kmp#51). */
+    expect(linhas[2]).toBe('Embarque: Porto de demonstração · Cidade Exemplo A/PA')
+    expect(linhas[3]).toBe('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
+    expect(linhas[4]).toBe('Carlos Melo envia e retira no destino, (91) 98888-1234')
+    expect(linhas[5]).toBe('Entregue no porto antes da partida.')
   })
 
   it('a saída que parte com a tela aberta é recusada na conferência', async () => {

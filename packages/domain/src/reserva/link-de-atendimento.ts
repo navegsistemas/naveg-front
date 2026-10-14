@@ -30,9 +30,18 @@ import type { Reserva, ReservaDeEncomenda, ReservaDePassageiro, ReservaDeVeiculo
 
 /** O que a mensagem precisa da travessia — os rótulos que o catálogo já escreveu (`TravessiaOfertada.rotulos`). */
 export interface RotulosDaMensagem {
+  /** As cidades da rota: "Belém/PA". */
   readonly origem: string
   readonly destino: string
   readonly partida: string
+  /** O cais do dia, "Porto do Grego · Santana/AP" — o atendimento confirma por ele onde a pessoa embarca. */
+  readonly embarque?: string
+}
+
+/** "Belém/PA → Macapá/AP · Qua, 14/10 · 18:00", e o cais de embarque na linha de baixo, quando se sabe. */
+export function linhasDaTravessia(rotulos: RotulosDaMensagem): string[] {
+  const travessia = `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`
+  return rotulos.embarque === undefined ? [travessia] : [travessia, `Embarque: ${rotulos.embarque}`]
 }
 
 /**
@@ -78,7 +87,8 @@ function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
  *
  * ```
  * Reserva NVG-7K3QP2
- * Porto do Sal · Belém/PA → Porto de Camará · Salvaterra/PA · Qua, 14/10 · 18:00
+ * Belém/PA → Salvaterra/PA · Qua, 14/10 · 18:00
+ * Embarque: Porto do Sal · Belém/PA
  * Rede · 1 pessoa · Maria Souza
  * Vale até a partida.
  * ```
@@ -89,7 +99,7 @@ export function mensagemDaReserva(reserva: Reserva, rotulos: RotulosDaMensagem):
   if (reserva.categoria === 'ENCOMENDA') return mensagemDaEncomenda(reserva, rotulos)
   return [
     `Reserva ${reserva.codigo}`,
-    `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`,
+    ...linhasDaTravessia(rotulos),
     `${aPassagem(reserva)} · ${reserva.cliente.nome}`,
     'Vale até a partida.',
   ].join('\n')
