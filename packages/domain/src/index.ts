@@ -61,9 +61,18 @@ export {
   saidaReservavel,
 } from './viagem/alcance-da-reserva.js'
 export { AtuacaoDaEmpresa } from './viagem/atuacao-da-empresa.js'
+export {
+  alteracoesPorId,
+  idDaAlteracao,
+  MUDANCAS_NA_SAIDA,
+  mudancasSobre,
+  saidaEm,
+} from './viagem/alteracao-da-saida.js'
+export type { AlteracaoDaSaida, MudancaNaSaida, SaidaDoDia } from './viagem/alteracao-da-saida.js'
 
 // --- a agência: o catálogo do fluviapp, lido e oferecido ---
 export {
+  alteracaoDoDocumento,
   ATUACAO_DA_AGENCIA,
   atuacaoDoDocumento,
   COLECOES_DO_FLUVIAPP,
@@ -75,7 +84,7 @@ export {
   viagemDoDocumento,
 } from './catalogo/documentos.js'
 export { travessiasOfertadas } from './catalogo/travessias.js'
-export type { CatalogoDoFluviapp, TravessiaOfertada } from './catalogo/travessias.js'
+export type { AvisoDeAlteracao, CatalogoDoFluviapp, TravessiaOfertada } from './catalogo/travessias.js'
 export { recortarPelaConcessao } from './catalogo/recorte.js'
 export { catalogoDoJson, catalogoParaJson } from './catalogo/serializacao.js'
 export type { CatalogoJson } from './catalogo/serializacao.js'

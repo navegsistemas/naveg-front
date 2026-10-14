@@ -32,8 +32,8 @@ const POOL: CatalogoDoFluviapp = {
   ],
   viagens: [
     ...CATALOGO_DE_EXEMPLO.viagens,
-    { id: 'v-inativa', rotaId: 'r-ida', embarcacaoId: 'e-ferry', diaSemana: 'THURSDAY', horaMin: 8 * 60, ativo: false },
-    { id: 'v-de-outra-agencia', rotaId: 'r-ida', embarcacaoId: 'e-de-outra-agencia', diaSemana: 'FRIDAY', horaMin: 6 * 60, ativo: true },
+    { id: 'v-inativa', rotaId: 'r-ida', embarcacaoId: 'e-ferry', diaSemana: 'THURSDAY', horaMin: 8 * 60, ativo: false, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
+    { id: 'v-de-outra-agencia', rotaId: 'r-ida', embarcacaoId: 'e-de-outra-agencia', diaSemana: 'FRIDAY', horaMin: 6 * 60, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
   ],
 }
 
@@ -81,7 +81,7 @@ describe('o recorte pela concessão', () => {
 
   it('sem concessão, o recorte é vazio e continua sem concessão', () => {
     expect(recortarPelaConcessao({ ...POOL, atuacao: null })).toEqual({
-      viagens: [], rotas: [], portos: [], localidades: [], embarcacoes: [], atuacao: null, suspensas: [],
+      viagens: [], rotas: [], portos: [], localidades: [], embarcacoes: [], atuacao: null, suspensas: [], alteracoes: [],
     })
   })
 

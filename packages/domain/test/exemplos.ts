@@ -71,7 +71,7 @@ export const ENCOMENDA_DO_PROPRIO: RespostasDaEncomenda = {
 
 /**
  * Um catálogo com um pouco de tudo o que a oferta descarta: viagem de embarcação concedida que não existe na
- * coleção, rota com porto fora da concessão, rota inativa. Uma terça-feira às 08:00 (2026-10-13) vê as saídas
+ * coleção, viagem com cais fora da concessão, rota inativa. Uma terça-feira às 08:00 (2026-10-13) vê as saídas
  * de quarta.
  */
 export const CATALOGO_DE_EXEMPLO: CatalogoDoFluviapp = {
@@ -85,9 +85,9 @@ export const CATALOGO_DE_EXEMPLO: CatalogoDoFluviapp = {
     { id: 'p-fora', nome: 'Porto sem concessão', localidadeId: 'bel', ativo: true },
   ],
   rotas: [
-    { id: 'r-ida', portoOrigemId: 'p-bel', portoDestinoId: 'p-sou', distanciaMn: 40, tempoMedioH: 3.5, ativo: true },
-    { id: 'r-fora', portoOrigemId: 'p-bel', portoDestinoId: 'p-fora', distanciaMn: 10, tempoMedioH: 1, ativo: true },
-    { id: 'r-inativa', portoOrigemId: 'p-sou', portoDestinoId: 'p-bel', distanciaMn: 40, tempoMedioH: 3.5, ativo: false },
+    { id: 'r-ida', localidadeOrigemId: 'bel', localidadeDestinoId: 'sou', distanciaMn: 40, tempoMedioH: 3.5, ativo: true },
+    { id: 'r-fora', localidadeOrigemId: 'bel', localidadeDestinoId: 'sou', distanciaMn: 10, tempoMedioH: 1, ativo: true },
+    { id: 'r-inativa', localidadeOrigemId: 'sou', localidadeDestinoId: 'bel', distanciaMn: 40, tempoMedioH: 3.5, ativo: false },
   ],
   embarcacoes: [
     {
@@ -100,11 +100,11 @@ export const CATALOGO_DE_EXEMPLO: CatalogoDoFluviapp = {
     },
   ],
   viagens: [
-    { id: 'v-ferry', rotaId: 'r-ida', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 21 * 60 + 30, ativo: true },
-    { id: 'v-lancha', rotaId: 'r-ida', embarcacaoId: 'e-lancha', diaSemana: 'WEDNESDAY', horaMin: 7 * 60, ativo: true },
-    { id: 'v-nao-concedida', rotaId: 'r-ida', embarcacaoId: 'e-outra', diaSemana: 'WEDNESDAY', horaMin: 9 * 60, ativo: true },
-    { id: 'v-porto-fora', rotaId: 'r-fora', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 10 * 60, ativo: true },
-    { id: 'v-rota-inativa', rotaId: 'r-inativa', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 11 * 60, ativo: true },
+    { id: 'v-ferry', rotaId: 'r-ida', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 21 * 60 + 30, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
+    { id: 'v-lancha', rotaId: 'r-ida', embarcacaoId: 'e-lancha', diaSemana: 'WEDNESDAY', horaMin: 7 * 60, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
+    { id: 'v-nao-concedida', rotaId: 'r-ida', embarcacaoId: 'e-outra', diaSemana: 'WEDNESDAY', horaMin: 9 * 60, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
+    { id: 'v-porto-fora', rotaId: 'r-fora', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 10 * 60, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-fora' },
+    { id: 'v-rota-inativa', rotaId: 'r-inativa', embarcacaoId: 'e-ferry', diaSemana: 'WEDNESDAY', horaMin: 11 * 60, ativo: true, portoEmbarqueId: 'p-bel', portoDesembarqueId: 'p-sou' },
   ],
   atuacao: { embarcacaoIds: new Set(['e-ferry', 'e-lancha', 'e-outra']), portoIds: new Set(['p-bel', 'p-sou']) },
   /* Uma de viagem que fica, fora da semana; outra de viagem que o recorte tira. */
@@ -112,4 +112,5 @@ export const CATALOGO_DE_EXEMPLO: CatalogoDoFluviapp = {
     { viagemId: 'v-ferry', data: '2026-10-21' as DataCalendario },
     { viagemId: 'v-nao-concedida', data: '2026-10-14' as DataCalendario },
   ],
+  alteracoes: [],
 }

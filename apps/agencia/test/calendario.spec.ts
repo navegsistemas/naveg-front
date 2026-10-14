@@ -15,7 +15,7 @@ const data = (texto: string) => DataCalendario.de(texto) as DataCalendario
 
 const reservaveis = travessiasOfertadas(CATALOGO_DE_DEMONSTRACAO, AGORA)
 const previstas = travessiasOfertadas(CATALOGO_DE_DEMONSTRACAO, AGORA, 90)
-const origens = origensDaOferta(previstas, CATALOGO_DE_DEMONSTRACAO.localidades)
+const origens = origensDaOferta(previstas)
 
 function meses(origemEscolhida: string | null = null) {
   return mesesDoCalendario({ hoje: HOJE, alcanceDias: 90, reservaveis, previstas, origens, origemEscolhida })
@@ -26,23 +26,20 @@ function diaDe(texto: string, origemEscolhida: string | null = null) {
   throw new Error(`o dia ${texto} não está no calendário`)
 }
 
-/** O mínimo de uma travessia que `origensDaOferta` lê: o porto de origem. */
-function saindoDe(localidadeId: string, porto: string): TravessiaOfertada {
-  return { origem: { id: porto, nome: porto, localidadeId, ativo: true } } as unknown as TravessiaOfertada
+/** O mínimo de uma travessia que `origensDaOferta` lê: a cidade de origem da rota, e o cais, que não conta. */
+function saindoDe(id: string, municipio: string, cidadeDoCais = id): TravessiaOfertada {
+  return {
+    origem: { id, municipio, uf: 'PA', codigoIbge: '', ativo: true },
+    embarque: { id: `cais-${cidadeDoCais}`, nome: 'Cais', localidadeId: cidadeDoCais, ativo: true },
+  } as unknown as TravessiaOfertada
 }
 
 describe('as cidades de origem', () => {
   it('três letras, sem acento, em ordem alfabética', () => {
-    const lidas = origensDaOferta(
-      [saindoDe('santana', 'Porto do Grego'), saindoDe('belem', 'Porto Brilhante'), saindoDe('belem', 'Porto Brilhante')],
-      [
-        { id: 'belem', municipio: 'Belém', uf: 'PA', codigoIbge: '1501402', ativo: true },
-        { id: 'santana', municipio: 'Santana', uf: 'AP', codigoIbge: '1600600', ativo: true },
-      ],
-    )
+    const lidas = origensDaOferta([saindoDe('macapa', 'Macapá'), saindoDe('belem', 'Belém'), saindoDe('belem', 'Belém')])
     expect(lidas).toEqual([
       { id: 'belem', cidade: 'Belém', sigla: 'BEL' },
-      { id: 'santana', cidade: 'Santana', sigla: 'SAN' },
+      { id: 'macapa', cidade: 'Macapá', sigla: 'MAC' },
     ])
   })
 
@@ -50,9 +47,10 @@ describe('as cidades de origem', () => {
     expect(origens.map((origem) => origem.sigla)).toEqual(['CEA', 'CEB'])
   })
 
-  it('sem a localidade, o nome do porto', () => {
-    expect(origensDaOferta([saindoDe('sumiu', 'Porto Velho do Rio')], [])).toEqual([
-      { id: 'sumiu', cidade: 'Porto Velho do Rio', sigla: 'POR' },
+  it('a cidade é a da rota, e não a do cais (PO, 2026-10-13)', () => {
+    /* O barco de Macapá atraca em Santana: quem procura Macapá acha a saída. */
+    expect(origensDaOferta([saindoDe('macapa', 'Macapá', 'santana')])).toEqual([
+      { id: 'macapa', cidade: 'Macapá', sigla: 'MAC' },
     ])
   })
 })
@@ -84,8 +82,8 @@ describe('os meses', () => {
     const soDeA = mesesDoCalendario({
       hoje: HOJE,
       alcanceDias: 90,
-      reservaveis: reservaveis.filter((t) => t.origem.localidadeId === 'demo-cidade-a'),
-      previstas: previstas.filter((t) => t.origem.localidadeId === 'demo-cidade-a'),
+      reservaveis: reservaveis.filter((t) => t.origem.id === 'demo-cidade-a'),
+      previstas: previstas.filter((t) => t.origem.id === 'demo-cidade-a'),
       origens,
       origemEscolhida: 'demo-cidade-b',
     })
@@ -109,7 +107,7 @@ describe('o dia escolhido', () => {
     expect(doDia.every((t) => t.ocorrencia.data === '2026-10-14')).toBe(true)
     const partidas = doDia.map((t) => t.partida)
     expect([...partidas].sort()).toEqual(partidas)
-    expect(saidasDoDia(reservaveis, data('2026-10-14'), 'demo-cidade-a').every((t) => t.origem.localidadeId === 'demo-cidade-a')).toBe(true)
+    expect(saidasDoDia(reservaveis, data('2026-10-14'), 'demo-cidade-a').every((t) => t.origem.id === 'demo-cidade-a')).toBe(true)
   })
 
   it('o rótulo é o que o leitor de tela e o título da lista dizem', () => {

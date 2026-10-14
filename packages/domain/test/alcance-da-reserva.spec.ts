@@ -19,7 +19,7 @@ import { instante } from './exemplos.js'
 
 const meioDia = instante('2026-09-23T12:00:00')
 const hoje = '2026-09-23' as DataCalendario
-const terca: Viagem = { id: 'v1', rotaId: 'r1', embarcacaoId: 'b1', diaSemana: 'TUESDAY', horaMin: 18 * 60, ativo: true }
+const terca: Viagem = { id: 'v1', rotaId: 'r1', embarcacaoId: 'b1', diaSemana: 'TUESDAY', horaMin: 18 * 60, ativo: true, portoEmbarqueId: 'p1', portoDesembarqueId: 'p2' }
 
 const data = (iso: string) => iso as DataCalendario
 const suspensa = (iso: string, viagemId = 'v1'): OcorrenciaViagem => ({ viagemId, data: data(iso) })

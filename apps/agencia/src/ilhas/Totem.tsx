@@ -120,7 +120,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const calendario = useMemo(() => {
     if (alcanceDoCalendario === null || catalogo === null) return null
     const previstas = travessiasOfertadas(catalogo, agora, alcanceDoCalendario)
-    const origens = origensDaOferta(previstas, catalogo.localidades)
+    const origens = origensDaOferta(previstas)
     const meses = mesesDoCalendario({
       hoje: InstanteLocal.data(agora),
       alcanceDias: alcanceDoCalendario,
