@@ -44,8 +44,13 @@ de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/R
 
 ## O que só o PO faz
 
-- **Promover a API** para a homologação (`vercel promote`) e qualquer ação em produção. O Claude confere
-  depois, por `gh api repos/navegsistemas/naveg-api-vercel/deployments?environment=Production` e `vercel logs`.
+- **Promover a API** para a homologação (`vercel promote`) e qualquer ação em produção.
+  - **Ao pedir a promoção, o Claude entrega o comando pronto**, com a URL do deploy do merge (o hash, como
+    `naveg-api-vercel-eepfehdn7-…`) e o commit que ele leva. Achar a URL: `vercel ls naveg-api-vercel` (a
+    prévia da `main` logo depois do merge), e conferir o commit com `vercel inspect <url> --logs` ("Cloning …
+    Commit"). Promover a URL errada refaz o build de um commit antigo (PO, 2026-10-14).
+  - **O Claude confere depois** pelo commit do deploy no ar (`vercel inspect naveg-api-vercel.vercel.app --logs`),
+    pela resposta e pelo `vercel logs`. O `gh api …/deployments?environment=Production` não registra a promoção.
 - Conferir no celular, na homologação, o que foi para o ar.
 - Mergear Dependabot de major com decisão pendente (ver "Pendências técnicas").
 
