@@ -9,7 +9,7 @@
  *
  * Tudo aqui é derivado: as travessias entram, os meses saem. O componente (`CalendarioDeSaidas.tsx`) só desenha.
  */
-import { DataCalendario, DiaSemana, type Localidade, type TravessiaOfertada } from '@navegsistemas/domain'
+import { DataCalendario, DiaSemana, type TravessiaOfertada } from '@navegsistemas/domain'
 
 /**
  * - `PASSADO`: antes de hoje, no mês corrente;
@@ -83,18 +83,14 @@ function siglaPorIniciais(cidade: string): string {
 }
 
 /**
- * **As cidades de origem da oferta**, em ordem alfabética. A cidade vem da localidade do porto; sem ela, o nome do
- * porto. A sigla é de três letras e, quando duas cidades dariam a mesma, passa a ser pelas iniciais.
+ * **As cidades de origem da oferta**, em ordem alfabética. A cidade é **a da rota**, e não o município do cais (PO,
+ * 2026-10-13: a rota é o trecho que se vende). A sigla é de três letras e, quando duas cidades dariam a mesma, passa
+ * a ser pelas iniciais.
  */
-export function origensDaOferta(
-  travessias: readonly TravessiaOfertada[],
-  localidades: readonly Localidade[],
-): readonly OrigemDaOferta[] {
-  const municipios = new Map(localidades.map((localidade) => [localidade.id, localidade.municipio]))
+export function origensDaOferta(travessias: readonly TravessiaOfertada[]): readonly OrigemDaOferta[] {
   const cidades = new Map<string, string>()
-  for (const travessia of travessias) {
-    const id = travessia.origem.localidadeId
-    if (!cidades.has(id)) cidades.set(id, municipios.get(id) ?? travessia.origem.nome)
+  for (const { origem } of travessias) {
+    if (!cidades.has(origem.id)) cidades.set(origem.id, origem.municipio)
   }
   const curtas = [...cidades.values()].map(siglaCurta)
   const empata = (sigla: string) => curtas.filter((outra) => outra === sigla).length > 1
@@ -105,7 +101,7 @@ export function origensDaOferta(
 
 function daOrigem(origemEscolhida: string | null) {
   return (travessia: TravessiaOfertada) =>
-    origemEscolhida === null || travessia.origem.localidadeId === origemEscolhida
+    origemEscolhida === null || travessia.origem.id === origemEscolhida
 }
 
 /** As travessias reserváveis de um dia, na ordem da partida, com o filtro de origem aplicado. */
@@ -151,7 +147,7 @@ export function mesesDoCalendario(entrada: EntradaDoCalendario): readonly MesDoC
   const previstas = agrupar(entrada.previstas)
 
   const origensDe = (travessias: readonly TravessiaOfertada[]): readonly OrigemDaOferta[] => {
-    const ids = new Set(travessias.map((travessia) => travessia.origem.localidadeId))
+    const ids = new Set(travessias.map((travessia) => travessia.origem.id))
     return entrada.origens.filter((origem) => ids.has(origem.id))
   }
 

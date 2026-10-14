@@ -10,7 +10,6 @@
  * inclusive viagens de embarcações que a NAVEG não tem concessão para vender, e que o atendente não
  * conseguiria emitir.
  */
-import type { Rota } from '../rota/rota.js'
 import type { Viagem } from './viagem.js'
 
 export interface AtuacaoDaEmpresa {
@@ -27,12 +26,17 @@ export const AtuacaoDaEmpresa = {
     return portoId.trim().length > 0 && atuacao.portoIds.has(portoId)
   },
 
-  /** A embarcação concedida **e** os dois portos da rota na concessão. O `podeOfertar(viagem, rota)`. */
-  podeOfertar(atuacao: AtuacaoDaEmpresa, viagem: Viagem, rota: Rota): boolean {
+  /**
+   * A embarcação concedida **e** os dois cais **da viagem** na concessão. O `podeOfertar(viagem)` do Kotlin.
+   *
+   * Desde a rota geográfica (fluviapp-kmp#51), o cais é da viagem, e não da rota. A concessão vale para a saída
+   * **planejada**: o cais de um dia alterado não tira da agência a venda daquela data (PO, 2026-10-12).
+   */
+  podeOfertar(atuacao: AtuacaoDaEmpresa, viagem: Viagem): boolean {
     return (
       AtuacaoDaEmpresa.concedeu(atuacao, viagem.embarcacaoId) &&
-      AtuacaoDaEmpresa.operaNoPorto(atuacao, rota.portoOrigemId) &&
-      AtuacaoDaEmpresa.operaNoPorto(atuacao, rota.portoDestinoId)
+      AtuacaoDaEmpresa.operaNoPorto(atuacao, viagem.portoEmbarqueId) &&
+      AtuacaoDaEmpresa.operaNoPorto(atuacao, viagem.portoDesembarqueId)
     )
   },
 } as const

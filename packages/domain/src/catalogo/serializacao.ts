@@ -18,7 +18,9 @@ import type { Porto, Rota } from '../rota/rota.js'
 import type { AtuacaoDaEmpresa } from '../viagem/atuacao-da-empresa.js'
 import type { Embarcacao } from '../viagem/embarcacao.js'
 import type { Viagem } from '../viagem/viagem.js'
+import { idDaAlteracao } from '../viagem/alteracao-da-saida.js'
 import {
+  alteracaoDoDocumento,
   atuacaoDoDocumento,
   embarcacaoDoDocumento,
   localidadeDoDocumento,
@@ -40,6 +42,16 @@ export interface CatalogoJson {
   readonly atuacao: { readonly embarcacaoIds: readonly string[]; readonly portoIds: readonly string[] } | null
   /** Como o documento de `suspensoes`, só com a ocorrência — e o id, como as outras listas. */
   readonly suspensas: readonly { readonly id: string; readonly viagemId: string; readonly data: string }[]
+  /** Como o documento de `alteracoes`, sem a empresa, quem alterou e quando. */
+  readonly alteracoes: readonly {
+    readonly id: string
+    readonly viagemId: string
+    readonly data: string
+    readonly portoEmbarqueId: string
+    readonly portoDesembarqueId: string
+    readonly horaMin: number
+    readonly motivo: string
+  }[]
 }
 
 export function catalogoParaJson(catalogo: CatalogoDoFluviapp): CatalogoJson {
@@ -54,6 +66,15 @@ export function catalogoParaJson(catalogo: CatalogoDoFluviapp): CatalogoJson {
         ? null
         : { embarcacaoIds: [...catalogo.atuacao.embarcacaoIds], portoIds: [...catalogo.atuacao.portoIds] },
     suspensas: catalogo.suspensas.map((s) => ({ id: idDaSuspensao(s), viagemId: s.viagemId, data: s.data })),
+    alteracoes: catalogo.alteracoes.map((a) => ({
+      id: idDaAlteracao(a.ocorrencia),
+      viagemId: a.ocorrencia.viagemId,
+      data: a.ocorrencia.data,
+      portoEmbarqueId: a.portoEmbarqueId,
+      portoDesembarqueId: a.portoDesembarqueId,
+      horaMin: a.horaMin,
+      motivo: a.motivo,
+    })),
   }
 }
 
@@ -94,6 +115,9 @@ export function catalogoDoJson(dado: unknown): CatalogoDoFluviapp | null {
      data suspensa a regra do servidor recusa. Presente e torta, é catálogo que não se lê. */
   const suspensas = dado['suspensas'] ?? []
   if (!Array.isArray(suspensas)) return null
+  /* `alteracoes` ausente é a API de antes do 0.8.0: a data sai com o cais e a hora planejados, sem o aviso. */
+  const alteracoes = dado['alteracoes'] ?? []
+  if (!Array.isArray(alteracoes)) return null
 
   return {
     viagens: lerLista(dado['viagens'], viagemDoDocumento),
@@ -103,5 +127,6 @@ export function catalogoDoJson(dado: unknown): CatalogoDoFluviapp | null {
     embarcacoes: lerLista(dado['embarcacoes'], embarcacaoDoDocumento),
     atuacao,
     suspensas: lerLista(suspensas, suspensaoDoDocumento),
+    alteracoes: lerLista(alteracoes, alteracaoDoDocumento),
   }
 }

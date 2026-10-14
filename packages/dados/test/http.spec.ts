@@ -11,21 +11,25 @@ import { catalogoParaJson, type CatalogoDoFluviapp } from '@navegsistemas/domain
 import { catalogoHttp, FalhaAoCarregarOCatalogo, type Buscar } from '../src/http.js'
 
 const CATALOGO: CatalogoDoFluviapp = {
-  localidades: [{ id: 'bel', municipio: 'Belém', uf: 'PA', codigoIbge: '1501402', ativo: true }],
+  localidades: [
+    { id: 'bel', municipio: 'Belém', uf: 'PA', codigoIbge: '1501402', ativo: true },
+    { id: 'sou', municipio: 'Soure', uf: 'PA', codigoIbge: '1507904', ativo: true },
+  ],
   portos: [
     { id: 'p-a', nome: 'Terminal', localidadeId: 'bel', ativo: true },
     { id: 'p-b', nome: 'Cais', localidadeId: 'bel', ativo: true },
   ],
-  rotas: [{ id: 'r', portoOrigemId: 'p-a', portoDestinoId: 'p-b', distanciaMn: 10, tempoMedioH: 1, ativo: true }],
+  rotas: [{ id: 'r', localidadeOrigemId: 'bel', localidadeDestinoId: 'sou', distanciaMn: 10, tempoMedioH: 1, ativo: true }],
   embarcacoes: [
     {
       id: 'e', nome: 'Lancha', tipo: 'LANCHA', capacidadeVeiculo: 0,
       capacidadeSuite2: 0, capacidadeSuite3: 0, capacidadeCamarote: 0, empresaId: 'x',
     },
   ],
-  viagens: [{ id: 'v', rotaId: 'r', embarcacaoId: 'e', diaSemana: 'MONDAY', horaMin: 480, ativo: true }],
+  viagens: [{ id: 'v', rotaId: 'r', embarcacaoId: 'e', diaSemana: 'MONDAY', horaMin: 480, ativo: true, portoEmbarqueId: 'p-a', portoDesembarqueId: 'p-b' }],
   atuacao: { embarcacaoIds: new Set(['e']), portoIds: new Set(['p-a', 'p-b']) },
   suspensas: [],
+  alteracoes: [],
 }
 
 /** Um `fetch` que devolve sempre a mesma resposta, e anota o que lhe pediram. */

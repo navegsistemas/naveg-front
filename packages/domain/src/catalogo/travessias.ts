@@ -1,25 +1,32 @@
 /**
  * **As travessias que a agência pode oferecer agora** — o "Viagens Disponíveis" do aplicativo, para o público.
  *
- * É a composição que o `PesquisaViagemViewModel` e o `InicioDaTelaMapper` fazem no aplicativo, com as mesmas
- * peças do domínio e na mesma ordem:
+ * É a composição que o Início do painel faz no fluviapp-kmp, com as mesmas peças do domínio e na mesma ordem:
  *
- * 1. o **escopo** — só viagens de rota ativa que a concessão da agência cobre (`EscopoDoPool.Concedido`);
- * 2. a **disponibilidade** — `disponiveisAPartirDe(agora)`, janela de sete dias, partida não vencida;
- * 3. os **rótulos** — "Porto · Município/UF", o dia, a hora, a chegada estimada.
+ * 1. o **escopo** — só viagens de rota ativa que a concessão da agência cobre, **pelos cais da viagem**
+ *    (`AtuacaoDaEmpresa.podeOfertar(viagem)`);
+ * 2. a **disponibilidade** — `disponiveisAPartirDe(agora)`, pela hora **daquela data**, menos as suspensas;
+ * 3. a **saída do dia** — o cais e a hora da alteração, quando há; senão, os da viagem (`saidaEm`);
+ * 4. os **rótulos** — as cidades da rota, o cais do dia, o dia, a hora, a chegada estimada.
+ *
+ * ### A rota é o trecho que se vende; o cais é detalhe da saída
+ *
+ * Decisão do PO (2026-10-13, ADR-0021 do fluviapp-kmp): **a rota é o marketing**. As cidades dela são o que o
+ * cliente procura — Belém → Macapá —, e o cais é detalhe da saída: "atraca no Porto do Grego, Santana/AP". Por isso
+ * [TravessiaOfertada.origem] e [TravessiaOfertada.destino] são as **cidades da rota**, e o cais mora em `embarque` e
+ * `desembarque`. Nada aqui deduz a cidade do município do porto.
  *
  * Cada travessia sai com o [ContextoDaReserva] pronto: é ele que o roteiro do totem recebe, e é da partida
- * dentro dele que nasce a validade da reserva. O totem não monta contexto nenhum.
+ * dentro dele — já com a hora da alteração — que nasce a validade da reserva. O totem não monta contexto nenhum.
  *
  * ### O que o público não vê, e o balcão vê
  *
- * O aplicativo mostra uma saída mesmo com referência quebrada — cai no id da rota, e com a embarcação não
- * resolvida o roteiro "não recorta nada". No balcão isso é razoável: há um funcionário que sabe o que está
- * vendendo. No site não há, e duas coisas deixam de ser oferecidas:
+ * O aplicativo mostra uma saída mesmo com referência quebrada. No balcão isso é razoável: há um funcionário que sabe
+ * o que está vendendo. No site não há, e duas coisas deixam de ser oferecidas:
  *
  * - **embarcação que não resolve** — sem o tipo, não se sabe se ela leva veículo, e oferecer veículo numa
  *   lancha é exatamente o erro que o `TipoEmbarcacao` existe para impedir;
- * - **porto que não resolve** — uma travessia que não se consegue nomear não é uma travessia que alguém
+ * - **cidade ou cais que não resolve** — uma travessia que não se consegue nomear não é uma travessia que alguém
  *   escolha com confiança.
  *
  * É a única divergência deliberada em relação ao aplicativo, e ela só **esconde**: nada aparece aqui que lá
@@ -30,6 +37,13 @@ import { DiaSemana } from '../primitivos/dia-semana.js'
 import { rotuloDaLocalidade, type Localidade } from '../localidade/localidade.js'
 import type { ContextoDaReserva } from '../reserva/roteiro-da-reserva.js'
 import type { Porto, Rota } from '../rota/rota.js'
+import {
+  alteracoesPorId,
+  mudancasSobre,
+  saidaEm,
+  type AlteracaoDaSaida,
+  type MudancaNaSaida,
+} from '../viagem/alteracao-da-saida.js'
 import { AtuacaoDaEmpresa } from '../viagem/atuacao-da-empresa.js'
 import type { Embarcacao } from '../viagem/embarcacao.js'
 import { formatarHora } from '../viagem/hora-do-dia.js'
@@ -56,6 +70,15 @@ export interface CatalogoDoFluviapp {
   readonly atuacao: AtuacaoDaEmpresa | null
   /** As saídas suspensas (`suspensoes`): a data em que a viagem não sai. Não são oferecidas (fluviapp-kmp#44). */
   readonly suspensas: readonly OcorrenciaViagem[]
+  /** As saídas alteradas (`alteracoes`): a data em que a viagem sai de outro cais ou hora (fluviapp-kmp#52). */
+  readonly alteracoes: readonly AlteracaoDaSaida[]
+}
+
+/** O aviso de uma data alterada: o que mudou e por quê. */
+export interface AvisoDeAlteracao {
+  readonly mudancas: readonly MudancaNaSaida[]
+  /** "Cais em obra". Pode vir vazio: o KMP exige motivo, mas o site não inventa um. */
+  readonly motivo: string
 }
 
 export interface TravessiaOfertada {
@@ -63,17 +86,28 @@ export interface TravessiaOfertada {
   readonly id: string
   readonly ocorrencia: ViagemSemana
   readonly rota: Rota
-  readonly origem: Porto
-  readonly destino: Porto
+  /** A cidade de partida **da rota** — a que o cliente procura. */
+  readonly origem: Localidade
+  /** A cidade de chegada da rota. */
+  readonly destino: Localidade
+  /** O cais de embarque **daquela data**: o da alteração, se houver; senão, o da viagem. */
+  readonly embarque: Porto
+  readonly desembarque: Porto
   readonly embarcacao: Embarcacao
+  /** A partida daquela data, já com a hora da alteração. */
   readonly partida: InstanteLocal
   readonly chegada: Chegada
+  /** Presente quando a data foi alterada e algo de fato mudou em relação à viagem. */
+  readonly alteracao: AvisoDeAlteracao | null
   /** O que o roteiro do totem recebe. */
   readonly contexto: ContextoDaReserva
   readonly rotulos: {
-    /** "Porto do Sal · Belém/PA" */
+    /** "Belém/PA" — a cidade da rota. */
     readonly origem: string
     readonly destino: string
+    /** "Terminal Hidroviário · Belém/PA" — o cais do dia, com a cidade dele. */
+    readonly embarque: string
+    readonly desembarque: string
     /** "Terça-feira, 14/10 · 18:00" */
     readonly partida: string
     /** "02:00" ou, se chega noutro dia, "Qua 02:00" — como o aplicativo escreve. */
@@ -104,8 +138,8 @@ function rotuloDaChegada(chegada: Chegada): string {
  * **O catálogo público**: as travessias ofertáveis a partir de `agora`, ordenadas pela partida.
  *
  * `agora` é o relógio **no fuso da operação** (`InstanteLocal.emFuso`), pela razão escrita lá. `dias` é o
- * alcance — `alcanceEmDias(categoria)` para o que se pode pedir. A saída suspensa nunca é ofertada: é o
- * `reservaveisAPartirDe` do Kotlin, com o escopo e os rótulos do site.
+ * alcance — `alcanceEmDias(categoria)` para o que se pode pedir. A saída suspensa nunca é ofertada, nem alterada: é
+ * o `reservaveisAPartirDe` do Kotlin, com o escopo e os rótulos do site.
  */
 export function travessiasOfertadas(
   catalogo: CatalogoDoFluviapp,
@@ -119,26 +153,45 @@ export function travessiasOfertadas(
   const portos = porId(catalogo.portos)
   const localidades = porId(catalogo.localidades)
   const embarcacoes = porId(catalogo.embarcacoes)
+  const alteracoes = alteracoesPorId(catalogo.alteracoes)
+  const horaDoDia = new Map([...alteracoes].map(([id, alteracao]) => [id, alteracao.horaMin]))
 
-  /* 1 · o escopo — o `List<Viagem>.noEscopo(Concedido)` do Kotlin: rota ativa e concessão. */
+  /* 1 · o escopo — rota ativa e a concessão pelos cais da viagem. */
   const noEscopo = catalogo.viagens.filter((viagem) => {
     const rota = rotas.get(viagem.rotaId)
-    return rota !== undefined && rota.ativo && AtuacaoDaEmpresa.podeOfertar(atuacao, viagem, rota)
+    return rota !== undefined && rota.ativo && AtuacaoDaEmpresa.podeOfertar(atuacao, viagem)
   })
 
-  /* 2 · a disponibilidade, menos as suspensas — e 3 · os rótulos. */
+  /* 2 · a disponibilidade, pela hora do dia, menos as suspensas — a suspensão vence a alteração. */
   const suspensas = new Set(catalogo.suspensas.map(idDaSuspensao))
-  const disponiveis = disponiveisAPartirDe(noEscopo, agora, dias).filter((o) => !suspensas.has(ViagemSemana.id(o)))
+  const disponiveis = disponiveisAPartirDe(noEscopo, agora, dias, horaDoDia).filter(
+    (o) => !suspensas.has(ViagemSemana.id(o)),
+  )
   return disponiveis.flatMap((ocorrencia): TravessiaOfertada[] => {
-    const rota = rotas.get(ocorrencia.viagem.rotaId) as Rota
-    const origem = portos.get(rota.portoOrigemId)
-    const destino = portos.get(rota.portoDestinoId)
-    const embarcacao = embarcacoes.get(ocorrencia.viagem.embarcacaoId)
+    const { viagem } = ocorrencia
+    const rota = rotas.get(viagem.rotaId) as Rota
+    /* 3 · a saída do dia. */
+    const saida = saidaEm(viagem, ViagemSemana.ocorrencia(ocorrencia), alteracoes)
+    const origem = localidades.get(rota.localidadeOrigemId)
+    const destino = localidades.get(rota.localidadeDestinoId)
+    const embarque = portos.get(saida.portoEmbarqueId)
+    const desembarque = portos.get(saida.portoDesembarqueId)
+    const embarcacao = embarcacoes.get(viagem.embarcacaoId)
     /* A divergência deliberada — ver o cabeçalho. */
-    if (origem === undefined || destino === undefined || embarcacao === undefined) return []
+    if (
+      origem === undefined ||
+      destino === undefined ||
+      embarque === undefined ||
+      desembarque === undefined ||
+      embarcacao === undefined
+    ) {
+      return []
+    }
 
     const partida = ViagemSemana.partida(ocorrencia)
-    const chegada = chegadaEstimada(ocorrencia.viagem, rota)
+    /* A chegada parte da hora do dia: a saída adiada uma hora chega uma hora depois. O `comAHoraDoDia` do Início. */
+    const chegada = chegadaEstimada({ ...viagem, horaMin: ocorrencia.horaMin }, rota)
+    const mudancas = saida.alteracao === null ? [] : mudancasSobre(saida.alteracao, viagem)
     const { dia, mes } = DataCalendario.partes(ocorrencia.data)
 
     return [
@@ -148,20 +201,28 @@ export function travessiasOfertadas(
         rota,
         origem,
         destino,
+        embarque,
+        desembarque,
         embarcacao,
         partida,
         chegada,
+        alteracao:
+          saida.alteracao === null || mudancas.length === 0 ? null : { mudancas, motivo: saida.alteracao.motivo.trim() },
         contexto: {
           ocorrencia: ViagemSemana.ocorrencia(ocorrencia),
           tipoEmbarcacao: embarcacao.tipo,
           partida,
         },
+        /* 4 · os rótulos. */
         rotulos: {
-          origem: rotuloDoPorto(origem, localidades),
-          destino: rotuloDoPorto(destino, localidades),
-          partida: `${DiaSemana.rotulo(ocorrencia.viagem.diaSemana)}, ${String(dia).padStart(2, '0')}/${String(
-            mes,
-          ).padStart(2, '0')} · ${formatarHora(ocorrencia.viagem.horaMin)}`,
+          origem: rotuloDaLocalidade(origem),
+          destino: rotuloDaLocalidade(destino),
+          embarque: rotuloDoPorto(embarque, localidades),
+          desembarque: rotuloDoPorto(desembarque, localidades),
+          partida: `${DiaSemana.rotulo(viagem.diaSemana)}, ${String(dia).padStart(2, '0')}/${String(mes).padStart(
+            2,
+            '0',
+          )} · ${formatarHora(ocorrencia.horaMin)}`,
           chegada: rotuloDaChegada(chegada),
           embarcacao: [embarcacao.nome, TipoEmbarcacao.rotulo(embarcacao.tipo)]
             .filter((parte) => parte.trim().length > 0)

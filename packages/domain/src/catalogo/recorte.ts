@@ -10,7 +10,7 @@
  *
  * O recorte **não muda o que se oferta**: para qualquer `agora`, `travessiasOfertadas(recortar(c), agora)` é
  * igual a `travessiasOfertadas(c, agora)`. Ele tira o que a oferta descartaria de qualquer jeito — viagem
- * inativa, de rota inativa, fora da concessão, com porto ou embarcação que não resolve — e tudo o que só essas
+ * inativa, de rota inativa, fora da concessão, com cidade, cais ou embarcação que não resolve — e tudo o que só essas
  * viagens citavam. O cenário confere a igualdade, e é ela que autoriza o recorte a acontecer no servidor.
  *
  * A concessão também sai recortada: só os ids que as viagens mantidas usam. O resto da concessão da NAVEG é
@@ -35,6 +35,7 @@ const VAZIO: CatalogoDoFluviapp = {
   embarcacoes: [],
   atuacao: null,
   suspensas: [],
+  alteracoes: [],
 }
 
 export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoFluviapp {
@@ -42,33 +43,48 @@ export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoF
   if (atuacao === null) return VAZIO
 
   const rotas = porId(catalogo.rotas)
-  const portos = porId(catalogo.portos)
+  const localidades = porId(catalogo.localidades)
   const embarcacoes = porId(catalogo.embarcacoes)
 
+  /* A viagem fica se a oferta puder nomeá-la em alguma data: as cidades da rota e a embarcação resolvem. O cais não
+     entra aqui — o planejado que não resolve ainda pode ter uma data alterada para um cais que resolve, e a oferta
+     decide data a data. */
   const viagens = catalogo.viagens.filter((viagem) => {
     const rota = rotas.get(viagem.rotaId)
     return (
       viagem.ativo &&
       rota !== undefined &&
       rota.ativo &&
-      AtuacaoDaEmpresa.podeOfertar(atuacao, viagem, rota) &&
-      portos.has(rota.portoOrigemId) &&
-      portos.has(rota.portoDestinoId) &&
+      AtuacaoDaEmpresa.podeOfertar(atuacao, viagem) &&
+      localidades.has(rota.localidadeOrigemId) &&
+      localidades.has(rota.localidadeDestinoId) &&
       embarcacoes.has(viagem.embarcacaoId)
     )
   })
 
+  const viagensMantidas = new Set(viagens.map((viagem) => viagem.id))
+  /* A suspensão e a alteração de viagem que não fica não dizem nada ao totem — e as de outra transportadora não são
+     dele. */
+  const suspensas = catalogo.suspensas.filter((s) => viagensMantidas.has(s.viagemId))
+  const alteracoes = catalogo.alteracoes.filter((a) => viagensMantidas.has(a.ocorrencia.viagemId))
+
   const rotasCitadas = new Set(viagens.map((viagem) => viagem.rotaId))
   const rotasMantidas: Rota[] = catalogo.rotas.filter((rota) => rotasCitadas.has(rota.id))
-  const portosCitados = new Set(rotasMantidas.flatMap((rota) => [rota.portoOrigemId, rota.portoDestinoId]))
+  /* A concessão recortada é a dos cais planejados; os portos que saem incluem os das alterações, para o totem nomear o
+     cais do dia. */
+  const portosConcedidos = new Set(viagens.flatMap((viagem) => [viagem.portoEmbarqueId, viagem.portoDesembarqueId]))
+  const portosCitados = new Set([
+    ...portosConcedidos,
+    ...alteracoes.flatMap((a) => [a.portoEmbarqueId, a.portoDesembarqueId]),
+  ])
   const portosMantidos: Porto[] = catalogo.portos.filter((porto) => portosCitados.has(porto.id))
-  const localidadesCitadas = new Set(portosMantidos.map((porto) => porto.localidadeId))
+  const localidadesCitadas = new Set([
+    ...rotasMantidas.flatMap((rota) => [rota.localidadeOrigemId, rota.localidadeDestinoId]),
+    ...portosMantidos.map((porto) => porto.localidadeId),
+  ])
   const localidadesMantidas: Localidade[] = catalogo.localidades.filter((l) => localidadesCitadas.has(l.id))
   const embarcacoesCitadas = new Set(viagens.map((viagem) => viagem.embarcacaoId))
   const embarcacoesMantidas: Embarcacao[] = catalogo.embarcacoes.filter((e) => embarcacoesCitadas.has(e.id))
-  /* A suspensão de viagem que não fica não diz nada ao totem — e a de outra transportadora não é dele. */
-  const viagensMantidas = new Set(viagens.map((viagem) => viagem.id))
-  const suspensas = catalogo.suspensas.filter((s) => viagensMantidas.has(s.viagemId))
 
   return {
     viagens,
@@ -76,7 +92,8 @@ export function recortarPelaConcessao(catalogo: CatalogoDoFluviapp): CatalogoDoF
     portos: portosMantidos,
     localidades: localidadesMantidas,
     embarcacoes: embarcacoesMantidas,
-    atuacao: { embarcacaoIds: embarcacoesCitadas, portoIds: portosCitados },
+    atuacao: { embarcacaoIds: embarcacoesCitadas, portoIds: portosConcedidos },
     suspensas,
+    alteracoes,
   }
 }

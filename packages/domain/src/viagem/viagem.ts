@@ -30,11 +30,27 @@ export interface Viagem {
   /** Minutos desde a meia-noite. */
   readonly horaMin: number
   readonly ativo: boolean
+  /**
+   * O cais **planejado** da saída semanal (fluviapp-kmp#51, ADR-0021 de lá): o cais é da viagem, não da rota. Vazio
+   * só em viagem anterior à rota geográfica que o script de migração não alcançou — e aí a concessão não a cobre.
+   */
+  readonly portoEmbarqueId: string
+  readonly portoDesembarqueId: string
 }
 
-/** Partida com sentido: rota, embarcação e uma hora do relógio. O `Viagem.temSentido()` do Kotlin. */
+/**
+ * Partida com sentido: rota, embarcação, uma hora do relógio e dois cais diferentes. O `Viagem.temSentido()` do
+ * Kotlin.
+ */
 export function viagemTemSentido(viagem: Viagem): boolean {
-  return viagem.rotaId.trim().length > 0 && viagem.embarcacaoId.trim().length > 0 && horaValida(viagem.horaMin)
+  return (
+    viagem.rotaId.trim().length > 0 &&
+    viagem.embarcacaoId.trim().length > 0 &&
+    horaValida(viagem.horaMin) &&
+    viagem.portoEmbarqueId.trim().length > 0 &&
+    viagem.portoDesembarqueId.trim().length > 0 &&
+    viagem.portoEmbarqueId !== viagem.portoDesembarqueId
+  )
 }
 
 /** Quando a travessia termina — em duas partes, porque no rio ela costuma ter. */
@@ -59,12 +75,17 @@ export function chegadaEstimada(viagem: Viagem, rota: Rota): Chegada {
 export interface ViagemSemana {
   readonly viagem: Viagem
   readonly data: DataCalendario
+  /**
+   * A hora **daquela data**: a da alteração da saída, quando há (fluviapp-kmp#52); senão, a da viagem. É por ela que
+   * se decide se o barco já partiu — a saída adiada das 06:00 para as 14:00 ainda está no cais ao meio-dia.
+   */
+  readonly horaMin: number
 }
 
 export const ViagemSemana = {
   /** O instante da partida — data e hora juntas, que é o que ordena e o que compara. */
   partida(ocorrencia: ViagemSemana): InstanteLocal {
-    return InstanteLocal.deDataEMinutos(ocorrencia.data, ocorrencia.viagem.horaMin)
+    return InstanteLocal.deDataEMinutos(ocorrencia.data, ocorrencia.horaMin)
   },
 
   /** A chave que a reserva guarda: `(viagemId, data)`. */
@@ -91,11 +112,15 @@ export const DIAS_DA_JANELA = 7
  *
  * `agora` é o relógio **no fuso da operação** — ver `InstanteLocal.emFuso`. Não é detalhe: é o que faz o
  * site e o balcão concordarem sobre qual barco já saiu.
+ *
+ * `horaDoDia` dá a hora de uma data alterada (`viagemId@yyyy-MM-dd` → minutos) — a saída antecipada sai da lista na
+ * hora nova. É o parâmetro `alteracoes` do Kotlin, reduzido ao que a conta usa.
  */
 export function disponiveisAPartirDe(
   viagens: readonly Viagem[],
   agora: InstanteLocal,
   dias: number = DIAS_DA_JANELA,
+  horaDoDia: ReadonlyMap<string, number> = new Map(),
 ): readonly ViagemSemana[] {
   if (dias <= 0) return []
   const hoje = InstanteLocal.data(agora)
@@ -103,8 +128,11 @@ export function disponiveisAPartirDe(
 
   return viagens
     .filter((viagem) => viagem.ativo)
-    .flatMap((viagem) => datas.map((data) => ({ viagem, data })))
-    .filter((o) => o.viagem.diaSemana === DataCalendario.diaDaSemana(o.data))
+    .flatMap((viagem) =>
+      datas
+        .filter((data) => viagem.diaSemana === DataCalendario.diaDaSemana(data))
+        .map((data): ViagemSemana => ({ viagem, data, horaMin: horaDoDia.get(`${viagem.id}@${data}`) ?? viagem.horaMin })),
+    )
     /* "não anterior", e não "posterior": a saída exatamente agora ainda está no cais — é o `isBefore`. */
     .filter((o) => !InstanteLocal.antesDe(ViagemSemana.partida(o), agora))
     .sort((a, b) => InstanteLocal.comparar(ViagemSemana.partida(a), ViagemSemana.partida(b)))

@@ -58,6 +58,7 @@ import { CATEGORIAS_DE_RESERVA, PENDENCIAS_DA_RESERVA } from '../src/reserva/res
 import { DIAS_DA_SEMANA } from '../src/primitivos/dia-semana.js'
 import { TIPOS_DE_EMBARCACAO, TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
 import { ALCANCE_DA_RESERVA_DIAS } from '../src/viagem/alcance-da-reserva.js'
+import { MUDANCAS_NA_SAIDA } from '../src/viagem/alteracao-da-saida.js'
 import { DIAS_DA_JANELA } from '../src/viagem/viagem.js'
 
 /** Um checkout do fluviapp: onde mora o domínio, onde moram os documentos, e se ele está nesta máquina. */
@@ -227,6 +228,13 @@ const ENUMS: readonly ClausulaDeEnum[] = [
     kotlin: ['CPF', 'CNPJ', 'RG', 'CNH', 'PASSAPORTE'],
   },
   { fonte: KMP, enum: 'TipoEmbarcacao', arquivo: 'viagem/TipoEmbarcacao.kt', aqui: TIPOS_DE_EMBARCACAO, kotlin: ['FERRY_BOAT', 'NAVIO', 'LANCHA'] },
+  /* A alteração da saída (fluviapp-kmp#52): o que o aviso do site diz que mudou. */
+  {
+    fonte: KMP, enum: 'MudancaNaSaida',
+    arquivo: 'viagem/AlteracaoDaSaida.kt',
+    aqui: MUDANCAS_NA_SAIDA,
+    kotlin: ['EMBARQUE', 'DESEMBARQUE', 'HORA'],
+  },
   {
     fonte: KMP, enum: 'Uf',
     arquivo: 'localidade/Uf.kt',
@@ -293,8 +301,18 @@ const DOCUMENTOS_NO_KOTLIN: Readonly<Record<string, { apenasDigitos: boolean; co
 
 /** As chaves que a agência lê de cada documento do fluviapp — os decodificadores em `catalogo/documentos.ts`. */
 const CHAVES_NO_KMP: Readonly<Record<string, readonly string[]>> = {
-  'viagem/ViagemDocumento.kt': ['rotaId', 'embarcacaoId', 'diaSemana', 'horaMin', 'ativo'],
-  'rota/RotaDocumento.kt': ['portoOrigemId', 'portoDestinoId', 'distanciaMn', 'tempoMedioH', 'ativo'],
+  'viagem/ViagemDocumento.kt': [
+    'rotaId',
+    'embarcacaoId',
+    'diaSemana',
+    'horaMin',
+    'ativo',
+    'portoEmbarqueId',
+    'portoDesembarqueId',
+  ],
+  /* Desde a rota geográfica (fluviapp-kmp#51), as cidades. Os portos ficaram no documento das rotas de antes, e
+     saíram da classe: o site não os lê. */
+  'rota/RotaDocumento.kt': ['localidadeOrigemId', 'localidadeDestinoId', 'distanciaMn', 'tempoMedioH', 'ativo'],
   'porto/PortoDocumento.kt': ['nome', 'localidadeId', 'ativo'],
   'localidade/LocalidadeDocumento.kt': ['municipio', 'uf', 'codigoIbge', 'ativo'],
   'viagem/EmbarcacaoDocumento.kt': [
@@ -307,6 +325,7 @@ const CHAVES_NO_KMP: Readonly<Record<string, readonly string[]>> = {
     'empresaId',
   ],
   'viagem/SaidaSuspensaDocumento.kt': ['viagemId', 'data'],
+  'viagem/AlteracaoDaSaidaDocumento.kt': ['viagemId', 'data', 'portoEmbarqueId', 'portoDesembarqueId', 'horaMin', 'motivo'],
 }
 
 /**
@@ -319,7 +338,17 @@ const CHAVES_NO_ORIGINAL: Readonly<Record<string, readonly string[]>> = {
 }
 
 /** As coleções que a agência lê do fluviapp. */
-const COLECOES_LIDAS = ['localidades', 'portos', 'rotas', 'embarcacoes', 'viagens', 'empresas', 'atuacoes', 'suspensoes'] as const
+const COLECOES_LIDAS = [
+  'localidades',
+  'portos',
+  'rotas',
+  'embarcacoes',
+  'viagens',
+  'empresas',
+  'atuacoes',
+  'suspensoes',
+  'alteracoes',
+] as const
 
 // ---------------------------------------------------------------------------------------------------------
 // Os cenários

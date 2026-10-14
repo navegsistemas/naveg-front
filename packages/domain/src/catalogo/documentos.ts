@@ -18,6 +18,7 @@
 import { DIAS_DA_SEMANA, type DiaSemana } from '../primitivos/dia-semana.js'
 import { Uf, type Localidade } from '../localidade/localidade.js'
 import type { Porto, Rota } from '../rota/rota.js'
+import type { AlteracaoDaSaida } from '../viagem/alteracao-da-saida.js'
 import type { AtuacaoDaEmpresa } from '../viagem/atuacao-da-empresa.js'
 import type { Embarcacao } from '../viagem/embarcacao.js'
 import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
@@ -35,6 +36,8 @@ export const COLECOES_DO_FLUVIAPP = {
   atuacoes: 'atuacoes',
   /** `suspensoes/{viagemId}@{data}`, na raiz — as datas em que a viagem não sai (fluviapp-kmp#44). */
   suspensoes: 'suspensoes',
+  /** `alteracoes/{viagemId}@{data}`, na raiz — as datas em que a viagem sai de outro cais ou hora (fluviapp-kmp#52). */
+  alteracoes: 'alteracoes',
 } as const
 
 /** A atuação que a agência virtual exerce. O id do documento da concessão. */
@@ -91,19 +94,26 @@ export function viagemDoDocumento(id: string, dado: unknown): Viagem | null {
     diaSemana,
     horaMin: inteiro(dado, 'horaMin'),
     ativo: booleano(dado, 'ativo', true),
+    /* Os cais não são causa de recusa, como no `ViagemDocumento.paraDominio` do KMP: vazios, a concessão não cobre a
+       viagem, e ela não é ofertada. */
+    portoEmbarqueId: texto(dado, 'portoEmbarqueId'),
+    portoDesembarqueId: texto(dado, 'portoDesembarqueId'),
   }
 }
 
-/** `toRota`: recusa sem os dois portos. */
+/**
+ * `RotaDocumento.paraDominio`: recusa sem as duas cidades. Os portos que as rotas de antes ainda guardam
+ * (`portoOrigemId`, `portoDestinoId`) são legado e **não se leem** (fluviapp-kmp#51): a rota nova não os tem.
+ */
 export function rotaDoDocumento(id: string, dado: unknown): Rota | null {
   if (!ehObjeto(dado)) return null
-  const portoOrigemId = texto(dado, 'portoOrigemId')
-  const portoDestinoId = texto(dado, 'portoDestinoId')
-  if (portoOrigemId.trim().length === 0 || portoDestinoId.trim().length === 0) return null
+  const localidadeOrigemId = texto(dado, 'localidadeOrigemId')
+  const localidadeDestinoId = texto(dado, 'localidadeDestinoId')
+  if (localidadeOrigemId.trim().length === 0 || localidadeDestinoId.trim().length === 0) return null
   return {
     id,
-    portoOrigemId,
-    portoDestinoId,
+    localidadeOrigemId,
+    localidadeDestinoId,
     distanciaMn: decimal(dado, 'distanciaMn'),
     tempoMedioH: decimal(dado, 'tempoMedioH'),
     ativo: booleano(dado, 'ativo', true),
@@ -156,6 +166,23 @@ export function embarcacaoDoDocumento(id: string, dado: unknown): Embarcacao | n
 export function suspensaoDoDocumento(_id: string, dado: unknown): OcorrenciaViagem | null {
   if (!ehObjeto(dado)) return null
   return OcorrenciaViagem.de(texto(dado, 'viagemId'), texto(dado, 'data'))
+}
+
+/**
+ * A alteração da saída — o `AlteracaoDaSaidaDocumento.paraDominio` do KMP: recusa sem viagem, com data ilegível, sem
+ * algum dos dois cais ou sem hora (`horaMin` ausente vale `-1` lá, e negativo não é alteração). A empresa, quem
+ * alterou e quando ficam no servidor (ver `alteracao-da-saida.ts`).
+ */
+export function alteracaoDoDocumento(_id: string, dado: unknown): AlteracaoDaSaida | null {
+  if (!ehObjeto(dado)) return null
+  const ocorrencia = OcorrenciaViagem.de(texto(dado, 'viagemId'), texto(dado, 'data'))
+  if (ocorrencia === null) return null
+  const portoEmbarqueId = texto(dado, 'portoEmbarqueId')
+  const portoDesembarqueId = texto(dado, 'portoDesembarqueId')
+  const bruta = dado['horaMin']
+  const horaMin = typeof bruta === 'number' && Number.isFinite(bruta) ? Math.trunc(bruta) : -1
+  if (portoEmbarqueId.trim().length === 0 || portoDesembarqueId.trim().length === 0 || horaMin < 0) return null
+  return { ocorrencia, portoEmbarqueId, portoDesembarqueId, horaMin, motivo: texto(dado, 'motivo') }
 }
 
 /** A concessão: `embarcacaoIds` e `portoIds`, como o `EmpresaFirestoreRepository` os lê. */
