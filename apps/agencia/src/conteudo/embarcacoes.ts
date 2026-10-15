@@ -14,7 +14,38 @@
  */
 import type { SlugIcone } from '@navegsistemas/design-system'
 
-import fotoDoMariaIvanir from '../assets/embarcacoes/maria-ivanir.jpg'
+/**
+ * **As fotos, pelo nome do arquivo** (PO, 2026-10-15). Em `src/assets/embarcacoes/`, o nome diz para onde a foto vai:
+ *
+ * - `<id>-apresentacao` é a da vitrine, deitada;
+ * - `<id>-capa` é a do fundo da capa, que pode ser em pé;
+ * - só `<id>` serve para as duas.
+ *
+ * Uma foto só não serve para tudo: a do Maria Ivanir em pé, recortada em 16:9 na vitrine, perdia metade do navio. A
+ * extensão é qualquer uma que o Astro processa. Foto nova entra pelo nome, sem mexer aqui — mas o texto alternativo,
+ * sim, porque o cenário o cobra.
+ */
+const FOTOS = import.meta.glob<{ default: ImageMetadata }>('../assets/embarcacoes/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+})
+
+function fotoPeloNome(nome: string): ImageMetadata | null {
+  for (const [caminho, modulo] of Object.entries(FOTOS)) {
+    const arquivo = caminho.slice(caminho.lastIndexOf('/') + 1, caminho.lastIndexOf('.'))
+    if (arquivo === nome) return modulo.default
+  }
+  return null
+}
+
+/** A foto da vitrine: `<id>-apresentacao`, ou `<id>`. */
+export function fotoDaApresentacao(id: string): ImageMetadata | null {
+  return fotoPeloNome(`${id}-apresentacao`) ?? fotoPeloNome(id)
+}
+
+/** A foto do fundo da capa: `<id>-capa`, ou `<id>`. */
+export function fotoDaCapa(id: string): ImageMetadata | null {
+  return fotoPeloNome(`${id}-capa`) ?? fotoPeloNome(id)
+}
 
 export interface Embarcacao {
   readonly id: string
@@ -24,12 +55,12 @@ export interface Embarcacao {
   /** Uma linha sobre o que ela faz. */
   readonly descricao: string
   /**
-   * A foto **original**, importada de `src/assets/embarcacoes/` (o `LEIA-ME.md` de lá diz como). O Astro gera os
-   * tamanhos e os formatos no build; o arquivo guardado é o que chegou, sem recorte. `null` enquanto a foto não
-   * chega — e a embarcação fica fora da vitrine.
+   * A foto **da apresentação** (a vitrine), achada pelo nome em `src/assets/embarcacoes/` (ver [FOTOS] e o
+   * `LEIA-ME.md` de lá). O Astro gera os tamanhos e os formatos no build; o arquivo guardado é o que chegou, sem
+   * recorte. `null` enquanto a foto não chega — e a embarcação fica fora da vitrine.
    */
   readonly imagem: ImageMetadata | null
-  /** O texto alternativo da foto. Obrigatório quando há foto; é cobrado por cenário. */
+  /** O texto alternativo da foto da vitrine. Obrigatório quando há foto; é cobrado por cenário. */
   readonly alt: string | null
 }
 
@@ -39,23 +70,23 @@ export const EMBARCACOES: readonly Embarcacao[] = [
     nome: 'F/B Regional',
     tipo: 'Ferry Boat',
     descricao: 'Passageiros e veículos na travessia Belém ⇄ Macapá.',
-    imagem: null,
-    alt: null,
+    imagem: fotoDaApresentacao('regional'),
+    alt: 'O ferry boat Regional navegando com a rampa de proa erguida e caminhões e carros no convés, sob um céu azul com nuvens.',
   },
   {
     id: 'maria-ivanir',
     nome: 'F/B Maria Ivanir',
     tipo: 'Ferry Boat',
     descricao: 'Rede, suíte e camarote, com praça para carga rodante.',
-    imagem: fotoDoMariaIvanir,
-    alt: 'O ferry boat Maria Ivanir navegando ao pôr do sol, com o céu alaranjado refletido na água.',
+    imagem: fotoDaApresentacao('maria-ivanir'),
+    alt: 'O ferry boat Maria Ivanir de lado, inteiro, navegando ao pôr do sol, com o céu alaranjado refletido na água.',
   },
   {
     id: 'maria-eduarda',
     nome: 'F/B Maria Eduarda',
     tipo: 'Ferry Boat',
     descricao: 'A mais recente da flotilha, na mesma travessia.',
-    imagem: null,
+    imagem: fotoDaApresentacao('maria-eduarda'),
     alt: null,
   },
 ]
@@ -75,6 +106,13 @@ export const EMBARCACOES_DA_VITRINE: readonly Embarcacao[] = EMBARCACOES.filter(
 export const FOTOS_PARA_A_VITRINE = 2
 
 export const VITRINE_VISIVEL = EMBARCACOES_DA_VITRINE.length >= FOTOS_PARA_A_VITRINE
+
+/**
+ * **A foto do cartão do Veículo**, na primeira pergunta da reserva (UI 2.2, decisão M): a do F/B Regional, com
+ * caminhões e carros no convés — "utiliza também" (PO, 2026-10-15). É a mesma foto da vitrine, recortada pelo CSS.
+ */
+export const FOTO_DO_CARTAO_DO_VEICULO: ImageMetadata | null =
+  EMBARCACOES.find((embarcacao) => embarcacao.id === 'regional')?.imagem ?? null
 
 /** O ícone da flotilha, para a faixa de credibilidade e a legenda da vitrine. */
 export const ICONE_DA_FLOTILHA: SlugIcone = 'barco'

@@ -172,6 +172,19 @@ describe('as recusas', () => {
     return paraDominio(reserva.codigo, documento)
   }
 
+  /* naveg-front#66 (fluviapp-kmp#63): passageiros e veículo numa reserva só. */
+  it('o veículo com as pessoas: ida e volta; o tipo, a acomodação ilegível ou a quantidade sozinha, recusa', () => {
+    const comPessoas: ReservaDeVeiculo = { ...CARRETA, quantidadePessoas: 3, acomodacao: 'REDE' }
+    expect(estragar(comPessoas, () => {})).toEqual(comPessoas)
+    expect(estragar(comPessoas, (d) => void (d['tipo'] = 'INTEIRA'))).toBeNull()
+    expect(estragar(comPessoas, (d) => void (d['gratuidade'] = 'IDOSO'))).toBeNull()
+    expect(estragar(comPessoas, (d) => void (d['acomodacao'] = 'XYZ'))).toBeNull()
+    expect(estragar(comPessoas, (d) => void delete d['acomodacao'])).toBeNull()
+    expect(estragar(comPessoas, (d) => void delete d['quantidadePessoas'])).toBeNull()
+    expect(estragar(comPessoas, (d) => void (d['quantidadePessoas'] = 51))).toBeNull()
+    expect(estragar(comPessoas, (d) => void (d['quantidadePessoas'] = 50))).not.toBeNull()
+  })
+
   it('o exemplo intacto é aceito — sem isso, as recusas abaixo não provam nada', () => {
     expect(estragar(REDE_GRATUIDADE, () => {})).not.toBeNull()
     expect(estragar(MOTO, () => {})).not.toBeNull()

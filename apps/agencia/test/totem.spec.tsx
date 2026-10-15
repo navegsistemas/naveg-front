@@ -6,6 +6,9 @@
  * Os cenários são os do aceite do passo 8, e cada um confere a tela, não o domínio: que a opção que o casco
  * não admite **não existe** como botão, que o indicador cresce, que voltar apaga a resposta certa, que o
  * quiosque zera parado, que a saída que parte com a tela aberta é recusada com a mensagem certa.
+ *
+ * Na página, a reserva começa pelo que vai embarcar, antes do dia (naveg-front#66); o quiosque não muda, e começa
+ * pela saída.
  */
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -52,10 +55,16 @@ function montar(
   return { repositorio }
 }
 
-/** Escolhe a primeira saída cuja embarcação tem este nome. */
+/** As saídas listadas — só as da lista, e não as etapas nem a legenda do calendário. */
+function saidasListadas(): HTMLElement[] {
+  const lista = document.querySelector('.totem-travessias') as HTMLElement | null
+  return lista === null ? [] : within(lista).queryAllByRole('listitem')
+}
+
+/** Escolhe a primeira saída cuja embarcação tem este nome — depois que as saídas carregaram. */
 async function escolherSaida(embarcacao: string) {
-  const itens = await screen.findAllByRole('listitem')
-  const item = itens.find((li) => li.textContent?.includes(embarcacao))
+  await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+  const item = saidasListadas().find((li) => li.textContent?.includes(embarcacao))
   if (item === undefined) throw new Error(`nenhuma saída do ${embarcacao}`)
   fireEvent.click(within(item).getByRole('button', { name: 'Reservar esta saída' }))
 }
@@ -74,10 +83,24 @@ function indicador(): string {
   return screen.getByText(/^Passo \d+ de \d+$/).textContent ?? ''
 }
 
+/* Os cartões do que vai embarcar levam a descrição no nome: por isso, o começo. */
+const PASSAGEIROS = /^Passageiros(?! e)/
+const PASSAGEIROS_E_VEICULO = /^Passageiros e veículo/
+const VEICULO = /^Veículo/
+
+/** Na página: passageiros, quantos e onde — e o que vai embarcar está respondido. */
+function embarcarPassageiros(quantos = '1 pessoa', onde: RegExp = /^Rede/) {
+  tocar(PASSAGEIROS)
+  tocar(quantos)
+  tocar(onde)
+}
+
 describe('a lista de saídas', () => {
   it('mostra as saídas da semana na ordem da partida, com os rótulos do catálogo', async () => {
     montar()
-    const itens = await screen.findAllByRole('listitem')
+    embarcarPassageiros()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    const itens = saidasListadas()
     /* Hoje às 08:00: a lancha das 07:00 já partiu; a primeira é o ferry das 18:00. */
     expect(itens[0]?.textContent).toContain('Ferry de demonstração')
     expect(itens[0]?.textContent).toContain('Terça-feira, 13/10 · 18:00')
@@ -97,7 +120,8 @@ describe('a lista de saídas', () => {
     cleanup()
 
     montar({ demonstracao: null })
-    await screen.findAllByRole('listitem')
+    embarcarPassageiros()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
     expect(screen.queryByText(/Demonstração\./)).toBeNull()
   })
 
@@ -107,7 +131,8 @@ describe('a lista de saídas', () => {
     cleanup()
 
     montar()
-    await screen.findAllByRole('listitem')
+    embarcarPassageiros()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
     expect(screen.queryByText(/Isto é uma reserva, não uma venda/)).toBeNull()
   })
 })
@@ -128,12 +153,8 @@ describe('o calendário, na página (UI 1.3)', () => {
         relogio={() => TERCA_8H}
       />,
     )
-  }
-
-  /** As saídas listadas — só as da lista do dia, e não os itens da legenda do calendário. */
-  function saidasListadas(): HTMLElement[] {
-    const lista = document.querySelector('.totem-travessias') as HTMLElement | null
-    return lista === null ? [] : within(lista).queryAllByRole('listitem')
+    /* Na página, o que vai embarcar vem antes do dia (naveg-front#66). */
+    embarcarPassageiros()
   }
 
   it('abre no primeiro dia com saída, e lista só as saídas daquele dia (decisão E)', async () => {
@@ -147,9 +168,9 @@ describe('o calendário, na página (UI 1.3)', () => {
 
   it('escolher outro dia troca as saídas, e o foco vai para elas', async () => {
     montarComCalendario()
-    /* Ao abrir, o foco fica onde estava: puxá-lo no carregamento arrastaria a página até o totem. */
     await screen.findByRole('heading', { level: 4 })
-    expect(document.activeElement).toBe(document.body)
+    /* Respondido o que vai embarcar, o foco está na pergunta do dia, como a cada passo. */
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3 }))
 
     fireEvent.click(screen.getByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
     const titulo = screen.getByRole('heading', { level: 4 })
@@ -204,12 +225,12 @@ describe('o calendário, na página (UI 1.3)', () => {
     expect(screen.getByText('segunda-feira, 11 de janeiro')).toBeTruthy()
   })
 
-  it('escolher a saída leva ao roteiro, e voltar devolve ao mesmo dia', async () => {
+  it('escolher a saída leva aos dados, e voltar devolve ao mesmo dia', async () => {
     montarComCalendario()
     fireEvent.click(await screen.findByRole('button', { name: /^quarta-feira, 14 de outubro/ }))
     const ferry = saidasListadas().find((li) => li.textContent?.includes('Ferry de demonstração')) as HTMLElement
     fireEvent.click(within(ferry).getByRole('button', { name: 'Reservar esta saída' }))
-    expect(pergunta()).toBe('O que vai embarcar?')
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
 
     tocar('Voltar')
     expect(pergunta()).toBe('Escolha o dia')
@@ -237,17 +258,112 @@ describe('o calendário, na página (UI 1.3)', () => {
   })
 })
 
-describe('o roteiro, na tela', () => {
-  it('rede de ponta a ponta: da saída ao código, e o documento gravado sem o tipo (naveg-front#65)', async () => {
+/* naveg-front#66: a reserva começa pelo que vai embarcar, e o dia vem depois (ficha 2.2, segunda proposta). */
+describe('o que vai embarcar, na página', () => {
+  it('a primeira pergunta: o veículo em destaque, leve e pesado à vista, e a encomenda como link', () => {
+    montar()
+    expect(pergunta()).toBe('O que vai embarcar?')
+    const veiculo = screen.getByRole('button', { name: VEICULO })
+    expect(veiculo.className).toContain('totem-cartao--principal')
+    expect(veiculo.textContent).toContain('Pesado: caminhão')
+    expect(screen.getByRole('button', { name: PASSAGEIROS_E_VEICULO })).toBeTruthy()
+    expect(screen.getByRole('button', { name: PASSAGEIROS })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Envie sua encomenda' }).getAttribute('href')).toBe('#encomendas')
+    /* Na primeira pergunta não há para onde voltar. */
+    expect(screen.queryByRole('button', { name: 'Voltar' })).toBeNull()
+  })
+
+  it('com a foto (decisão M), o cartão do veículo a mostra como decoração: o nome do botão continua "Veículo…"', () => {
+    render(
+      <Totem
+        fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
+        envio={envioLocal(new ReservaEmMemoria())}
+        fuso={FUSO_DA_OPERACAO}
+        inatividadeMs={null}
+        demonstracao="SAIDAS_E_ENVIO"
+        relogio={() => TERCA_8H}
+        fotoDoVeiculo={{ src: '/_astro/regional.webp', srcset: '/_astro/regional-480.webp 480w' }}
+      />,
+    )
+    const veiculo = screen.getByRole('button', { name: VEICULO })
+    const foto = veiculo.querySelector('img')
+    expect(foto?.getAttribute('src')).toBe('/_astro/regional.webp')
+    expect(foto?.getAttribute('alt')).toBe('')
+    /* Só o veículo tem foto. */
+    expect(screen.getByRole('button', { name: PASSAGEIROS }).querySelector('img')).toBeNull()
+  })
+
+  it('passageiros e veículo, de ponta a ponta: uma reserva só, com as pessoas e sem o tipo', async () => {
     const { repositorio } = montar()
+    tocar(PASSAGEIROS_E_VEICULO)
+    expect(pergunta()).toBe('Leve ou pesado?')
+    tocar(/^Pesado/)
+    expect(pergunta()).toBe('Qual?')
+    expect(screen.queryByRole('button', { name: 'Carro' })).toBeNull()
+    tocar('Caminhão')
+    expect(pergunta()).toBe('Quantos viajam?')
+    tocar('3 pessoas')
+    tocar(/^Rede/)
+
+    expect(pergunta()).toBe('Escolha a saída')
+    expect(screen.getByText('Caminhão + 3 pessoas em rede')).toBeTruthy()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    /* O caminhão só vai no ferry: a lancha não leva veículo, e o navio só leva carro e moto. */
+    expect(saidasListadas().every((li) => li.textContent?.includes('Ferry de demonstração'))).toBe(true)
+
     await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(
+      screen.getByText('Veículo: Caminhão · + 3 pessoas em rede · inteira, meia ou gratuidade no atendimento'),
+    ).toBeTruthy()
+    tocar('Confirmar reserva')
+    const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
+    const documento = repositorio.documento(codigo)
+    expect(documento).toMatchObject({ categoria: 'VEICULO', classe: 'CAMINHAO', quantidadePessoas: 3, acomodacao: 'REDE' })
+    expect(documento).not.toHaveProperty('tipo')
+  })
+
+  it('a moto: leve, a cilindrada, e o navio entra entre as saídas — a lancha, não', async () => {
+    montar()
+    tocar(VEICULO)
+    tocar(/^Leve/)
+    tocar('Moto')
+    expect(pergunta()).toBe('Qual a cilindrada da moto?')
+    fireEvent.change(screen.getByLabelText('Cilindrada (cc)'), { target: { value: '160' } })
+    tocar('Continuar')
+    expect(screen.getByText('Moto · 160 cc')).toBeTruthy()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    expect(saidasListadas().some((li) => li.textContent?.includes('Navio de demonstração'))).toBe(true)
+    expect(saidasListadas().some((li) => li.textContent?.includes('Lancha de demonstração'))).toBe(false)
+  })
+
+  it('"Mudar" volta à primeira pergunta, e voltar da lista apaga a última resposta do embarque', async () => {
+    montar()
+    embarcarPassageiros('2 pessoas')
+    expect(screen.getByText('2 pessoas em rede')).toBeTruthy()
+    tocar('Voltar')
+    expect(pergunta()).toBe('Onde vocês querem viajar?')
+    tocar(/^Suíte/)
+    expect(screen.getByText('2 pessoas em suíte')).toBeTruthy()
+    tocar('Mudar')
+    expect(pergunta()).toBe('O que vai embarcar?')
+  })
+})
+
+describe('o roteiro, na tela', () => {
+  it('passageiros de ponta a ponta: do embarque ao código, e o documento gravado sem o tipo', async () => {
+    const { repositorio } = montar()
 
     expect(pergunta()).toBe('O que vai embarcar?')
-    tocar('Passageiro')
+    tocar(PASSAGEIROS)
     expect(pergunta()).toBe('Quantos viajam?')
     tocar('1 pessoa')
     expect(pergunta()).toBe('Onde vocês querem viajar?')
     tocar(/^Rede/)
+    expect(pergunta()).toBe('Escolha a saída')
+    await escolherSaida('Ferry de demonstração')
     expect(pergunta()).toBe('Em nome de quem fica a reserva?')
 
     const usuario = userEvent.setup()
@@ -264,6 +380,7 @@ describe('o roteiro, na tela', () => {
     const documento = repositorio.documento(codigo)
     expect(documento).toMatchObject({
       status: 'RESERVADA',
+      categoria: 'PASSAGEIRO',
       acomodacao: 'REDE',
       quantidadePessoas: 1,
       cliente: { nome: 'Maria Souza', telefone: '5591988887777' },
@@ -274,8 +391,7 @@ describe('o roteiro, na tela', () => {
 
   it('"5 ou mais" abre o contador, e o grupo vai numa suíte sem o teto dela', async () => {
     const { repositorio } = montar()
-    await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
+    tocar(PASSAGEIROS)
     expect(screen.getAllByRole('button', { name: /^\d pessoas?$/ }).map((b) => b.textContent)).toEqual([
       '1 pessoa',
       '2 pessoas',
@@ -300,6 +416,7 @@ describe('o roteiro, na tela', () => {
     fireEvent.change(campo, { target: { value: '7' } })
     tocar('Continuar')
     tocar(/^Suíte/)
+    await escolherSaida('Ferry de demonstração')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
     tocar('Continuar')
     expect(screen.getByText('Suíte · 7 pessoas · inteira, meia ou gratuidade no atendimento')).toBeTruthy()
@@ -345,15 +462,15 @@ describe('o roteiro, na tela', () => {
     expect(repositorio.documento(codigo)).toMatchObject({ acomodacao: 'REDE', tipo: 'INTEIRA', quantidadePessoas: 1 })
   })
 
-  it('na lancha, "Veículo" não é um botão desabilitado — não existe', async () => {
-    montar()
+  it('no quiosque, na lancha, "Veículo" não é um botão desabilitado — não existe', async () => {
+    montar({ quiosque: true })
     await escolherSaida('Lancha de demonstração')
     expect(screen.getByRole('button', { name: 'Passageiro' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Veículo' })).toBeNull()
   })
 
-  it('no navio, a classe não é perguntada; a moto vai direto para a cilindrada', async () => {
-    montar()
+  it('no quiosque, no navio, a classe não é perguntada; a moto vai direto para a cilindrada', async () => {
+    montar({ quiosque: true })
     await escolherSaida('Navio de demonstração')
     tocar('Veículo')
     expect(pergunta()).toBe('Que tipo de veículo?')
@@ -365,10 +482,8 @@ describe('o roteiro, na tela', () => {
 
   it('o telefone é opcional — e o inválido é apontado na hora, sem avançar', async () => {
     montar()
+    embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
-    tocar('1 pessoa')
-    tocar(/^Rede/)
 
     const usuario = userEvent.setup()
     await usuario.type(screen.getByLabelText('Nome'), 'Maria')
@@ -383,10 +498,21 @@ describe('o roteiro, na tela', () => {
     expect(screen.getByText('Não informado')).toBeTruthy()
   })
 
+  it('o celular ganha a máscara enquanto se digita: só os dígitos viram "(91) 98888-7777"', async () => {
+    montar()
+    embarcarPassageiros()
+    await escolherSaida('Ferry de demonstração')
+    const usuario = userEvent.setup()
+    const campo = screen.getByLabelText(/Celular com DDD/) as HTMLInputElement
+    await usuario.type(campo, '9198888')
+    expect(campo.value).toBe('(91) 9888-8')
+    await usuario.type(campo, '7777')
+    expect(campo.value).toBe('(91) 98888-7777')
+  })
+
   it('voltar apaga a resposta do passo anterior, e o põe em foco', async () => {
     montar()
-    await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
+    tocar(PASSAGEIROS)
     tocar('2 pessoas')
     expect(pergunta()).toBe('Onde vocês querem viajar?')
 
@@ -399,9 +525,8 @@ describe('o roteiro, na tela', () => {
 
   it('o passo em foco é anunciado ao leitor de tela: a etapa na página, o número no quiosque', async () => {
     montar()
-    await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
-    expect(screen.getByText('Embarque. Quantos viajam?')).toBeTruthy()
+    tocar(PASSAGEIROS)
+    expect(screen.getByText('O que vai embarcar. Quantos viajam?')).toBeTruthy()
     cleanup()
     montar({ quiosque: true })
     await escolherSaida('Ferry de demonstração')
@@ -418,41 +543,43 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
 
   it('as etapas pelo nome não crescem com as respostas', async () => {
     montar()
-    await escolherSaida('Ferry de demonstração')
-    expect(atual()).toBe('Embarque')
-    tocar('Passageiro')
+    expect(atual()).toBe('O que vai embarcar')
+    tocar(PASSAGEIROS)
     tocar('5 ou mais')
     tocar('Continuar')
     expect(pergunta()).toBe('Onde vocês querem viajar?')
-    expect(atual()).toBe('Embarque')
+    expect(atual()).toBe('O que vai embarcar')
+    tocar(/^Rede/)
+    expect(atual()).toBe('Dia e saída')
+    await escolherSaida('Ferry de demonstração')
+    expect(atual()).toBe('Seus dados')
     expect(etapas().getAllByRole('listitem')).toHaveLength(4)
     expect(screen.queryByText(/^Passo \d+ de \d+$/)).toBeNull()
   })
 
   it('o quadro diz o cais de embarque e o de desembarque, e "Trocar a saída" volta sem perder as respostas', async () => {
     montar()
+    embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
     expect(screen.getByText('Embarque: Porto de demonstração · Cidade Exemplo A/PA')).toBeTruthy()
     expect(screen.getByText(/^Desembarque: Porto de demonstração · Cidade Exemplo B\/PA · Ferry de demonstração/)).toBeTruthy()
-    tocar('Passageiro')
     tocar('Trocar a saída')
     expect(pergunta()).toBe('Escolha a saída')
     await escolherSaida('Ferry de demonstração')
     /* As respostas ficaram: o roteiro continua de onde parou. */
-    expect(pergunta()).toBe('Quantos viajam?')
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
   })
 
-  it('recomeçar pergunta antes de apagar', async () => {
+  it('recomeçar pergunta antes de apagar', () => {
     montar()
-    await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
+    tocar(PASSAGEIROS)
     tocar('Recomeçar a reserva')
     expect(screen.getByText('Apagar as respostas e começar de novo?')).toBeTruthy()
     tocar('Não, continuar')
     expect(pergunta()).toBe('Quantos viajam?')
     tocar('Recomeçar a reserva')
     tocar('Sim, recomeçar')
-    expect(pergunta()).toBe('Escolha a saída')
+    expect(pergunta()).toBe('O que vai embarcar?')
   })
 
   it('o quiosque não muda: "Passo n de m", o recomeçar de antes, e o quadro sem "Trocar"', async () => {
@@ -481,14 +608,12 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
         ],
       },
     })
-    const itens = await screen.findAllByRole('listitem')
-    const quarta = itens.find((li) => li.textContent?.includes('14/10 · 19:00'))
+    embarcarPassageiros()
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    const quarta = saidasListadas().find((li) => li.textContent?.includes('14/10 · 19:00'))
     if (quarta === undefined) throw new Error('a saída alterada não está na lista')
     fireEvent.click(within(quarta).getByRole('button', { name: 'Reservar esta saída' }))
     expect(screen.getByText('Embarque alterado nesta data: Cais em obra')).toBeTruthy()
-    tocar('Passageiro')
-    tocar('1 pessoa')
-    tocar(/^Rede/)
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
     tocar('Continuar')
     expect(pergunta()).toBe('Confira a reserva')
@@ -505,10 +630,8 @@ describe('o tempo', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     let agora = TERCA_8H
     montar({ relogio: () => agora })
+    embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
-    tocar('1 pessoa')
-    tocar(/^Rede/)
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria' } })
     tocar('Continuar')
     expect(screen.getByRole('button', { name: 'Confirmar reserva' })).toBeTruthy()
@@ -524,7 +647,7 @@ describe('o tempo', () => {
     tocar('Escolher outra saída')
     expect(pergunta()).toBe('Escolha a saída')
     /* E o ferry de hoje não está mais na lista. */
-    expect(screen.getAllByRole('listitem')[0]?.textContent).not.toContain('13/10 · 18:00')
+    expect(saidasListadas()[0]?.textContent).not.toContain('13/10 · 18:00')
   })
 
   it('no quiosque, a pergunta do passo é h2 — não há título de seção acima dela, e pular um nível desorienta o leitor de tela', async () => {
@@ -557,9 +680,9 @@ describe('o tempo', () => {
     expect(pergunta()).toBe('O que vai embarcar?')
   })
 
-  it('tocar na tela adia o zerar', async () => {
+  it('no quiosque, tocar na tela adia o zerar', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    montar({ inatividadeMs: 90_000 })
+    montar({ inatividadeMs: 90_000, quiosque: true })
     await escolherSaida('Ferry de demonstração')
     await act(async () => {
       vi.advanceTimersByTime(80_000)
@@ -574,10 +697,8 @@ describe('o tempo', () => {
 
 describe('o handoff para o WhatsApp (passo 11)', () => {
   async function reservarRede(usuario: ReturnType<typeof userEvent.setup>) {
+    embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
-    tocar('Passageiro')
-    tocar('1 pessoa')
-    tocar(/^Rede/)
     await usuario.type(screen.getByLabelText('Nome'), 'Maria Souza')
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))

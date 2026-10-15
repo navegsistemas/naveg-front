@@ -10,9 +10,13 @@ import {
   CategoriaPassagem,
   ClasseVeiculo,
   NaturezaVeiculo,
+  OQueEmbarca,
+  PorteDoVeiculo,
   TipoGratuidade,
   TipoPassagem,
   casoImpossivel,
+  embarqueEmVigor,
+  porteEmVigor,
   type NoDoRoteiro,
   type RespostasDaReserva,
 } from '@navegsistemas/domain'
@@ -38,6 +42,26 @@ export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
           opcoes={no.opcoes.map((valor) => ({ valor, rotulo: CategoriaPassagem.rotulo(valor) }))}
           escolhida={respostas.categoria}
           aoEscolher={(categoria) => com({ categoria })}
+        />
+      )
+    case 'EMBARQUE':
+      return (
+        <EscolhaEmCartoes
+          opcoes={no.opcoes.map((valor) => ({ valor, rotulo: OQueEmbarca.rotulo(valor) }))}
+          escolhida={embarqueEmVigor(respostas)}
+          aoEscolher={(embarque) => com({ embarque })}
+        />
+      )
+    case 'PORTE_DO_VEICULO':
+      return (
+        <EscolhaEmCartoes
+          opcoes={no.opcoes.map((valor) => ({
+            valor,
+            rotulo: PorteDoVeiculo.rotulo(valor),
+            descricao: PorteDoVeiculo.exemplos(valor),
+          }))}
+          escolhida={porteEmVigor(respostas)}
+          aoEscolher={(porteVeiculo) => com({ porteVeiculo })}
         />
       )
     case 'ACOMODACAO':

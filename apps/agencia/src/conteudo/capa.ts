@@ -12,7 +12,7 @@ import type { SlugIcone } from '@navegsistemas/design-system'
 import { linkDeWhatsApp } from '@navegsistemas/domain'
 
 import { ATENDIMENTO, WHATSAPP_DAS_RESERVAS } from './atendimento'
-import { EMBARCACOES, type Embarcacao } from './embarcacoes'
+import { fotoDaCapa } from './embarcacoes'
 
 export interface Credencial {
   readonly icone: SlugIcone
@@ -33,7 +33,8 @@ export interface Acao {
  */
 const ID_DA_FOTO_DA_CAPA = 'maria-ivanir'
 
-const daFoto: Embarcacao | undefined = EMBARCACOES.find((embarcacao) => embarcacao.id === ID_DA_FOTO_DA_CAPA)
+/* A foto da capa é a `<id>-capa` (pelo nome, PO, 2026-10-15): em pé, para o fundo do celular; a da vitrine é outra. */
+const FOTO_DA_CAPA: ImageMetadata | null = fotoDaCapa(ID_DA_FOTO_DA_CAPA)
 
 export const CAPA = {
   titulo: 'Belém ⇄ Macapá, com reserva em um minuto',
@@ -42,7 +43,7 @@ export const CAPA = {
   /* As três coisas que a NAVEG leva (UI 2.2, PO, 2026-10-14): a passagem, o veículo e a encomenda. */
   lead: 'Reserve sua passagem, mande seu veículo ou sua encomenda por aqui, e o atendimento da NAVEG cuida do resto.',
 
-  foto: daFoto?.imagem ?? null,
+  foto: FOTO_DA_CAPA,
 
   /* Genérico, como no topo (UI 2.2, PO, 2026-10-14): a reserva leva passageiro e veículo, e não só passagem. */
   acaoPrimaria: { rotulo: 'Reservar agora', href: '#totem' } satisfies Acao,

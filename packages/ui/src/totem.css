@@ -243,11 +243,93 @@
   font-size: 0.95rem;
 }
 
+/* Na página, os cartões de uma pergunta têm todos a altura do maior: "Leve" e "Pesado" ficam do mesmo tamanho, com
+   espaço sobrando no texto de apoio do mais curto (PO, 2026-10-15). */
+.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
+  grid-auto-rows: 1fr;
+}
+
+.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes .totem-cartao {
+  height: 100%;
+  align-content: start;
+}
+
 /* No computador, as opções em colunas (UI 2.2, decisão F): uma palavra não ocupa uma faixa inteira. Só no totem da
    página: o quiosque não muda, e a encomenda é a 2.7. */
 @media (min-width: 64rem) {
   .totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
     grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+}
+
+/* O que vai embarcar (UI 2.2, decisão G): o veículo grande, as outras duas menores, e a encomenda como link. No
+   computador, o veículo ocupa a coluna da esquerda inteira. */
+.totem-embarques {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.totem-embarques__opcoes {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.totem-cartao--principal {
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border-width: 3px;
+}
+
+/* A foto do veículo (decisão M): faixa larga, recortada pelo CSS, com o convés e os caminhões à vista. */
+.totem-cartao__foto {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  object-position: 60% 60%;
+  border-radius: var(--radius);
+}
+
+.totem-cartao--principal .totem-cartao__rotulo {
+  font-size: 1.25rem;
+}
+
+/* Uma faixa por porte, as duas da mesma largura: "Pesado" tem mais exemplos, e lado a lado elas ficavam desiguais
+   (PO, 2026-10-15). */
+.totem-cartao__pesos {
+  display: grid;
+  gap: var(--espaco-1);
+}
+
+/* Cantos do cartão, e não de pílula: no celular o exemplo quebra em duas linhas, e a pílula viraria um oval. */
+.totem-cartao__peso {
+  padding: 0.125rem var(--espaco-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.totem-embarques__encomenda {
+  margin: 0;
+  color: var(--text-body);
+}
+
+@media (min-width: 64rem) {
+  .totem-embarques__opcoes {
+    grid-template-columns: 1.3fr 1fr;
+  }
+
+  .totem-embarques__principal {
+    grid-row: span 2;
+  }
+
+  /* Os dois da direita dividem a altura do veículo, sem um vão entre eles. */
+  .totem-embarques__opcoes .totem-cartao {
+    height: 100%;
+    align-content: center;
   }
 }
 
@@ -433,10 +515,21 @@
 
 /* ── O calendário (UI 1.3): o dia primeiro, e as saídas daquele dia ───────────────────────────── */
 
-/* No computador, o calendário e as saídas do dia ficam lado a lado (decisão D); os passos seguintes voltam à
-   coluna de texto. No celular, um embaixo do outro. */
+/* No computador, o calendário e as saídas do dia ficam lado a lado (decisão D). No celular, um embaixo do outro. */
 .totem--calendario {
   max-width: none;
+}
+
+/* Na página, o card da reserva usa a largura do conteúdo em todas as telas, e não só no calendário (pedido do PO na
+   prévia da 2.2, 2026-10-15: "espremido na esquerda, com um espaço inútil na direita"). Os cartões se distribuem em
+   colunas; o que se lê ou preenche linha a linha — os formulários, o resumo da conferência e os quadros — fica na
+   largura de leitura. O quiosque já ocupa a tela, e a encomenda é a 2.7. */
+.totem:not(.totem--quiosque):not(.totem--encomenda) {
+  max-width: none;
+}
+
+.totem:not(.totem--quiosque):not(.totem--encomenda) :is(.totem-formulario, .totem-conferencia, .totem-conclusao, .totem-saida) {
+  max-width: var(--largura-texto);
 }
 
 .totem-dia-e-saidas {

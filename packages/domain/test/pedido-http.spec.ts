@@ -93,6 +93,15 @@ describe('as respostas, campo a campo', () => {
     expect(com({ categoria: ' passageiro ' })?.categoria).toBe('PASSAGEIRO')
   })
 
+  it('o que vai embarcar e o porte passam, e fora do conjunto são recusados (naveg-front#66)', () => {
+    expect(com({ embarque: 'PASSAGEIROS_E_VEICULO', porteVeiculo: 'PESADO' })).toMatchObject({
+      embarque: 'PASSAGEIROS_E_VEICULO',
+      porteVeiculo: 'PESADO',
+    })
+    expect(com({ embarque: 'ENCOMENDA' })).toBeNull()
+    expect(com({ porteVeiculo: 'MEDIO' })).toBeNull()
+  })
+
   it('o canal passa, e fora do conjunto é recusado — sem ele, é o quiosque (naveg-front#65)', () => {
     expect(com({ canal: 'SITE' })?.canal).toBe('SITE')
     expect(com({ canal: 'APP' })).toBeNull()

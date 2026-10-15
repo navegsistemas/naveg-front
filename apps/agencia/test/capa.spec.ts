@@ -7,6 +7,7 @@ import { CAPA } from '../src/conteudo/capa.js'
 import {
   EMBARCACOES,
   EMBARCACOES_DA_VITRINE,
+  fotoDaCapa,
   FOTOS_PARA_A_VITRINE,
   VITRINE_VISIVEL,
 } from '../src/conteudo/embarcacoes.js'
@@ -29,10 +30,13 @@ describe('a capa', () => {
     for (const texto of textos) expect(texto).not.toMatch(/santana/i)
   })
 
-  it('tem foto de fundo, e é a do Maria Ivanir', () => {
+  it('tem foto de fundo, e é a do Maria Ivanir — a de capa, e não a da vitrine (pelo nome, 2026-10-15)', () => {
     const mariaIvanir = EMBARCACOES.find((embarcacao) => embarcacao.id === 'maria-ivanir')
     expect(CAPA.foto).not.toBeNull()
-    expect(CAPA.foto).toBe(mariaIvanir?.imagem)
+    expect(CAPA.foto).toBe(fotoDaCapa('maria-ivanir'))
+    /* Em pé no fundo da capa; deitada na vitrine, onde a em pé perdia metade do navio. */
+    expect(mariaIvanir?.imagem).not.toBeNull()
+    expect(CAPA.foto).not.toBe(mariaIvanir?.imagem)
   })
 })
 

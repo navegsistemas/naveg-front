@@ -17,6 +17,8 @@ export interface TextoDoPasso {
 
 export const TEXTO_DO_PASSO: Readonly<Record<PassoDaReserva, TextoDoPasso>> = {
   CATEGORIA: { pergunta: 'O que vai embarcar?' },
+  EMBARQUE: { pergunta: 'O que vai embarcar?' },
+  PORTE_DO_VEICULO: { pergunta: 'Leve ou pesado?' },
   ACOMODACAO: { pergunta: 'Onde você quer viajar?' },
   TIPO_TARIFARIO: {
     pergunta: 'Qual o tipo da passagem?',
@@ -40,6 +42,7 @@ export const TEXTO_DO_PASSO: Readonly<Record<PassoDaReserva, TextoDoPasso>> = {
  */
 export const TEXTO_DO_PASSO_NO_SITE: Readonly<Partial<Record<PassoDaReserva, TextoDoPasso>>> = {
   QUANTIDADE_PESSOAS: { pergunta: 'Quantos viajam?' },
+  CLASSE_VEICULO: { pergunta: 'Qual?' },
   ACOMODACAO: {
     pergunta: 'Onde vocês querem viajar?',
     ajuda: 'Escolha uma para o grupo. Se não couber todo mundo, o atendimento divide.',

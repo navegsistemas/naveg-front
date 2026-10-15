@@ -50,7 +50,7 @@ export const SECOES: readonly SecaoDaPagina[] = [
     /* Um texto só no lugar do subtítulo e da caixa do aviso, que diziam o mesmo recado duas vezes (UI 1.3, PO,
        2026-10-09). O aviso continua inteiro no quiosque, que não tem subtítulo, e no rodapé. */
     subtitulo:
-      'Escolha o dia e a saída e receba o código da reserva, sem cadastro. Nada é pago aqui: o atendimento ' +
+      'Escolha o que vai embarcar, o dia e a saída, e receba o código da reserva, sem cadastro. Nada é pago aqui: o atendimento ' +
       'confirma a passagem pelo WhatsApp, e a reserva vale até a saída do barco.',
     rotulo: 'Reservar',
     /* No topo, a reserva é o botão "Reservar agora": um item com o mesmo destino ao lado dele seria repetição. */

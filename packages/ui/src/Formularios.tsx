@@ -22,6 +22,7 @@ import {
 } from '@navegsistemas/domain'
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
+import { mascaraDoCelular } from './mascara.js'
 
 export interface PropsDoFormularioDoCliente {
   readonly inicial: RascunhoDoCliente | undefined
@@ -43,7 +44,7 @@ export function FormularioDoCliente({
 }: PropsDoFormularioDoCliente) {
   const id = useId()
   const [nome, setNome] = useState(inicial?.nome ?? '')
-  const [telefone, setTelefone] = useState(inicial?.telefone ?? '')
+  const [telefone, setTelefone] = useState(mascaraDoCelular(inicial?.telefone ?? ''))
   const [tentou, setTentou] = useState(false)
 
   const nomeVazio = nome.trim().length === 0
@@ -94,7 +95,7 @@ export function FormularioDoCliente({
           placeholder="(91) 98888-7777"
           maxLength={LIMITE_DO_TELEFONE}
           value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
+          onChange={(e) => setTelefone(mascaraDoCelular(e.target.value))}
           aria-invalid={tentou && telefoneInvalido}
           aria-describedby={tentou && telefoneInvalido ? `${id}-telefone-erro` : undefined}
         />

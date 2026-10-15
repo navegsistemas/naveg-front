@@ -146,6 +146,14 @@ export interface ReservaDeVeiculo extends ReservaBase, ConvertidaEmPassagem {
    * placa, o modelo e a cor são identificação — recolhidos no atendimento, como o documento das pessoas.
    */
   readonly cilindrada?: number
+  /**
+   * **As pessoas que vão com o veículo** (PO, 2026-10-14, naveg-front#66; fluviapp-kmp#63): "passageiros e veículo" é
+   * uma reserva só, com um código e uma conversa. De 1 a [LIMITE_DE_PESSOAS_DA_RESERVA], sem o tipo — o atendente
+   * decide, como na de passageiros. Ausente quando o veículo vai sozinho, e então a `acomodacao` também.
+   */
+  readonly quantidadePessoas?: number
+  /** A acomodação do grupo que vai com o veículo. Presente **junto** com `quantidadePessoas`. */
+  readonly acomodacao?: Acomodacao
 }
 
 /** Quem retira no destino, quando não é quem manda. Os dois campos são obrigatórios (C5). */
@@ -252,6 +260,12 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
       }
       /* Cilindrada pendurada num carro é sobra de uma escolha desfeita — como o subtipo sem gratuidade. */
       if (!exige && cilindrada !== undefined) pendencias.add('CILINDRADA')
+      /* As pessoas que vão junto (naveg-front#66): a quantidade e a acomodação andam juntas. */
+      const pessoas = reserva.quantidadePessoas
+      if ((pessoas === undefined) !== (reserva.acomodacao === undefined)) pendencias.add('QUANTIDADE')
+      if (pessoas !== undefined && (!Number.isInteger(pessoas) || pessoas < 1 || pessoas > LIMITE_DE_PESSOAS_DA_RESERVA)) {
+        pendencias.add('QUANTIDADE')
+      }
       break
     }
     case 'ENCOMENDA':
@@ -299,9 +313,21 @@ export function reservaCoerente(reserva: Reserva): boolean {
   return pendenciasDaReserva(reserva).size === 0
 }
 
-/** Quantas pessoas o pedido cobre. As de veículo e de encomenda cobrem **zero** passageiros. */
+/**
+ * Quantas pessoas o pedido cobre. A de veículo, as que vão com ele — zero quando ele vai sozinho; a de encomenda,
+ * **zero**.
+ */
 export function pessoasDaReserva(reserva: Reserva): number {
-  return reserva.categoria === 'PASSAGEIRO' ? reserva.quantidadePessoas : 0
+  switch (reserva.categoria) {
+    case 'PASSAGEIRO':
+      return reserva.quantidadePessoas
+    case 'VEICULO':
+      return reserva.quantidadePessoas ?? 0
+    case 'ENCOMENDA':
+      return 0
+    default:
+      return casoImpossivel(reserva, 'pessoasDaReserva')
+  }
 }
 
 /**

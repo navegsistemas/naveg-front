@@ -447,6 +447,24 @@ pelo mesmo caminho. Por isso a ordem tem um passo a mais: o domain 0.9.0 primeir
 só então a página: com a API de antes, a reserva sem o tipo seria recusada. Falta a primeira pergunta ("o que vai
 embarcar", com Passageiros e veículo), que é a #66.
 
+**O caminho novo da segunda proposta (#66, 2026-10-15):** o KMP entrou no `master` (fluviapp-kmp#68). Na página, a
+reserva começa por **"O que vai embarcar?"**, antes do dia:
+
+- **Veículo** é o cartão grande, com "Leve" e "Pesado" e os exemplos à vista; **Passageiros e veículo** e
+  **Passageiros** vêm menores; a encomenda é um link para a seção dela;
+- o veículo pergunta **"Leve ou pesado?"** e **"Qual?"**, só com as classes daquele porte (e a cilindrada, na moto);
+- as pessoas perguntam **"Quantos viajam?"** e a acomodação do grupo, como na #65;
+- depois vem **o dia**, e o calendário só acende as saídas cuja embarcação leva o que foi escolhido;
+- o que já foi respondido fica num quadro com **"Mudar"** ("Caminhão + 3 pessoas em rede"), e as etapas passam a ser
+  O que vai embarcar › Dia e saída › Seus dados › Conferir.
+
+"Passageiros e veículo" é uma reserva só, de veículo, com as pessoas e a acomodação, e sem o tipo. O cartão do veículo
+fica sem foto até a decisão M: destaca-se pelo tamanho e pela posição. O quiosque não muda.
+
+Desta vez o domain e a página vão num PR só: com o domain novo, a página já muda. A ordem continua a mesma: a tag
+`domain-v0.10.0` sai do commit do PR, a API sobe para ela e é promovida, e só então o PR entra na `main`. Enquanto isso,
+a API nova continua aceitando a página de antes (a `categoria` vale como o que vai embarcar).
+
 **O que vai antes, sem o KMP:**
 - a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;
 - o quadro da saída com o cais e o aviso de alteração vale também no quiosque, porque é informação e não muda o fluxo;

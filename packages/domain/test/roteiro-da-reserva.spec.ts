@@ -11,6 +11,8 @@ import { NATUREZAS_DE_VEICULO } from '../src/passagem/natureza-veiculo.js'
 import { TIPOS_DE_GRATUIDADE } from '../src/passagem/tipo-gratuidade.js'
 import {
   chaveDoNo,
+  embarcacaoLeva,
+  embarqueRespondido,
   classesOfertadas,
   respondido,
   roteiroDaReserva,
@@ -302,8 +304,9 @@ describe('o ramo de passageiro, pelo site', () => {
   const SITE: RespostasDaReserva = { canal: 'SITE', categoria: 'PASSAGEIRO' }
 
   it('quantos viajam, depois a acomodação — e nenhum tipo, em acomodação nenhuma', () => {
+    /* A `categoria` que o site da #65 manda vale como "Passageiros" (naveg-front#66). */
     expect(passos(roteiroDaReserva(SITE, contexto()))).toEqual([
-      'CATEGORIA',
+      'EMBARQUE',
       'QUANTIDADE_PESSOAS',
       'ACOMODACAO',
       'CLIENTE',
@@ -333,5 +336,75 @@ describe('o ramo de passageiro, pelo site', () => {
     const respostas: RespostasDaReserva = { ...SITE, quantidadePessoas: 2 }
     expect(voltar(respostas, contexto())).toEqual(SITE)
     expect(voltar(SITE, contexto())).toEqual({ canal: 'SITE' })
+  })
+})
+
+/* naveg-front#66: no site, o que vai embarcar vem antes do dia, e não depende do casco. */
+describe('o que vai embarcar, pelo site', () => {
+  const SITE: RespostasDaReserva = { canal: 'SITE' }
+
+  it('começa pelo que vai embarcar: veículo, passageiros e veículo, passageiros', () => {
+    const roteiro = roteiroDaReserva(SITE, contexto())
+    expect(passos(roteiro)).toEqual(['EMBARQUE', 'CLIENTE', 'CONFERENCIA'])
+    expect(no(roteiro, 'EMBARQUE').opcoes).toEqual(['VEICULO', 'PASSAGEIROS_E_VEICULO', 'PASSAGEIROS'])
+  })
+
+  it('o veículo: leve ou pesado, e depois só as classes daquele porte', () => {
+    const veiculo = { ...SITE, embarque: 'VEICULO' as const }
+    expect(passos(roteiroDaReserva(veiculo, contexto()))).toEqual(['EMBARQUE', 'PORTE_DO_VEICULO', 'CLIENTE', 'CONFERENCIA'])
+    const pesado = roteiroDaReserva({ ...veiculo, porteVeiculo: 'PESADO' }, contexto())
+    expect(no(pesado, 'CLASSE_VEICULO').opcoes).toContain('CAMINHAO')
+    expect(no(pesado, 'CLASSE_VEICULO').opcoes).not.toContain('CARRO')
+    expect(pesado.atual?.passo).toBe('CLASSE_VEICULO')
+    /* O carro que sobrou de "leve" não responde "Qual?" no pesado. */
+    expect(roteiroDaReserva({ ...veiculo, porteVeiculo: 'PESADO', classeVeiculo: 'CARRO' }, contexto()).atual?.passo).toBe(
+      'CLASSE_VEICULO',
+    )
+  })
+
+  it('a moto pede a cilindrada; passageiros e veículo pedem também quantos e onde, depois do veículo', () => {
+    const moto = { ...SITE, embarque: 'VEICULO' as const, porteVeiculo: 'LEVE' as const, classeVeiculo: 'MOTO' as const }
+    expect(roteiroDaReserva(moto, contexto()).atual?.passo).toBe('CILINDRADA')
+    const juntos = { ...SITE, embarque: 'PASSAGEIROS_E_VEICULO' as const, porteVeiculo: 'PESADO' as const, classeVeiculo: 'CAMINHAO' as const }
+    expect(passos(roteiroDaReserva(juntos, contexto()))).toEqual([
+      'EMBARQUE',
+      'PORTE_DO_VEICULO',
+      'CLASSE_VEICULO',
+      'QUANTIDADE_PESSOAS',
+      'ACOMODACAO',
+      'CLIENTE',
+      'CONFERENCIA',
+    ])
+  })
+
+  it('o embarque fica respondido quando todas as perguntas dele estão', () => {
+    expect(embarqueRespondido({ ...SITE, embarque: 'VEICULO', porteVeiculo: 'LEVE' })).toBe(false)
+    expect(embarqueRespondido({ ...SITE, embarque: 'VEICULO', porteVeiculo: 'LEVE', classeVeiculo: 'CARRO' })).toBe(true)
+    expect(embarqueRespondido({ ...SITE, embarque: 'PASSAGEIROS', quantidadePessoas: 3, acomodacao: 'REDE' })).toBe(true)
+  })
+
+  it('a embarcação leva o que vai embarcar: passageiros em toda; o caminhão, não na lancha nem no navio', () => {
+    const caminhao: RespostasDaReserva = { ...SITE, embarque: 'VEICULO', porteVeiculo: 'PESADO', classeVeiculo: 'CAMINHAO' }
+    expect(embarcacaoLeva(caminhao, 'FERRY_BOAT')).toBe(true)
+    expect(embarcacaoLeva(caminhao, 'NAVIO')).toBe(false)
+    expect(embarcacaoLeva(caminhao, 'LANCHA')).toBe(false)
+    const carro: RespostasDaReserva = { ...caminhao, porteVeiculo: 'LEVE', classeVeiculo: 'CARRO' }
+    expect(embarcacaoLeva(carro, 'NAVIO')).toBe(true)
+    expect(embarcacaoLeva({ ...SITE, embarque: 'PASSAGEIROS' }, 'LANCHA')).toBe(true)
+  })
+
+  it('voltar do "Qual?" apaga o porte; voltar do porte apaga o embarque — e o porte não volta pela classe', () => {
+    const qual: RespostasDaReserva = { ...SITE, embarque: 'VEICULO', porteVeiculo: 'LEVE' }
+    expect(voltar(qual, contexto())).toEqual({ ...SITE, embarque: 'VEICULO' })
+    expect(voltar({ ...SITE, embarque: 'VEICULO' }, contexto())).toEqual(SITE)
+    expect(semResposta({ passo: 'PORTE_DO_VEICULO', opcoes: [] }, { ...qual, classeVeiculo: 'CARRO' })).toEqual({
+      ...SITE,
+      embarque: 'VEICULO',
+    })
+  })
+
+  it('a página da #65, que manda a categoria e a classe, continua fechando o roteiro', () => {
+    const antigo: RespostasDaReserva = { ...SITE, categoria: 'VEICULO', naturezaVeiculo: 'AUTOMOTOR', classeVeiculo: 'CAMINHAO', cliente: CLIENTE }
+    expect(roteiroDaReserva(antigo, contexto()).atual?.passo).toBe('CONFERENCIA')
   })
 })

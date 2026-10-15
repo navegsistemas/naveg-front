@@ -79,6 +79,25 @@ describe('a mensagem da reserva', () => {
     expect(mensagemDaReserva(carro, ROTULOS).split('\n')[2]).toBe('Carro · Maria Souza')
   })
 
+  it('passageiros e veículo: as pessoas vão junto, como o painel do KMP escreve (naveg-front#66)', () => {
+    const juntos = reservaDe(
+      montarReserva(
+        {
+          canal: 'SITE',
+          embarque: 'PASSAGEIROS_E_VEICULO',
+          porteVeiculo: 'PESADO',
+          classeVeiculo: 'CAMINHAO',
+          quantidadePessoas: 3,
+          acomodacao: 'REDE',
+          cliente: CLIENTE,
+        },
+        contexto(),
+        IDENTIDADE,
+      ),
+    )
+    expect(mensagemDaReserva(juntos, ROTULOS).split('\n')).toContain('Caminhão + 3 pessoas em rede · Maria Souza')
+  })
+
   it('o cais do dia e o aviso da data alterada vão logo abaixo da travessia (UI 2.2)', () => {
     const rotulos = {
       origem: 'Belém/PA',

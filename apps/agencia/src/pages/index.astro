@@ -21,7 +21,9 @@ import TotemDaAgencia from '../ilhas/TotemDaAgencia'
 import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
 
 import { SECOES } from '../conteudo/secoes'
-import { VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
+import { getImage } from 'astro:assets'
+
+import { FOTO_DO_CARTAO_DO_VEICULO, VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
 import { hashDoTrecho, politicaDaPagina, somarOTurnstile } from '../conteudo/seguranca'
 
 /* O que esta página soma à política do site (`conteudo/seguranca.ts`): o Turnstile, com que o totem e a
@@ -30,6 +32,14 @@ import { hashDoTrecho, politicaDaPagina, somarOTurnstile } from '../conteudo/seg
 const politica = politicaDaPagina(Astro.csp)
 somarOTurnstile(politica)
 if (VITRINE_VISIVEL) politica.insertStyleHash(hashDoTrecho(folhaDaVitrine()))
+
+/* A foto do cartão do Veículo (UI 2.2, decisão M), gerada no build como as da capa: a ilha recebe só os endereços. */
+const imagemDoVeiculo =
+  FOTO_DO_CARTAO_DO_VEICULO === null
+    ? null
+    : await getImage({ src: FOTO_DO_CARTAO_DO_VEICULO, widths: [480, 800, 1200], format: 'webp' })
+const fotoDoVeiculo =
+  imagemDoVeiculo === null ? null : { src: imagemDoVeiculo.src, srcset: imagemDoVeiculo.srcSet.attribute }
 
 /** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
 const PENDENCIAS: Readonly<Record<string, string>> = {}
@@ -48,7 +58,7 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
           {secao.id === 'atendentes' && <Atendimento />}
           {secao.id === 'depoimentos' && <Depoimentos />}
           {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}
-          {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" />}
+          {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" fotoDoVeiculo={fotoDoVeiculo} />}
           {secao.id === 'encomendas' && <EncomendaDaAgencia client:visible />}
           {secao.id === 'totem' && <SemJavaScript oQue="o totem de reserva" paraQue="reservar" />}
           {secao.id === 'encomendas' && <SemJavaScript oQue="o envio de encomenda" paraQue="enviar a encomenda" />}

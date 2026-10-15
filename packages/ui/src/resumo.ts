@@ -12,11 +12,17 @@ import {
   TipoGratuidade,
   TipoPassagem,
   casoImpossivel,
+  classeDoEmbarque,
+  embarqueEmVigor,
+  embarqueRespondido,
+  OQueEmbarca,
   oQueVai,
+  pessoasComOVeiculo,
   type Reserva,
   type ReservaDeEncomenda,
   type ReservaDePassageiro,
   type ReservaDeVeiculo,
+  type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
 
@@ -42,14 +48,39 @@ function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
           : `${TipoPassagem.rotulo(reserva.tipo)} (${TipoGratuidade.rotulo(reserva.gratuidade)})`
       return [acomodacao, tipo, quantas].join(' · ')
     }
-    case 'VEICULO':
+    case 'VEICULO': {
+      /* Com as pessoas que vão junto (naveg-front#66), como o painel do KMP escreve, e o tipo para o atendimento. */
+      const junto = pessoasComOVeiculo(reserva)
       return [
         `${CategoriaPassagem.rotulo(reserva.categoria)}: ${ClasseVeiculo.rotulo(reserva.classe)}`,
         ...(reserva.cilindrada === undefined ? [] : [`${reserva.cilindrada} cc`]),
+        ...(junto === undefined ? [] : [`+ ${junto}`, 'inteira, meia ou gratuidade no atendimento']),
       ].join(' · ')
+    }
     default:
       return casoImpossivel(reserva, 'aPassagem')
   }
+}
+
+/**
+ * **O que vai embarcar, numa linha**, enquanto a reserva ainda não existe: "Caminhão + 3 pessoas em rede", "Moto ·
+ * 160 cc", "2 pessoas em suíte". É o texto do quadro que acompanha o calendário (naveg-front#66). `null` enquanto o
+ * embarque não está respondido.
+ */
+export function resumoDoEmbarque(respostas: RespostasDaReserva): string | null {
+  const embarque = embarqueEmVigor(respostas)
+  if (embarque === undefined || !embarqueRespondido(respostas)) return null
+  const { acomodacao, quantidadePessoas } = respostas
+  const grupo =
+    OQueEmbarca.levaPessoas(embarque) && acomodacao !== undefined && quantidadePessoas !== undefined
+      ? `${pessoas(quantidadePessoas)} em ${Acomodacao.rotulo(acomodacao).toLowerCase()}`
+      : null
+  const classe = classeDoEmbarque(respostas)
+  if (!OQueEmbarca.levaVeiculo(embarque) || classe === undefined) return grupo
+  const veiculo = [ClasseVeiculo.rotulo(classe), ...(respostas.cilindrada === undefined ? [] : [`${respostas.cilindrada} cc`])].join(
+    ' · ',
+  )
+  return grupo === null ? veiculo : `${veiculo} + ${grupo}`
 }
 
 /**
