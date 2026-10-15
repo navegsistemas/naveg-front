@@ -54,7 +54,7 @@ import { NATUREZAS_DE_VEICULO } from '../src/passagem/natureza-veiculo.js'
 import { TIPOS_DE_GRATUIDADE } from '../src/passagem/tipo-gratuidade.js'
 import { TIPOS_DE_PASSAGEM } from '../src/passagem/tipo-passagem.js'
 import { CAMPOS_DO_DOCUMENTO } from '../src/reserva/documento.js'
-import { CATEGORIAS_DE_RESERVA, PENDENCIAS_DA_RESERVA } from '../src/reserva/reserva.js'
+import { CATEGORIAS_DE_RESERVA, LIMITE_DE_PESSOAS_DA_RESERVA, PENDENCIAS_DA_RESERVA } from '../src/reserva/reserva.js'
 import { DIAS_DA_SEMANA } from '../src/primitivos/dia-semana.js'
 import { TIPOS_DE_EMBARCACAO, TipoEmbarcacao } from '../src/viagem/tipo-embarcacao.js'
 import { ALCANCE_DA_RESERVA_DIAS } from '../src/viagem/alcance-da-reserva.js'
@@ -536,6 +536,15 @@ describe(`camada 2 · a tabela bate com o fluviapp-kmp${ausente(KMP)}`, () => {
 
     const regras = readFileSync(join(KMP.raiz, 'firestore.rules'), 'utf8')
     expect(regras).toContain(`d.categoria == 'ENCOMENDA' ? ${DIAS_DA_JANELA} : ${ALCANCE_DA_RESERVA_DIAS}`)
+  })
+
+  /* A reserva de passageiros vai de 1 a 50 pessoas (fluviapp-kmp#62, naveg-front#65): se o limite divergir, o site
+     grava um grupo que o painel não lê. */
+  it.skipIf(!KMP.presente)('o limite de pessoas da reserva, lido do Kotlin', () => {
+    const reserva = semRuido(kotlin(KMP, `${KMP.dominio}/reserva/Reserva.kt`))
+    expect(Number(/LIMITE_DE_PESSOAS_DA_RESERVA\s*(?::\s*Int\s*)?=\s*(\d+)/.exec(reserva)?.[1])).toBe(
+      LIMITE_DE_PESSOAS_DA_RESERVA,
+    )
   })
 
   it.skipIf(!KMP.presente)('a reserva: as chaves do ReservaDocumento.kt são as do CAMPOS_DO_DOCUMENTO, na ordem', () => {

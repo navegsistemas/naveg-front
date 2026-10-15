@@ -227,11 +227,34 @@ describe('as recusas', () => {
     expect(estragar(MOTO, (d) => void (d['quantidadePessoas'] = 1))).toBeNull()
   })
 
-  it('9 · incoerente: meia numa suíte, quatro pessoas, meia pessoa', () => {
+  it('9 · incoerente: meia numa suíte, 51 pessoas, meia pessoa, nenhuma', () => {
     expect(estragar(SUITE_PARA_TRES, (d) => void (d['tipo'] = 'MEIA'))).toBeNull()
-    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 4))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 51))).toBeNull()
     expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 1.5))).toBeNull()
-    expect(estragar(REDE_GRATUIDADE, (d) => void (d['quantidadePessoas'] = 2))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 0))).toBeNull()
+  })
+
+  /* naveg-front#65 (fluviapp-kmp#62): o tipo é do atendimento, e a quantidade é o pedido, não o bilhete. */
+  it('sem o tipo, a reserva é lida — "a definir no atendimento"; com o tipo ilegível, não', () => {
+    const semTipo = estragar(SUITE_PARA_TRES, (d) => void delete d['tipo'])
+    expect(semTipo !== null && 'tipo' in semTipo).toBe(false)
+    expect(semTipo !== null && paraDocumento(semTipo)).not.toHaveProperty('tipo')
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['tipo'] = 'PROMOCIONAL'))).toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['tipo'] = 42))).toBeNull()
+  })
+
+  it('o grupo acima da lotação é lido: cinco numa suíte, cinquenta numa rede', () => {
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 5))).not.toBeNull()
+    expect(estragar(SUITE_PARA_TRES, (d) => void (d['quantidadePessoas'] = 50))).not.toBeNull()
+    expect(estragar(REDE_GRATUIDADE, (d) => void (d['quantidadePessoas'] = 2))).not.toBeNull()
+  })
+
+  it('gratuidade sem o tipo é indevida', () => {
+    expect(
+      estragar(REDE_GRATUIDADE, (d) => {
+        delete d['tipo']
+      }),
+    ).toBeNull()
   })
 
   it('9 · incoerente: gratuidade sem subtipo, e subtipo sem gratuidade', () => {

@@ -33,9 +33,11 @@ import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import { NaturezaVeiculo } from '../passagem/natureza-veiculo.js'
 import { TipoGratuidade } from '../passagem/tipo-gratuidade.js'
 import { TipoPassagem } from '../passagem/tipo-passagem.js'
+import { deValor } from '../primitivos/fronteira.js'
 import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import type { ReservaDocumento } from './documento.js'
-import type { RascunhoDoCliente, RespostasDaReserva } from './roteiro-da-reserva.js'
+import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
+import { CANAIS_DA_RESERVA, type RascunhoDoCliente, type RespostasDaReserva } from './roteiro-da-reserva.js'
 
 /** O nome de quem reserva cabe nisto. O campo da tela tem o mesmo limite. */
 export const LIMITE_DO_NOME = 100
@@ -45,8 +47,8 @@ export const LIMITE_DO_TELEFONE = 30
 export const LIMITE_DO_DESAFIO = 2048
 /** Cilindrada acima disto não é moto de passageiro; é erro de digitação ou abuso. */
 export const LIMITE_DA_CILINDRADA = 10_000
-/** Quantidade de pessoas acima disto não cabe em acomodação nenhuma do catálogo. */
-export const LIMITE_DE_PESSOAS = 50
+/** Quantidade de pessoas acima disto não é reserva: é o limite do pedido (`LIMITE_DE_PESSOAS_DA_RESERVA`). */
+export const LIMITE_DE_PESSOAS = LIMITE_DE_PESSOAS_DA_RESERVA
 
 interface PedidoBase {
   readonly ocorrencia: OcorrenciaViagem
@@ -134,6 +136,7 @@ function lerCliente(valor: unknown): RascunhoDoCliente | undefined {
 
 function lerRespostas(dado: Dado): RespostasDaReserva {
   const campos = {
+    canal: enumOpcional(dado, 'canal', (valor) => deValor(CANAIS_DA_RESERVA, valor)),
     categoria: enumOpcional(dado, 'categoria', CategoriaPassagem.de),
     acomodacao: enumOpcional(dado, 'acomodacao', Acomodacao.de),
     tipo: enumOpcional(dado, 'tipo', TipoPassagem.de),

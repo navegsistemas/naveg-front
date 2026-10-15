@@ -113,13 +113,28 @@ interface ConvertidaEmPassagem {
   readonly passagemId?: string
 }
 
+/**
+ * Uma reserva de passageiros é de 1 a 50 pessoas (fluviapp-kmp#62) — o "5 ou mais" do site abre um contador até aqui.
+ * É o `LIMITE_DE_PESSOAS_DA_RESERVA` do KMP.
+ */
+export const LIMITE_DE_PESSOAS_DA_RESERVA = 50
+
 export interface ReservaDePassageiro extends ReservaBase, ConvertidaEmPassagem {
   readonly categoria: 'PASSAGEIRO'
+  /** A acomodação escolhida para o grupo todo. */
   readonly acomodacao: Acomodacao
-  readonly tipo: TipoPassagem
+  /**
+   * **Ausente = a definir no atendimento** (PO, 2026-10-14, naveg-front#65): "o tipo tarifário nunca deveria ser
+   * exigido na reserva; quem é guardião dessas regras do negócio é o atendente". O site deixa de perguntar; o
+   * quiosque e as reservas de antes continuam mandando.
+   */
+  readonly tipo?: TipoPassagem
   /** Presente **só** quando `tipo === 'GRATUIDADE'`, e obrigatório nesse caso. */
   readonly gratuidade?: TipoGratuidade
-  /** Quantas pessoas o bilhete cobre — 1 na rede, 1 a 3 em suíte e camarote. */
+  /**
+   * **Quantas pessoas o cliente pediu**, de 1 a [LIMITE_DE_PESSOAS_DA_RESERVA] — sem teto pela acomodação: cinco
+   * em suíte vão assim, e o atendimento divide em dois quartos, ou num quarto e redes. É o pedido, não o bilhete.
+   */
   readonly quantidadePessoas: number
 }
 
@@ -216,15 +231,15 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
 
   switch (reserva.categoria) {
     case 'PASSAGEIRO': {
-      if (!Acomodacao.admite(reserva.acomodacao, reserva.tipo)) pendencias.add('TIPO_NAO_ADMITIDO')
-      if (reserva.tipo === 'GRATUIDADE' && reserva.gratuidade === undefined) pendencias.add('GRATUIDADE_AUSENTE')
-      if (reserva.tipo !== 'GRATUIDADE' && reserva.gratuidade !== undefined) pendencias.add('GRATUIDADE_INDEVIDA')
+      /* Sem tipo é "a definir no atendimento"; com tipo, ele tem de caber na acomodação. Gratuidade sem tipo é
+         indevida: o subtipo só existe com o tipo. */
+      const { tipo } = reserva
+      if (tipo !== undefined && !Acomodacao.admite(reserva.acomodacao, tipo)) pendencias.add('TIPO_NAO_ADMITIDO')
+      if (tipo === 'GRATUIDADE' && reserva.gratuidade === undefined) pendencias.add('GRATUIDADE_AUSENTE')
+      if (tipo !== 'GRATUIDADE' && reserva.gratuidade !== undefined) pendencias.add('GRATUIDADE_INDEVIDA')
+      /* A quantidade é o pedido do cliente, e não o bilhete: acima da ocupação é o atendimento que divide. */
       const { quantidadePessoas } = reserva
-      if (
-        !Number.isInteger(quantidadePessoas) ||
-        quantidadePessoas < 1 ||
-        quantidadePessoas > Acomodacao.ocupacaoMaxima(reserva.acomodacao)
-      ) {
+      if (!Number.isInteger(quantidadePessoas) || quantidadePessoas < 1 || quantidadePessoas > LIMITE_DE_PESSOAS_DA_RESERVA) {
         pendencias.add('QUANTIDADE')
       }
       break

@@ -108,6 +108,7 @@ export type { RotulosDaMensagem } from './reserva/link-de-atendimento.js'
 export {
   CATEGORIAS_DE_RESERVA,
   convertidaEm,
+  LIMITE_DE_PESSOAS_DA_RESERVA,
   ORIGENS_DA_RESERVA,
   PENDENCIAS_DA_RESERVA,
   pendenciasDaReserva,
@@ -128,6 +129,7 @@ export type {
   Tratamento,
 } from './reserva/reserva.js'
 export {
+  CANAIS_DA_RESERVA,
   categoriasOfertadas,
   chaveDoNo,
   classeEmVigor,
@@ -140,6 +142,7 @@ export {
   voltar,
 } from './reserva/roteiro-da-reserva.js'
 export type {
+  CanalDaReserva,
   ContextoDaReserva,
   NoDoRoteiro,
   PassoDaReserva,
