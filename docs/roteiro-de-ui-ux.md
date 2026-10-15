@@ -1,7 +1,8 @@
 # Roteiro de UI/UX — seção por seção, até a emissão online
 
 **Data:** 2026-10-06
-**Situação:** **a 1.1 (topo e menu) está no ar** (#43) **e a 1.2 (capa) implementada, esperando a conferência do PO na prévia** (2026-10-08); o roteiro começou **depois do endurecimento** (13.1 a 13.6), por
+**Situação:** **a 1.1 (topo e menu) e a 1.2 (capa) no ar e conferidas pelo PO no celular** (2026-10-15); a 1.3 no ar; a
+2.2 em andamento (ver o quadro, §9). O roteiro começou **depois do endurecimento** (13.1 a 13.6), por
 decisão do PO em 2026-10-06. O roteiro foi combinado com o PO em 2026-10-06: **com calma, uma seção de
 cada vez**, das que já estão no ar até a compra com emissão online.
 **De onde vem:** o passo 14 do [plano de implementação](plano-de-implementacao.md) e a entrega **7.1** do plano da
@@ -144,7 +145,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 em análise, esperando o PO** (pedido de 2026-10-09: as fases depois da escolha da saída; com o cais e o aviso de alteração da #56); as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
@@ -159,7 +160,8 @@ Uma por seção, na ordem em que andam: o levantamento, os achados, as decisões
 
 ### 1.1 — Topo e menu
 
-**Situação:** no ar na homologação (PR #43, 2026-10-08), com os ajustes do mesmo dia (A e F). Falta a conferência do PO no celular.
+**Situação:** no ar na homologação (PR #43, 2026-10-08), com os ajustes do mesmo dia (A e F). **Conferida pelo PO no celular, na homologação, em
+2026-10-15: "tá ótimo pro MVP".**
 **Wireframe:** [Wireframe: 1.1 Topo e menu](https://claude.ai/artifact/KHnVE1gfFh9JtAuC5S7gP9) (privado do PO), com
 três telas de celular (fechado, que abre no toque; aberto; rolado), o tablet em pé e o computador.
 
@@ -202,7 +204,8 @@ de tela.
 
 ### 1.2 — Capa
 
-**Situação:** no ar (#45, mergeado em 2026-10-09).
+**Situação:** no ar (#45, mergeado em 2026-10-09), com os textos da 2.2 (#62). **Conferida pelo PO no celular, na
+homologação, em 2026-10-15: "tá ótimo pro MVP".**
 **Wireframe:** [Wireframe: 1.2 Capa](https://claude.ai/artifact/An8JtBnPbybY1DpvXYuzMS) (privado do PO): celular,
 tablet em pé e computador, com a foto como fundo da primeira seção.
 
@@ -435,6 +438,14 @@ o escopo estava fechado, e ela entrou por força maior (ver o
 [plano de implementação](plano-de-implementacao.md), "Resumo da ordem"). As issues do KMP:
 navegsistemas/fluviapp-kmp#62 (a reserva sem o tipo e sem o teto da acomodação) e #63 (passageiros e veículo numa
 reserva só). A ordem é KMP → domain → API e site.
+
+**A reserva sem o tipo e de 1 a 50 (#65, 2026-10-15):** o KMP entrou no `master` (fluviapp-kmp#67). Na página, depois de
+"Passageiro", vêm "Quantos viajam?" (1, 2, 3, 4 e "5 ou mais", que abre um contador até 50) e "Onde vocês querem
+viajar?", uma acomodação para o grupo; o tipo não é perguntado, e o resumo diz "inteira, meia ou gratuidade no
+atendimento". O quiosque não muda. A página manda `canal: 'SITE'` nas respostas, e é por ele que a API remonta a reserva
+pelo mesmo caminho. Por isso a ordem tem um passo a mais: o domain 0.9.0 primeiro, depois a API com ele **promovida**, e
+só então a página: com a API de antes, a reserva sem o tipo seria recusada. Falta a primeira pergunta ("o que vai
+embarcar", com Passageiros e veículo), que é a #66.
 
 **O que vai antes, sem o KMP:**
 - a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;

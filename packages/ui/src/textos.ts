@@ -34,14 +34,26 @@ export const TEXTO_DO_PASSO: Readonly<Record<PassoDaReserva, TextoDoPasso>> = {
   CONFERENCIA: { pergunta: 'Confira a reserva' },
 }
 
-export const TEXTO_DA_PENDENCIA: Readonly<Record<PendenciaDaReserva, string>> = {
+/**
+ * **O que muda no site** (naveg-front#65): ele pergunta quantos viajam antes da acomodação, e a acomodação é a do grupo
+ * todo (UI 2.2, decisões I e J). O quiosque segue com `TEXTO_DO_PASSO`.
+ */
+export const TEXTO_DO_PASSO_NO_SITE: Readonly<Partial<Record<PassoDaReserva, TextoDoPasso>>> = {
+  QUANTIDADE_PESSOAS: { pergunta: 'Quantos viajam?' },
+  ACOMODACAO: {
+    pergunta: 'Onde vocês querem viajar?',
+    ajuda: 'Escolha uma para o grupo. Se não couber todo mundo, o atendimento divide.',
+  },
+}
+
+export const TEXTO_DA_PENDENCIA:Readonly<Record<PendenciaDaReserva, string>> = {
   CODIGO: 'Não foi possível gerar o código da reserva. Tente de novo.',
   CLIENTE_NOME: 'Informe o nome de quem faz a reserva.',
   CLIENTE_TELEFONE: 'O telefone precisa ser um celular com DDD, como (91) 98888-7777 — ou fique em branco.',
   TIPO_NAO_ADMITIDO: 'Este tipo de passagem não vale para esta acomodação.',
   GRATUIDADE_AUSENTE: 'Escolha qual é a gratuidade.',
   GRATUIDADE_INDEVIDA: 'A gratuidade escolhida não vale para este tipo de passagem.',
-  QUANTIDADE: 'Essa quantidade de pessoas não cabe nesta acomodação.',
+  QUANTIDADE: 'Uma reserva vai de 1 a 50 pessoas. Mais do que isso, fale com o atendimento.',
   CILINDRADA: 'Informe a cilindrada da moto.',
   VALIDADE: 'Esta saída já partiu. Escolha outra travessia.',
   CONVERSAO: 'Esta reserva não pode ser enviada.',

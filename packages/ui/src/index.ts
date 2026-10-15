@@ -27,6 +27,8 @@ export type { OpcaoEmCartao, PropsDaEscolha } from './EscolhaEmCartoes.js'
 export { CampoDeCilindrada, FormularioDoCliente, FormularioDoVolume } from './Formularios.js'
 export type { RespostaDoVolume } from './Formularios.js'
 export { PassoDaReserva } from './PassoDaReserva.js'
+export { QuantidadeDePessoas } from './QuantidadeDePessoas.js'
+export type { PropsDaQuantidade } from './QuantidadeDePessoas.js'
 export type { PropsDoPasso } from './PassoDaReserva.js'
 export { PassoDaEncomenda } from './PassoDaEncomenda.js'
 export type { PropsDoPassoDaEncomenda } from './PassoDaEncomenda.js'
@@ -50,5 +52,6 @@ export {
   TEXTO_DA_PENDENCIA,
   TEXTO_DO_PASSO,
   TEXTO_DO_PASSO_DA_ENCOMENDA,
+  TEXTO_DO_PASSO_NO_SITE,
 } from './textos.js'
 export type { TextoDoPasso } from './textos.js'

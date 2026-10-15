@@ -19,16 +19,13 @@ import {
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 import { CampoDeCilindrada, FormularioDoCliente } from './Formularios.js'
+import { QuantidadeDePessoas } from './QuantidadeDePessoas.js'
 
 export interface PropsDoPasso {
   /** Qualquer nó, menos a conferência — ela tem componente próprio. */
   readonly no: Exclude<NoDoRoteiro, { passo: 'CONFERENCIA' }>
   readonly respostas: RespostasDaReserva
   readonly aoResponder: (respostas: RespostasDaReserva) => void
-}
-
-function pessoas(quantidade: number): string {
-  return quantidade === 1 ? '1 pessoa' : `${quantidade} pessoas`
 }
 
 export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
@@ -73,8 +70,8 @@ export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
       )
     case 'QUANTIDADE_PESSOAS':
       return (
-        <EscolhaEmCartoes
-          opcoes={no.opcoes.map((valor) => ({ valor, rotulo: pessoas(valor) }))}
+        <QuantidadeDePessoas
+          opcoes={no.opcoes}
           escolhida={respostas.quantidadePessoas}
           aoEscolher={(quantidadePessoas) => com({ quantidadePessoas })}
         />
