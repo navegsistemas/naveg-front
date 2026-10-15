@@ -415,3 +415,17 @@ veículo cada.
 **Depende do KMP** (a issue sai lá com as respostas H a K): a reserva de passageiros sem o tipo da passagem, a
 quantidade de pessoas sem o teto da acomodação, e a reserva com pessoas e veículo. Enquanto isso, o que não depende
 dele pode ir antes: as etapas pelo nome, o quadro da saída com o cais, o aviso de alteração e o texto da apresentação.
+
+**Decisões do PO sobre a segunda proposta (2026-10-14):**
+
+- **O quiosque (`/totem`) não muda** (L, contra a recomendação). A operação interna pode e deve ser diferente do que se
+  exige do cliente;
+- **o tipo da passagem nunca é exigido na reserva**: quem guarda essa regra do negócio é o atendente;
+- **a reserva não recusa a acomodação pela quantidade**: 5 pessoas em suíte vão assim, e o atendimento resolve, por
+  exemplo, em duas suítes. O que importa é a informação que chega;
+- **as regras do Firestore não mudam**: elas também guardam o negócio. O que muda no KMP são casos de uso e fluxos.
+
+Conferido nas regras (`firestore.rules`, `formaDoPedido`): a passagem e o veículo só têm as chaves conferidas. Elas não
+exigem o tipo, não limitam a quantidade pela acomodação e não separam pessoas de veículo. Quem recusa hoje é o leitor
+do KMP (`ReservaDocumento.paraDominio`), que exige o tipo e descarta a reserva de passageiro com veículo. A mudança é
+lá, no leitor e no fluxo de converter, e aqui, na montagem do `@navegsistemas/domain`.
