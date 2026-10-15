@@ -26,6 +26,8 @@ export { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 export type { OpcaoEmCartao, PropsDaEscolha } from './EscolhaEmCartoes.js'
 export { CampoDeCilindrada, FormularioDoCliente, FormularioDoVolume } from './Formularios.js'
 export type { RespostaDoVolume } from './Formularios.js'
+export { OQueVaiEmbarcar } from './OQueVaiEmbarcar.js'
+export type { PropsDoQueVaiEmbarcar } from './OQueVaiEmbarcar.js'
 export { PassoDaReserva } from './PassoDaReserva.js'
 export { QuantidadeDePessoas } from './QuantidadeDePessoas.js'
 export type { PropsDaQuantidade } from './QuantidadeDePessoas.js'
@@ -34,6 +36,7 @@ export { PassoDaEncomenda } from './PassoDaEncomenda.js'
 export type { PropsDoPassoDaEncomenda } from './PassoDaEncomenda.js'
 export {
   Conferencia,
+  EmbarqueEscolhido,
   ETAPAS_DA_RESERVA,
   EtapasDaReserva,
   IndicadorDePasso,
@@ -43,7 +46,7 @@ export {
   SaidaEscolhida,
 } from './Telas.js'
 export type { EtapaDaReserva } from './Telas.js'
-export { resumoDaEncomenda, resumoDaReserva } from './resumo.js'
+export { resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
 export type { LinhaDoResumo } from './resumo.js'
 export {
   AJUDA_DO_REMETENTE,

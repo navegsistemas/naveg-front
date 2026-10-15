@@ -37,6 +37,8 @@ import type { InstanteLocal } from '../primitivos/calendario.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import { TipoEmbarcacao } from '../viagem/tipo-embarcacao.js'
 import type { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
+import { PorteDoVeiculo } from '../passagem/porte-do-veiculo.js'
+import { OQueEmbarca } from './o-que-embarca.js'
 import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
 
 /**
@@ -45,12 +47,22 @@ import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
  */
 export type NoDoRoteiro =
   | { readonly passo: 'CATEGORIA'; readonly opcoes: readonly CategoriaPassagem[] }
+  /** Só no site: a primeira pergunta, antes do dia (naveg-front#66). */
+  | { readonly passo: 'EMBARQUE'; readonly opcoes: readonly OQueEmbarca[] }
+  /** Só no site: "Leve ou pesado?", antes de "Qual?". */
+  | { readonly passo: 'PORTE_DO_VEICULO'; readonly opcoes: readonly PorteDoVeiculo[] }
   | { readonly passo: 'ACOMODACAO'; readonly opcoes: readonly Acomodacao[] }
   | { readonly passo: 'TIPO_TARIFARIO'; readonly opcoes: readonly TipoPassagem[] }
   | { readonly passo: 'TIPO_GRATUIDADE'; readonly opcoes: readonly TipoGratuidade[] }
   | { readonly passo: 'QUANTIDADE_PESSOAS'; readonly opcoes: readonly number[] }
   | { readonly passo: 'NATUREZA_VEICULO'; readonly opcoes: readonly NaturezaVeiculo[] }
-  | { readonly passo: 'CLASSE_VEICULO'; readonly natureza: NaturezaVeiculo; readonly opcoes: readonly ClasseVeiculo[] }
+  /** No quiosque, as classes da natureza neste casco; no site, as do porte, antes de o dia ser escolhido. */
+  | {
+      readonly passo: 'CLASSE_VEICULO'
+      readonly natureza?: NaturezaVeiculo
+      readonly porte?: PorteDoVeiculo
+      readonly opcoes: readonly ClasseVeiculo[]
+    }
   /** Só para a classe que a exige — hoje, a moto. */
   | { readonly passo: 'CILINDRADA'; readonly classe: ClasseVeiculo }
   /** Nome obrigatório; telefone opcional — ver `ClienteDaReserva`. */
@@ -85,6 +97,10 @@ export interface RespostasDaReserva {
    * com elas que a API remonta a reserva — e tem de remontar pelo mesmo caminho.
    */
   readonly canal?: CanalDaReserva
+  /** Só no site (naveg-front#66). No quiosque, quem diz o que embarca é a `categoria`. */
+  readonly embarque?: OQueEmbarca
+  /** Só no site: leve ou pesado. Ausente, vale o porte da `classeVeiculo`, se houver — é o que um site antigo manda. */
+  readonly porteVeiculo?: PorteDoVeiculo
   readonly categoria?: CategoriaPassagem
   readonly acomodacao?: Acomodacao
   readonly tipo?: TipoPassagem
@@ -187,19 +203,82 @@ export function classeEmVigor(
   return opcoes.length === 1 ? opcoes[0] : escolhida(opcoes, respostas.classeVeiculo)
 }
 
+// ---------------------------------------------------------------------------------------------------------
+// O site: o que vai embarcar, antes do dia (naveg-front#66)
+// ---------------------------------------------------------------------------------------------------------
+
 /**
- * O site pergunta quantos viajam, e depois onde: a acomodação é a do grupo todo, e o tipo fica para o atendimento
- * (UI 2.2, decisões do PO de 2026-10-14). As duas perguntas existem desde o começo — nenhuma depende da outra.
+ * **O que vai embarcar, em vigor.** A resposta, se é uma das três; sem ela, a `categoria` que o site da #65 mandava
+ * (passageiro ou veículo) — é o que mantém a página antiga reservando enquanto a nova não sai.
  */
-function nosDePassageiroPeloSite(): readonly NoDoRoteiro[] {
-  return [
-    { passo: 'QUANTIDADE_PESSOAS', opcoes: PESSOAS_DO_SITE },
-    { passo: 'ACOMODACAO', opcoes: Acomodacao.valores },
-  ]
+export function embarqueEmVigor(respostas: RespostasDaReserva): OQueEmbarca | undefined {
+  const escolhido = escolhida(OQueEmbarca.valores, respostas.embarque)
+  if (escolhido !== undefined) return escolhido
+  if (respostas.categoria === 'PASSAGEIRO') return 'PASSAGEIROS'
+  if (respostas.categoria === 'VEICULO') return 'VEICULO'
+  return undefined
 }
 
+/** **Leve ou pesado, em vigor.** A resposta; sem ela, o porte da classe escolhida, se houver. */
+export function porteEmVigor(respostas: RespostasDaReserva): PorteDoVeiculo | undefined {
+  const escolhido = escolhida(PorteDoVeiculo.valores, respostas.porteVeiculo)
+  if (escolhido !== undefined) return escolhido
+  return respostas.classeVeiculo === undefined ? undefined : PorteDoVeiculo.daClasse(respostas.classeVeiculo)
+}
+
+/** **A classe, no site**: a resposta, se está entre as do porte. Antes do dia, não se sabe o casco. */
+export function classeDoEmbarque(respostas: RespostasDaReserva): ClasseVeiculo | undefined {
+  const porte = porteEmVigor(respostas)
+  return porte === undefined ? undefined : escolhida(PorteDoVeiculo.classes(porte), respostas.classeVeiculo)
+}
+
+/**
+ * **As perguntas do que vai embarcar**, no site. Vêm antes do dia, e por isso não dependem do casco: o veículo é
+ * "Leve ou pesado?", "Qual?" e, na moto, a cilindrada; as pessoas, "Quantos viajam?" (1 a 50) e a acomodação do
+ * grupo, sem o tipo (UI 2.2, decisões H a K). Com os dois, o veículo vem primeiro.
+ */
+export function nosDoEmbarque(respostas: RespostasDaReserva): readonly NoDoRoteiro[] {
+  const nos: NoDoRoteiro[] = [{ passo: 'EMBARQUE', opcoes: OQueEmbarca.valores }]
+  const embarque = embarqueEmVigor(respostas)
+  if (embarque === undefined) return nos
+
+  if (OQueEmbarca.levaVeiculo(embarque)) {
+    nos.push({ passo: 'PORTE_DO_VEICULO', opcoes: PorteDoVeiculo.valores })
+    const porte = porteEmVigor(respostas)
+    if (porte !== undefined) {
+      nos.push({ passo: 'CLASSE_VEICULO', porte, opcoes: PorteDoVeiculo.classes(porte) })
+      const classe = classeDoEmbarque(respostas)
+      if (classe !== undefined && ClasseVeiculo.exigeCilindrada(classe)) nos.push({ passo: 'CILINDRADA', classe })
+    }
+  }
+  if (OQueEmbarca.levaPessoas(embarque)) {
+    nos.push({ passo: 'QUANTIDADE_PESSOAS', opcoes: PESSOAS_DO_SITE }, { passo: 'ACOMODACAO', opcoes: Acomodacao.valores })
+  }
+  return nos
+}
+
+/** O que vai embarcar está todo respondido — e a página pode mostrar o calendário. */
+export function embarqueRespondido(respostas: RespostasDaReserva): boolean {
+  return nosDoEmbarque(respostas).every((no) => respondido(no, respostas))
+}
+
+/**
+ * **Esta embarcação leva o que vai embarcar?** Passageiros, toda embarcação leva. O veículo, só o casco que admite a
+ * classe: a lancha não leva veículo, e o navio só leva carro e moto. É o filtro do calendário do site, e a montagem o
+ * confere de novo — a saída escolhida pode não ter vindo do calendário.
+ */
+export function embarcacaoLeva(respostas: RespostasDaReserva, tipoEmbarcacao: TipoEmbarcacao): boolean {
+  const embarque = embarqueEmVigor(respostas)
+  if (embarque === undefined || !OQueEmbarca.levaVeiculo(embarque)) return true
+  const classe = classeDoEmbarque(respostas)
+  return classe !== undefined && classesOfertadas(ClasseVeiculo.natureza(classe), tipoEmbarcacao).includes(classe)
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// O quiosque
+// ---------------------------------------------------------------------------------------------------------
+
 function nosDePassageiro(respostas: RespostasDaReserva): readonly NoDoRoteiro[] {
-  if (peloSite(respostas)) return nosDePassageiroPeloSite()
   const nos: NoDoRoteiro[] = [{ passo: 'ACOMODACAO', opcoes: Acomodacao.valores }]
 
   const acomodacao = escolhida(Acomodacao.valores, respostas.acomodacao)
@@ -240,10 +319,13 @@ function nosDeVeiculo(respostas: RespostasDaReserva, contexto: ContextoDaReserva
  * tela é decisão da apresentação. O roteiro **cresce** conforme as respostas chegam.
  */
 export function roteiroDaReserva(respostas: RespostasDaReserva, contexto: ContextoDaReserva): Roteiro {
+  const nos: NoDoRoteiro[] = []
+  /* No site, o que vai embarcar vem antes do dia, e não depende do casco; quem confere o casco é a montagem. */
   const categorias = categoriasOfertadas(contexto.tipoEmbarcacao)
-  const nos: NoDoRoteiro[] = [{ passo: 'CATEGORIA', opcoes: categorias }]
+  if (peloSite(respostas)) nos.push(...nosDoEmbarque(respostas))
+  else nos.push({ passo: 'CATEGORIA', opcoes: categorias })
 
-  const categoria = escolhida(categorias, respostas.categoria)
+  const categoria = peloSite(respostas) ? undefined : escolhida(categorias, respostas.categoria)
   if (categoria !== undefined) {
     switch (categoria) {
       case 'PASSAGEIRO':
@@ -285,6 +367,10 @@ export function respondido(no: NoDoRoteiro, respostas: RespostasDaReserva): bool
   switch (no.passo) {
     case 'CATEGORIA':
       return escolhida(no.opcoes, respostas.categoria) !== undefined
+    case 'EMBARQUE':
+      return embarqueEmVigor(respostas) !== undefined
+    case 'PORTE_DO_VEICULO':
+      return porteEmVigor(respostas) !== undefined
     case 'ACOMODACAO':
       return escolhida(no.opcoes, respostas.acomodacao) !== undefined
     case 'TIPO_TARIFARIO':
@@ -326,6 +412,11 @@ export function semResposta(no: NoDoRoteiro, respostas: RespostasDaReserva): Res
   switch (no.passo) {
     case 'CATEGORIA':
       return sem(respostas, 'categoria')
+    /* Os dois que se derivam de outra resposta levam a outra junto: senão o nó continuaria respondido. */
+    case 'EMBARQUE':
+      return sem(sem(respostas, 'embarque'), 'categoria')
+    case 'PORTE_DO_VEICULO':
+      return sem(sem(respostas, 'porteVeiculo'), 'classeVeiculo')
     case 'ACOMODACAO':
       return sem(respostas, 'acomodacao')
     case 'TIPO_TARIFARIO':

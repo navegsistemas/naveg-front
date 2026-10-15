@@ -62,13 +62,16 @@ export function IndicadorDePasso({ posicao, total }: { readonly posicao: number;
 
 // ---------------------------------------------------------------------------------------------------------
 
-/** As etapas da reserva na página, pelo nome e fixas (UI 2.2, decisão C). O quiosque continua com o "Passo n de m". */
-export const ETAPAS_DA_RESERVA = ['Saída', 'Embarque', 'Seus dados', 'Conferir'] as const
+/**
+ * As etapas da reserva na página, pelo nome e fixas (UI 2.2, decisão C), na ordem do caminho novo: o que vai embarcar
+ * vem antes do dia (naveg-front#66). O quiosque continua com o "Passo n de m".
+ */
+export const ETAPAS_DA_RESERVA = ['O que vai embarcar', 'Dia e saída', 'Seus dados', 'Conferir'] as const
 export type EtapaDaReserva = (typeof ETAPAS_DA_RESERVA)[number]
 
 /**
- * **Onde a pessoa está**, pelo nome: o total não cresce, porque o número de perguntas dentro de "Embarque" muda com as
- * respostas, e um "Passo 3 de 5" que vira "4 de 6" parece um formulário que não acaba.
+ * **Onde a pessoa está**, pelo nome: o total não cresce, porque o número de perguntas dentro de "O que vai embarcar"
+ * muda com as respostas, e um "Passo 3 de 5" que vira "4 de 6" parece um formulário que não acaba.
  */
 export function EtapasDaReserva({ atual }: { readonly atual: EtapaDaReserva }) {
   const posicao = ETAPAS_DA_RESERVA.indexOf(atual)
@@ -122,6 +125,28 @@ export function SaidaEscolhida({ travessia, aoTrocar }: PropsDaSaidaEscolhida) {
         Desembarque: {rotulos.desembarque} · {rotulos.embarcacao}
       </p>
       {rotulos.alteracao !== null && <p className="totem-saida__alterada">{rotulos.alteracao}</p>}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------------------
+
+/**
+ * **O que vai embarcar, já respondido**, num quadro com "Mudar" (ficha 2.2, segunda proposta, marca 7). Acompanha o
+ * calendário e os dados, como o quadro da saída. "Mudar" volta à primeira pergunta.
+ */
+export function EmbarqueEscolhido({ texto, aoMudar }: { readonly texto: string; readonly aoMudar: () => void }) {
+  return (
+    <div className="totem-saida totem-embarque">
+      <div className="totem-saida__topo">
+        <p className="totem-saida__quando">
+          <span className="apenas-leitor">Vai embarcar: </span>
+          {texto}
+        </p>
+        <button type="button" className="totem-saida__trocar" onClick={aoMudar}>
+          Mudar
+        </button>
+      </div>
     </div>
   )
 }

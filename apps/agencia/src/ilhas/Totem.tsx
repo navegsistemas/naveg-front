@@ -15,10 +15,15 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   alcanceEmDias,
   DIAS_DA_JANELA,
+  embarcacaoLeva,
+  embarqueEmVigor,
   InstanteLocal,
   linkDaReserva,
   montarReserva,
+  nosDoEmbarque,
+  respondido,
   roteiroDaReserva,
+  semResposta,
   travessiasOfertadas,
   voltar,
   type DataCalendario,
@@ -33,9 +38,11 @@ import {
   AVISO_RESERVA_NAO_VENDA,
   CalendarioDeSaidas,
   Conferencia,
+  EmbarqueEscolhido,
   EtapasDaReserva,
   IndicadorDePasso,
   ListaDeTravessias,
+  OQueVaiEmbarcar,
   PassoDaReserva,
   RecomecarComConfirmacao,
   ReservaConcluida,
@@ -46,6 +53,7 @@ import {
   origensDaOferta,
   primeiroDiaReservavel,
   resumoDaReserva,
+  resumoDoEmbarque,
   rotuloDoDia,
   saidasDoDia,
 } from '@navegsistemas/ui'
@@ -121,6 +129,19 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     alcanceDoCalendario === null ? DIAS_DA_JANELA : alcanceEmDias('PASSAGEIRO'),
   )
 
+  /* O canal é fixado aqui, no começo, e nenhum passo o apaga: na página, a reserva começa pelo que vai embarcar, sem o
+     tipo da passagem (naveg-front#65 e #66); o quiosque não muda. */
+  const site = !quiosque
+  const inicio: RespostasDaReserva = quiosque ? RESPOSTAS_DO_QUIOSQUE : RESPOSTAS_DO_SITE
+  const [respostas, setRespostas] = useState<RespostasDaReserva>(inicio)
+
+  /* Na página, só as saídas cuja embarcação leva o que vai embarcar: a lancha não leva veículo, e o navio só leva carro
+     e moto (ficha 2.2, segunda proposta). */
+  const ofertaDoEmbarque = useMemo(
+    () => (site ? oferta.filter((t) => embarcacaoLeva(respostas, t.contexto.tipoEmbarcacao)) : oferta),
+    [site, oferta, respostas],
+  )
+
   /* O calendário guarda só os gestos — a origem do filtro, o dia e o mês que a pessoa escolheu. O dia em vigor é
      derivado: se o escolhido deixou de se reservar (partiu, ou o filtro o apagou), vale o primeiro que se reserva. */
   const [origem, setOrigem] = useState<string | null>(null)
@@ -128,18 +149,20 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const [mesEscolhido, setMesEscolhido] = useState<number | null>(null)
   const calendario = useMemo(() => {
     if (alcanceDoCalendario === null || catalogo === null) return null
-    const previstas = travessiasOfertadas(catalogo, agora, alcanceDoCalendario)
+    const previstas = travessiasOfertadas(catalogo, agora, alcanceDoCalendario).filter(
+      (t) => !site || embarcacaoLeva(respostas, t.contexto.tipoEmbarcacao),
+    )
     const origens = origensDaOferta(previstas)
     const meses = mesesDoCalendario({
       hoje: InstanteLocal.data(agora),
       alcanceDias: alcanceDoCalendario,
-      reservaveis: oferta,
+      reservaveis: ofertaDoEmbarque,
       previstas,
       origens,
       origemEscolhida: origem,
     })
     return { origens, meses }
-  }, [alcanceDoCalendario, catalogo, agora, oferta, origem])
+  }, [alcanceDoCalendario, catalogo, agora, ofertaDoEmbarque, origem, site, respostas])
   const dia =
     calendario === null
       ? null
@@ -169,10 +192,6 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   /* A travessia fica guardada **inteira**, e não por id: se ela partir com a tela aberta, some da oferta — e
      é justamente aí que a conferência precisa dela para dizer "esta saída já partiu". */
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
-  /* O canal é fixado aqui, no começo, e nenhum passo o apaga: na página, a reserva vai sem o tipo da passagem e com
-     quantos viajam antes da acomodação (naveg-front#65); o quiosque não muda. */
-  const inicio: RespostasDaReserva = quiosque ? RESPOSTAS_DO_QUIOSQUE : RESPOSTAS_DO_SITE
-  const [respostas, setRespostas] = useState<RespostasDaReserva>(inicio)
   const [envio, setEnvio] = useState<Envio>(OCIOSO)
 
   const raiz = useRef<HTMLDivElement>(null)
@@ -206,11 +225,23 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   }, [inatividadeMs, emAndamento, recomecar])
 
   // --- o que se deriva ---
+  /* Na página, o que vai embarcar vem antes do dia: enquanto houver pergunta dele sem resposta, é ela a tela. */
+  const nosEmbarque = site ? nosDoEmbarque(respostas) : []
+  const indiceDoEmbarque = nosEmbarque.findIndex((no) => !respondido(no, respostas))
+  const noDoEmbarque = indiceDoEmbarque === -1 ? null : (nosEmbarque[indiceDoEmbarque] ?? null)
+  const embarqueEscolhido = site ? resumoDoEmbarque(respostas) : null
+
   const roteiro = travessia === null ? null : roteiroDaReserva(respostas, travessia.contexto)
   const atual = roteiro?.atual ?? null
 
   const chaveDaTela =
-    envio.estado === 'ENVIADA' ? 'concluida' : travessia === null ? 'lista' : `${travessia.id}:${atual?.passo ?? ''}`
+    envio.estado === 'ENVIADA'
+      ? 'concluida'
+      : noDoEmbarque !== null
+        ? `embarque:${noDoEmbarque.passo}`
+        : travessia === null
+          ? 'lista'
+          : `${travessia.id}:${atual?.passo ?? ''}`
 
   useEffect(() => {
     if (interagiu.current) titulo.current?.focus()
@@ -234,9 +265,33 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     setTravessia(null)
   }
 
+  /* "Mudar", no quadro do que vai embarcar: volta à primeira pergunta. O nome de quem reserva fica. */
+  function mudarEmbarque() {
+    interagiu.current = true
+    setEnvio(OCIOSO)
+    setTravessia(null)
+    setRespostas(respostas.cliente === undefined ? inicio : { ...inicio, cliente: respostas.cliente })
+  }
+
   function passoAnterior() {
     interagiu.current = true
     setEnvio(OCIOSO)
+    /* Na página: dentro do que vai embarcar, apaga a resposta anterior; no calendário, a última do embarque; nos
+       dados, volta ao calendário, com as respostas. */
+    if (noDoEmbarque !== null) {
+      const anterior = nosEmbarque[indiceDoEmbarque - 1]
+      if (anterior !== undefined) setRespostas(semResposta(anterior, respostas))
+      return
+    }
+    if (site && travessia === null) {
+      const ultimo = nosEmbarque.at(-1)
+      if (ultimo !== undefined) setRespostas(semResposta(ultimo, respostas))
+      return
+    }
+    if (site && atual?.passo === 'CLIENTE') {
+      setTravessia(null)
+      return
+    }
     if (travessia === null || roteiro === null) return
     /* No primeiro passo, voltar é voltar à lista — as respostas ficam, e valem para outra saída. */
     if (roteiro.posicaoAtual <= 1) setTravessia(null)
@@ -302,6 +357,20 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         }
       />
     )
+  } else if (noDoEmbarque !== null) {
+    const texto = TEXTO_DO_PASSO_NO_SITE[noDoEmbarque.passo] ?? TEXTO_DO_PASSO[noDoEmbarque.passo]
+    pergunta = texto.pergunta
+    ajuda = texto.ajuda
+    corpo =
+      noDoEmbarque.passo === 'EMBARQUE' ? (
+        <OQueVaiEmbarcar
+          opcoes={noDoEmbarque.opcoes}
+          escolhida={embarqueEmVigor(respostas)}
+          aoEscolher={(embarque) => responder({ ...respostas, embarque })}
+        />
+      ) : noDoEmbarque.passo === 'CONFERENCIA' ? null : (
+        <PassoDaReserva no={noDoEmbarque} respostas={respostas} aoResponder={responder} />
+      )
   } else if (travessia === null || roteiro === null) {
     pergunta = alcanceDoCalendario === null ? 'Escolha a saída' : 'Escolha o dia'
     corpo = catalogoFalhou ? (
@@ -309,7 +378,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     ) : catalogo === null ? (
       <p className="totem-vazio">Carregando as saídas…</p>
     ) : calendario === null ? (
-      <ListaDeTravessias travessias={oferta} aoEscolher={escolher} />
+      <ListaDeTravessias travessias={ofertaDoEmbarque} aoEscolher={escolher} />
     ) : (
       <div className="totem-dia-e-saidas">
         <CalendarioDeSaidas
@@ -337,7 +406,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
               Saídas de {rotuloDoDia(dia)}
             </h4>
           )}
-          <ListaDeTravessias travessias={dia === null ? [] : saidasDoDia(oferta, dia, origem)} aoEscolher={escolher} />
+          <ListaDeTravessias travessias={dia === null ? [] : saidasDoDia(ofertaDoEmbarque, dia, origem)} aoEscolher={escolher} />
         </div>
       </div>
     )
@@ -381,15 +450,30 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     corpo = <PassoDaReserva no={atual} respostas={respostas} aoResponder={responder} />
   }
 
-  /* Na página, as etapas pelo nome (UI 2.2, decisão C); o quiosque não muda, e segue com "Passo n de m". */
+  /* Na página, as etapas pelo nome (UI 2.2, decisão C), do que vai embarcar à conferência, e desde a primeira pergunta;
+     o quiosque não muda, e segue com "Passo n de m" depois da saída. */
   const etapa: EtapaDaReserva =
-    atual === null || atual.passo === 'CONFERENCIA' ? 'Conferir' : atual.passo === 'CLIENTE' ? 'Seus dados' : 'Embarque'
-  const emAndamentoNaTela = roteiro !== null && envio.estado !== 'ENVIADA'
+    noDoEmbarque !== null
+      ? 'O que vai embarcar'
+      : travessia === null
+        ? 'Dia e saída'
+        : atual === null || atual.passo === 'CONFERENCIA'
+          ? 'Conferir'
+          : atual.passo === 'CLIENTE'
+            ? 'Seus dados'
+            : 'O que vai embarcar'
+  const emAndamentoNaTela = envio.estado !== 'ENVIADA' && (site || roteiro !== null)
   const anuncio = !emAndamentoNaTela
     ? pergunta
-    : quiosque
+    : quiosque && roteiro !== null
       ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}`
-      : `${etapa}. ${pergunta}`
+      : /* "O que vai embarcar. O que vai embarcar?" seria dizer duas vezes. */
+        pergunta.startsWith(etapa)
+        ? pergunta
+        : `${etapa}. ${pergunta}`
+  /* Na página, há para onde voltar em toda tela, menos a primeira pergunta; no quiosque, depois da saída. */
+  const comNavegacao =
+    envio.estado !== 'ENVIADA' && (site ? noDoEmbarque?.passo !== 'EMBARQUE' : travessia !== null)
 
   const Pergunta = quiosque ? 'h2' : 'h3'
 
@@ -415,10 +499,14 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       <div className="totem-cabecalho">
         {emAndamentoNaTela &&
           (quiosque ? (
-            <IndicadorDePasso posicao={roteiro.posicaoAtual} total={roteiro.total} />
+            roteiro !== null && <IndicadorDePasso posicao={roteiro.posicaoAtual} total={roteiro.total} />
           ) : (
             <EtapasDaReserva atual={etapa} />
           ))}
+        {/* O que vai embarcar, já respondido, acompanha o calendário e os dados (ficha 2.2, marca 7). */}
+        {embarqueEscolhido !== null && noDoEmbarque === null && envio.estado !== 'ENVIADA' && etapa !== 'Conferir' && (
+          <EmbarqueEscolhido texto={embarqueEscolhido} aoMudar={mudarEmbarque} />
+        )}
         {/* O quadro da saída (UI 2.2, decisões A e B) vale também no quiosque: é informação, e não muda o fluxo. Vai até
             a conferência, e não nela: o resumo de lá já diz a saída, o cais e o aviso, e o quadro repetiria tudo. */}
         {travessia !== null && envio.estado !== 'ENVIADA' && etapa !== 'Conferir' && (
@@ -436,7 +524,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
 
       {corpo}
 
-      {travessia !== null && envio.estado !== 'ENVIADA' && (
+      {comNavegacao && (
         <div className="totem-navegacao">
           <button type="button" className="acao acao--secundaria" onClick={passoAnterior}>
             Voltar

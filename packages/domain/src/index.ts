@@ -30,6 +30,8 @@ export { TipoGratuidade, TIPOS_DE_GRATUIDADE } from './passagem/tipo-gratuidade.
 export { NaturezaVeiculo, NATUREZAS_DE_VEICULO } from './passagem/natureza-veiculo.js'
 export { ClasseVeiculo, CLASSES_DE_VEICULO } from './passagem/classe-veiculo.js'
 export type { PropriedadesDaClasse } from './passagem/classe-veiculo.js'
+export { CLASSES_DOS_PORTES, PorteDoVeiculo, PORTES_DE_VEICULO } from './passagem/porte-do-veiculo.js'
+export { EMBARQUES, OQueEmbarca } from './reserva/o-que-embarca.js'
 
 // --- porte: documento ---
 export { TipoDocumento, TIPOS_DE_DOCUMENTO } from './documento/tipo-documento.js'
@@ -103,7 +105,13 @@ export {
 export type { FonteDeAleatoriedade } from './reserva/codigo-da-reserva.js'
 export { formatarWhatsapp, normalizarWhatsapp, whatsappValido } from './reserva/contato.js'
 export { validadeDaReserva } from './reserva/validade-da-reserva.js'
-export { linkDaEncomenda, linkDaReserva, linkDeWhatsApp, mensagemDaReserva } from './reserva/link-de-atendimento.js'
+export {
+  linkDaEncomenda,
+  linkDaReserva,
+  linkDeWhatsApp,
+  mensagemDaReserva,
+  pessoasComOVeiculo,
+} from './reserva/link-de-atendimento.js'
 export type { RotulosDaMensagem } from './reserva/link-de-atendimento.js'
 export {
   CATEGORIAS_DE_RESERVA,
@@ -132,7 +140,13 @@ export {
   CANAIS_DA_RESERVA,
   categoriasOfertadas,
   chaveDoNo,
+  classeDoEmbarque,
   classeEmVigor,
+  embarcacaoLeva,
+  embarqueEmVigor,
+  embarqueRespondido,
+  nosDoEmbarque,
+  porteEmVigor,
   classesOfertadas,
   pessoasEmVigor,
   respondido,

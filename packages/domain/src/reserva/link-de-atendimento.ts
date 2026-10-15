@@ -76,15 +76,29 @@ function pessoas(quantidade: number): string {
   return quantidade === 1 ? '1 pessoa' : `${quantidade} pessoas`
 }
 
-/** "Rede · 1 pessoa" ou "Moto · 160 cc". */
+/**
+ * As pessoas que vão com o veículo, como o painel do KMP as escreve: "3 pessoas em rede". Vazio quando ele vai
+ * sozinho.
+ */
+export function pessoasComOVeiculo(reserva: ReservaDeVeiculo): string | undefined {
+  const { quantidadePessoas, acomodacao } = reserva
+  if (quantidadePessoas === undefined || acomodacao === undefined) return undefined
+  return `${pessoas(quantidadePessoas)} em ${Acomodacao.rotulo(acomodacao).toLowerCase()}`
+}
+
+/** "Rede · 1 pessoa", "Moto · 160 cc" ou "Caminhão + 3 pessoas em rede". */
 function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
   switch (reserva.categoria) {
     case 'PASSAGEIRO':
       return `${Acomodacao.rotulo(reserva.acomodacao)} · ${pessoas(reserva.quantidadePessoas)}`
-    case 'VEICULO':
-      return reserva.cilindrada === undefined
-        ? ClasseVeiculo.rotulo(reserva.classe)
-        : `${ClasseVeiculo.rotulo(reserva.classe)} · ${reserva.cilindrada} cc`
+    case 'VEICULO': {
+      const veiculo =
+        reserva.cilindrada === undefined
+          ? ClasseVeiculo.rotulo(reserva.classe)
+          : `${ClasseVeiculo.rotulo(reserva.classe)} · ${reserva.cilindrada} cc`
+      const junto = pessoasComOVeiculo(reserva)
+      return junto === undefined ? veiculo : `${veiculo} + ${junto}`
+    }
     default:
       return casoImpossivel(reserva, 'aPassagem')
   }

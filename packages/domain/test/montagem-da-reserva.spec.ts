@@ -252,3 +252,66 @@ describe('pelo site', () => {
     expect(montarReserva(quiosque, contexto(), IDENTIDADE)).toMatchObject({ caso: 'INCOMPLETA', faltando: { passo: 'TIPO_TARIFARIO' } })
   })
 })
+
+/* naveg-front#66 (fluviapp-kmp#63): passageiros e veículo numa reserva só, e o veículo sozinho, pelo site. */
+describe('o que vai embarcar, pelo site', () => {
+  const CAMINHAO: RespostasDaReserva = {
+    canal: 'SITE',
+    embarque: 'VEICULO',
+    porteVeiculo: 'PESADO',
+    classeVeiculo: 'CAMINHAO',
+    cliente: CLIENTE,
+  }
+
+  it('o veículo sozinho: a reserva de veículo, sem pessoas', () => {
+    const reserva = reservaDe(montarReserva(CAMINHAO, contexto(), IDENTIDADE))
+    expect(reserva).toMatchObject({ categoria: 'VEICULO', classe: 'CAMINHAO' })
+    expect('quantidadePessoas' in reserva).toBe(false)
+    expect('acomodacao' in reserva).toBe(false)
+  })
+
+  it('passageiros e veículo: uma reserva só, com as pessoas e a acomodação, sem o tipo', () => {
+    const reserva = reservaDe(
+      montarReserva(
+        { ...CAMINHAO, embarque: 'PASSAGEIROS_E_VEICULO', quantidadePessoas: 3, acomodacao: 'REDE' },
+        contexto(),
+        IDENTIDADE,
+      ),
+    )
+    expect(reserva).toMatchObject({ categoria: 'VEICULO', classe: 'CAMINHAO', quantidadePessoas: 3, acomodacao: 'REDE' })
+    expect('tipo' in reserva).toBe(false)
+    expect(paraDominio(reserva.codigo, JSON.parse(JSON.stringify(paraDocumento(reserva))))).toEqual(reserva)
+  })
+
+  it('as pessoas de um "Passageiros e veículo" desfeito não vão com o veículo sozinho', () => {
+    const reserva = reservaDe(montarReserva({ ...CAMINHAO, quantidadePessoas: 3, acomodacao: 'REDE' }, contexto(), IDENTIDADE))
+    expect('quantidadePessoas' in reserva).toBe(false)
+  })
+
+  it('passageiros: a de passageiros, sem o tipo', () => {
+    const reserva = reservaDe(
+      montarReserva(
+        { canal: 'SITE', embarque: 'PASSAGEIROS', quantidadePessoas: 2, acomodacao: 'CAMAROTE', cliente: CLIENTE },
+        contexto(),
+        IDENTIDADE,
+      ),
+    )
+    expect(reserva).toMatchObject({ categoria: 'PASSAGEIRO', acomodacao: 'CAMAROTE', quantidadePessoas: 2 })
+  })
+
+  it('a moto vai com a cilindrada', () => {
+    const moto = { ...CAMINHAO, porteVeiculo: 'LEVE' as const, classeVeiculo: 'MOTO' as const, cilindrada: 160 }
+    expect(reservaDe(montarReserva(moto, contexto(), IDENTIDADE))).toMatchObject({ classe: 'MOTO', cilindrada: 160 })
+  })
+
+  it('a saída cuja embarcação não leva o veículo não fecha: o caminhão no navio', () => {
+    expect(montarReserva(CAMINHAO, contexto('NAVIO'), IDENTIDADE)).toMatchObject({ caso: 'INCOMPLETA', faltando: { passo: 'EMBARQUE' } })
+    expect(montarReserva(CAMINHAO, contexto('LANCHA'), IDENTIDADE).caso).toBe('INCOMPLETA')
+  })
+
+  it('a página da #65 continua reservando o veículo: a categoria e a classe, sem o porte', () => {
+    const { embarque: _e, porteVeiculo: _p, ...antigo } = CAMINHAO
+    const reserva = reservaDe(montarReserva({ ...antigo, categoria: 'VEICULO', naturezaVeiculo: 'AUTOMOTOR' }, contexto(), IDENTIDADE))
+    expect(reserva).toMatchObject({ categoria: 'VEICULO', classe: 'CAMINHAO' })
+  })
+})

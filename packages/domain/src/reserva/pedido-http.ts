@@ -33,7 +33,9 @@ import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import { NaturezaVeiculo } from '../passagem/natureza-veiculo.js'
 import { TipoGratuidade } from '../passagem/tipo-gratuidade.js'
 import { TipoPassagem } from '../passagem/tipo-passagem.js'
+import { PorteDoVeiculo } from '../passagem/porte-do-veiculo.js'
 import { deValor } from '../primitivos/fronteira.js'
+import { OQueEmbarca } from './o-que-embarca.js'
 import { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import type { ReservaDocumento } from './documento.js'
 import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
@@ -137,6 +139,8 @@ function lerCliente(valor: unknown): RascunhoDoCliente | undefined {
 function lerRespostas(dado: Dado): RespostasDaReserva {
   const campos = {
     canal: enumOpcional(dado, 'canal', (valor) => deValor(CANAIS_DA_RESERVA, valor)),
+    embarque: enumOpcional(dado, 'embarque', OQueEmbarca.de),
+    porteVeiculo: enumOpcional(dado, 'porteVeiculo', PorteDoVeiculo.de),
     categoria: enumOpcional(dado, 'categoria', CategoriaPassagem.de),
     acomodacao: enumOpcional(dado, 'acomodacao', Acomodacao.de),
     tipo: enumOpcional(dado, 'tipo', TipoPassagem.de),

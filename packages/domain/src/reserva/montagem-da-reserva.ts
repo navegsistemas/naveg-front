@@ -29,7 +29,10 @@ import {
   type ReservaDeVeiculo,
 } from './reserva.js'
 import {
+  classeDoEmbarque,
   classeEmVigor,
+  embarcacaoLeva,
+  embarqueEmVigor,
   pessoasEmVigor,
   roteiroDaReserva,
   tipoEmVigor,
@@ -158,6 +161,40 @@ function deReservaDeVeiculo(
 }
 
 /**
+ * **Pelo site** (naveg-front#66): o que vai embarcar decide a reserva. Passageiros é a de passageiros, sem o tipo;
+ * veículo é a de veículo, e com as pessoas quando vão junto. `null` quando falta resposta — ou quando a embarcação
+ * desta saída não leva o veículo escolhido: o calendário não a ofereceria, mas o pedido pode não ter vindo dele.
+ */
+function deReservaPeloSite(
+  nos: readonly NoDoRoteiro[],
+  respostas: RespostasDaReserva,
+  base: Base,
+  contexto: ContextoDaReserva,
+): Reserva | null {
+  const embarque = embarqueEmVigor(respostas)
+  if (embarque === undefined || !embarcacaoLeva(respostas, contexto.tipoEmbarcacao)) return null
+  if (embarque === 'PASSAGEIROS') return deReservaDePassageiro(nos, respostas, base)
+
+  const classe = classeDoEmbarque(respostas)
+  if (classe === undefined) return null
+  /* As pessoas entram **só se o nó delas estava no caminho**: as do "Passageiros" desfeito não vão com o veículo. */
+  const comPessoas = noDoPasso(nos, 'QUANTIDADE_PESSOAS') !== undefined
+  const acomodacao = respostas.acomodacao
+  const quantidadePessoas = acomodacao === undefined ? undefined : pessoasEmVigor(respostas, acomodacao)
+  if (comPessoas && (acomodacao === undefined || quantidadePessoas === undefined)) return null
+
+  return {
+    ...base,
+    categoria: 'VEICULO',
+    classe,
+    ...(noDoPasso(nos, 'CILINDRADA') !== undefined && respostas.cilindrada !== undefined
+      ? { cilindrada: respostas.cilindrada }
+      : {}),
+    ...(comPessoas && acomodacao !== undefined && quantidadePessoas !== undefined ? { quantidadePessoas, acomodacao } : {}),
+  }
+}
+
+/**
  * **A reserva, se as respostas formam uma.** Pura: o código e o instante vêm de fora, e as mesmas entradas
  * dão a mesma reserva — o que permite tentar gravar, colidir, gerar outro código e montar de novo.
  */
@@ -170,6 +207,12 @@ export function montarReserva(
   if (!roteiro.prontoParaConferir && roteiro.atual !== null) return { caso: 'INCOMPLETA', faltando: roteiro.atual }
 
   const primeiro = roteiro.nos[0] as NoDoRoteiro
+  if (respostas.canal === 'SITE') {
+    const reserva = deReservaPeloSite(roteiro.nos, respostas, montarBase(respostas, contexto, identidade), contexto)
+    if (reserva === null) return { caso: 'INCOMPLETA', faltando: primeiro }
+    const pendencias = pendenciasDaReserva(reserva)
+    return pendencias.size > 0 ? { caso: 'INCOERENTE', pendencias } : { caso: 'OK', reserva }
+  }
   const categoria = noDoPasso(roteiro.nos, 'CATEGORIA')
   const escolhida = respostas.categoria
   if (categoria === undefined || escolhida === undefined || !categoria.opcoes.includes(escolhida)) {

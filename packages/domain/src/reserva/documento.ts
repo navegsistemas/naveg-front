@@ -145,6 +145,8 @@ void _todasAsChavesListadas
 
 /** As chaves exclusivas de cada ramo — a presença de uma de outro ramo é estado misto. */
 const DO_PASSAGEIRO = ['acomodacao', 'tipo', 'gratuidade', 'quantidadePessoas'] as const
+/** O que só a de passageiros tem: a acomodação e a quantidade também vão com o veículo (naveg-front#66). */
+const SO_DO_PASSAGEIRO = ['tipo', 'gratuidade'] as const
 const DO_VEICULO = ['classe', 'cilindrada'] as const
 const DA_PASSAGEM = [...DO_PASSAGEIRO, ...DO_VEICULO, 'passagemId'] as const
 const DA_ENCOMENDA = [
@@ -201,6 +203,8 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
         ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
         classe: reserva.classe,
         ...(reserva.cilindrada !== undefined ? { cilindrada: reserva.cilindrada } : {}),
+        ...(reserva.quantidadePessoas !== undefined ? { quantidadePessoas: reserva.quantidadePessoas } : {}),
+        ...(reserva.acomodacao !== undefined ? { acomodacao: reserva.acomodacao } : {}),
       }
     case 'ENCOMENDA':
       return {
@@ -305,7 +309,7 @@ function destinatarioDoDocumento(valor: unknown): DestinatarioDaEncomenda | unde
  * 7. **o que define o pedido** ausente — acomodação e quantidade; a classe do veículo; ou o tipo do volume, a
  *    quantidade, a faixa de peso e quem retira. O tipo da passagem ausente é "a definir no atendimento";
  *    presente e ilegível, recusa;
- * 8. **estado misto** — reserva de passageiro com `classe`, de veículo com `acomodacao`, de passagem com chave de
+ * 8. **estado misto** — reserva de passageiro com `classe`, de veículo com `tipo`, de passagem com chave de
  *    encomenda, de encomenda com `passagemId`; ou o destinatário pela metade;
  * 9. **incoerência** — tudo legível, mas `pendenciasDaReserva` não está vazio: meia numa suíte, 51
  *    pessoas, gratuidade sem subtipo, moto sem cilindrada, 21 volumes, outra pessoa retira e não
@@ -391,13 +395,26 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
       break
     }
     case 'VEICULO': {
-      if (DO_PASSAGEIRO.some((chave) => dado[chave] !== undefined)) return null
+      /* As pessoas que vão com o veículo entram (naveg-front#66); o tipo, não — quem decide é o atendente. */
+      if (SO_DO_PASSAGEIRO.some((chave) => dado[chave] !== undefined)) return null
       if (DA_ENCOMENDA.some((chave) => dado[chave] !== undefined)) return null
 
       const classe = ClasseVeiculo.de(texto(dado, 'classe'))
       const cilindrada = numeroOpcional(dado, 'cilindrada')
       const passagemId = textoOpcional(dado, 'passagemId')
-      if (classe === null || cilindrada === ILEGIVEL || passagemId === ILEGIVEL) return null
+      const quantidadePessoas = numeroOpcional(dado, 'quantidadePessoas')
+      /* Ausente é o veículo sozinho; presente e ilegível, recusa — como no `ReservaDocumento.kt`. */
+      const acomodacao =
+        dado['acomodacao'] === undefined || dado['acomodacao'] === null ? undefined : Acomodacao.de(texto(dado, 'acomodacao'))
+      if (
+        classe === null ||
+        cilindrada === ILEGIVEL ||
+        passagemId === ILEGIVEL ||
+        quantidadePessoas === ILEGIVEL ||
+        acomodacao === null
+      ) {
+        return null
+      }
 
       reserva = {
         ...comum,
@@ -405,6 +422,8 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
         categoria,
         classe,
         ...(cilindrada !== undefined ? { cilindrada } : {}),
+        ...(quantidadePessoas !== undefined ? { quantidadePessoas } : {}),
+        ...(acomodacao !== undefined ? { acomodacao } : {}),
       }
       break
     }
