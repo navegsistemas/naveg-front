@@ -22,7 +22,7 @@
  *
  * Baixar a régua é decisão, e se faz aqui, com o motivo no commit — como os tetos do `conferir-build.mjs`.
  */
-import { execSync, spawn } from 'node:child_process'
+import { execSync, spawn, spawnSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -148,9 +148,14 @@ try {
   }
 } finally {
   await chrome.kill()
+  /* No Windows, o `npm` sobe o preview num processo filho que o `kill` não alcança. O `taskkill /t` derruba a árvore a
+     partir do shell, e por isso vem **antes** do `kill`: com o shell morto, a árvore já não tem por onde ser achada, e
+     o preview ficava de pé na porta, travando a rodada seguinte (2026-10-14). E é síncrono, para terminar antes de o
+     script sair. */
+  if (process.platform === 'win32' && preview.pid !== undefined) {
+    spawnSync('taskkill', ['/pid', String(preview.pid), '/t', '/f'], { stdio: 'ignore' })
+  }
   preview.kill()
-  /* No Windows, o `npm` sobe o preview num processo filho que o `kill` acima não alcança. */
-  if (process.platform === 'win32' && preview.pid !== undefined) spawn('taskkill', ['/pid', String(preview.pid), '/t', '/f'], { stdio: 'ignore' })
 }
 
 if (falhas.length > 0) {
