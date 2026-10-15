@@ -32,7 +32,7 @@ import {
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
-import type { EtapaDaReserva } from '@navegsistemas/ui'
+import type { EtapaDaReserva, FotoDoCartao } from '@navegsistemas/ui'
 import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
@@ -99,6 +99,8 @@ export interface PropsDoTotem {
   readonly alcanceDoCalendario?: number | null
   /** O relógio. Os cenários passam um fixo; a página, o do sistema. */
   readonly relogio?: () => Date
+  /** A foto do cartão do Veículo, gerada no build pela página (decisão M da 2.2). */
+  readonly fotoDoVeiculo?: FotoDoCartao | null
 }
 
 type Envio =
@@ -119,7 +121,7 @@ const RESPOSTAS_DO_SITE: RespostasDaReserva = { canal: 'SITE' }
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null }: PropsDoTotem) {
   /* Com o calendário (a página), a passagem vai até o alcance da reserva — 90 dias, para passageiro e veículo
      (fluviapp-kmp#44). Sem ele (o quiosque), a lista fica na semana: o quiosque não muda (UI 1.3). */
   const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(
@@ -364,6 +366,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     corpo =
       noDoEmbarque.passo === 'EMBARQUE' ? (
         <OQueVaiEmbarcar
+          foto={fotoDoVeiculo}
           opcoes={noDoEmbarque.opcoes}
           escolhida={embarqueEmVigor(respostas)}
           aoEscolher={(embarque) => responder({ ...respostas, embarque })}

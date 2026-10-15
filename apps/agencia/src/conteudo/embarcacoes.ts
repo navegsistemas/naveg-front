@@ -77,6 +77,13 @@ export const FOTOS_PARA_A_VITRINE = 2
 
 export const VITRINE_VISIVEL = EMBARCACOES_DA_VITRINE.length >= FOTOS_PARA_A_VITRINE
 
+/**
+ * **A foto do cartão do Veículo**, na primeira pergunta da reserva (UI 2.2, decisão M): a do F/B Regional, com
+ * caminhões e carros no convés — "utiliza também" (PO, 2026-10-15). É a mesma foto da vitrine, recortada pelo CSS.
+ */
+export const FOTO_DO_CARTAO_DO_VEICULO: ImageMetadata | null =
+  EMBARCACOES.find((embarcacao) => embarcacao.id === 'regional')?.imagem ?? null
+
 /** O ícone da flotilha, para a faixa de credibilidade e a legenda da vitrine. */
 export const ICONE_DA_FLOTILHA: SlugIcone = 'barco'
 

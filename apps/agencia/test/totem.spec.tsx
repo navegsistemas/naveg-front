@@ -273,6 +273,26 @@ describe('o que vai embarcar, na página', () => {
     expect(screen.queryByRole('button', { name: 'Voltar' })).toBeNull()
   })
 
+  it('com a foto (decisão M), o cartão do veículo a mostra como decoração: o nome do botão continua "Veículo…"', () => {
+    render(
+      <Totem
+        fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
+        envio={envioLocal(new ReservaEmMemoria())}
+        fuso={FUSO_DA_OPERACAO}
+        inatividadeMs={null}
+        demonstracao="SAIDAS_E_ENVIO"
+        relogio={() => TERCA_8H}
+        fotoDoVeiculo={{ src: '/_astro/regional.webp', srcset: '/_astro/regional-480.webp 480w' }}
+      />,
+    )
+    const veiculo = screen.getByRole('button', { name: VEICULO })
+    const foto = veiculo.querySelector('img')
+    expect(foto?.getAttribute('src')).toBe('/_astro/regional.webp')
+    expect(foto?.getAttribute('alt')).toBe('')
+    /* Só o veículo tem foto. */
+    expect(screen.getByRole('button', { name: PASSAGEIROS }).querySelector('img')).toBeNull()
+  })
+
   it('passageiros e veículo, de ponta a ponta: uma reserva só, com as pessoas e sem o tipo', async () => {
     const { repositorio } = montar()
     tocar(PASSAGEIROS_E_VEICULO)

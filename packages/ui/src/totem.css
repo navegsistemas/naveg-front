@@ -272,6 +272,15 @@
   border-width: 3px;
 }
 
+/* A foto do veículo (decisão M): faixa larga, recortada pelo CSS, com o convés e os caminhões à vista. */
+.totem-cartao__foto {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  object-position: 60% 60%;
+  border-radius: var(--radius);
+}
+
 .totem-cartao--principal .totem-cartao__rotulo {
   font-size: 1.25rem;
 }
@@ -282,10 +291,11 @@
   gap: var(--espaco-1) var(--espaco-2);
 }
 
+/* Cantos do cartão, e não de pílula: no celular o exemplo quebra em duas linhas, e a pílula viraria um oval. */
 .totem-cartao__peso {
   padding: 0.125rem var(--espaco-2);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius);
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
@@ -304,7 +314,8 @@
     grid-row: span 2;
   }
 
-  .totem-embarques__principal .totem-cartao {
+  /* Os dois da direita dividem a altura do veículo, sem um vão entre eles. */
+  .totem-embarques__opcoes .totem-cartao {
     height: 100%;
     align-content: center;
   }

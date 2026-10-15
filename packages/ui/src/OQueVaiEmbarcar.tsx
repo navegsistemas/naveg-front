@@ -4,12 +4,17 @@
  * O **veículo** é a opção grande, com "leve" e "pesado" à vista: é o que faz sentir que a carga pesada cabe. Passageiros
  * e veículo, e Passageiros, vêm menores, mas inteiros. A encomenda é um link para a seção dela, até a 2.7.
  *
- * A foto de um veículo pesado embarcando (decisão M) entra pela propriedade `foto` quando chegar. Sem ela, o cartão se
- * destaca pelo tamanho e pela posição, e não mostra molde: o cliente não vê "foto pendente".
+ * A foto de um veículo pesado embarcando (decisão M) entra pela propriedade `foto`: hoje, a do F/B Regional com
+ * caminhões no convés (PO, 2026-10-15). Sem ela, o cartão se destaca pelo tamanho e pela posição, e não mostra molde:
+ * o cliente não vê "foto pendente".
  */
-import type { ReactNode } from 'react'
-
 import { OQueEmbarca, PorteDoVeiculo } from '@navegsistemas/domain'
+
+/** Uma foto já gerada no build — o Astro dá o endereço e os tamanhos; a ilha só os escreve. */
+export interface FotoDoCartao {
+  readonly src: string
+  readonly srcset: string
+}
 
 export interface PropsDoQueVaiEmbarcar {
   readonly opcoes: readonly OQueEmbarca[]
@@ -18,7 +23,7 @@ export interface PropsDoQueVaiEmbarcar {
   /** Para onde aponta "Envie sua encomenda" — a seção dela na página. */
   readonly hrefDaEncomenda?: string
   /** A foto do cartão do veículo, quando houver (decisão M). */
-  readonly foto?: ReactNode
+  readonly foto?: FotoDoCartao | null
 }
 
 const DESCRICAO: Readonly<Record<Exclude<OQueEmbarca, 'VEICULO'>, string>> = {
@@ -43,7 +48,18 @@ export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, hrefDaEncomenda
               aria-pressed={opcao === escolhida}
               onClick={() => aoEscolher(opcao)}
             >
-              {opcao === 'VEICULO' && foto}
+              {/* Decoração: o nome do botão é "Veículo", e a foto não precisa ser lida a cada passagem. */}
+              {opcao === 'VEICULO' && foto !== undefined && foto !== null && (
+                <img
+                  className="totem-cartao__foto"
+                  src={foto.src}
+                  srcSet={foto.srcset}
+                  sizes="(min-width: 64rem) 40rem, 100vw"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
               <span className="totem-cartao__rotulo">{OQueEmbarca.rotulo(opcao)}</span>
               {opcao === 'VEICULO' ? (
                 <span className="totem-cartao__pesos">
