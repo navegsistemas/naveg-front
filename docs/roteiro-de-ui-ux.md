@@ -383,3 +383,35 @@ conferência (5 passos); o do veículo: categoria, natureza, classe, e a cilindr
 | **D** | O texto das opções | **uma linha curta em cada opção**, com fatos que o PO dá: o que a rede inclui (o passageiro leva a rede?), se quem dirige o veículo precisa de passagem, o que distingue a suíte do camarote |
 | **E** | O "Recomeçar" | **um link discreto, com confirmação na tela**; "Voltar" fica como o botão |
 | **F** | O computador | **as opções em duas ou três colunas** |
+
+**Decisões do PO (2026-10-14):** **A a F pela recomendação.** E, no lugar da D:
+
+- **a rede não leva texto**: quem viaja de navio sabe que leva a própria rede;
+- **três opções**: **Passageiros** (no plural), **Veículo** e **Passageiros e veículo**. O veículo muitas vezes vai
+  sozinho, e a reserva serve ao atendimento: o máximo de informação com o mínimo de esforço;
+- **passageiros**: "Quantos viajam?" 1, 2, 3, 4, 5 ou mais; depois a acomodação e os dados;
+- **sem o tipo da passagem** (inteira, meia, gratuidade): quem define é o balcão;
+- **"O que vai embarcar" é a primeira pergunta**, antes do dia, e o veículo se divide em **leve ou pesado**;
+- **a apresentação fala das três coisas**: "Reserve sua passagem, mande seu veículo ou sua encomenda", e o
+  "Reservar agora", no topo e na capa, fica genérico;
+- **o site faz sentir que dá para levar pesados e encomendas** (a encomenda é a próxima fase, a 2.7), também nas fotos
+  dos carrosséis. O passageiro vem em segundo plano, mas continua importante.
+
+**A segunda proposta** ([wireframe](https://claude.ai/artifact/WosK1u2zNW21aKVvGFbano)): o caminho passa a ser o que
+vai embarcar → o dia e a saída → os dados → conferir. O calendário só acende os dias cuja embarcação leva o que foi
+escolhido (a lancha não leva veículo; o navio, só carro e moto). A linha de hoje só tem ferries, com 45 vagas de
+veículo cada.
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **G** | A ordem e o peso das opções | **Veículo grande, com foto**; depois Passageiros e veículo; depois Passageiros; a Encomenda como link para a seção dela, até a 2.7 |
+| **H** | Leve ou pesado, e a classe | **"Leve ou pesado?" e depois "Qual?"**, só com as classes do grupo (a tarifa é por classe). Leves: carro, SUV, van, moto, quadriciclo, carretilha, jet ski. Pesados: caminhão, ônibus, motorhome, cavalo mecânico, carreta, trailer, lancha, trator, empilhadeira, retroescavadeira |
+| **I** | "5 ou mais" | **abre um contador, de 5 a 50** |
+| **J** | Mais de uma pessoa | **uma acomodação para o grupo**; grupo misto, o balcão resolve |
+| **K** | Passageiros e veículo | **uma reserva só, com um código** |
+| **L** | O quiosque | **o mesmo caminho novo**, com a lista de saídas no lugar do calendário |
+| **M** | As fotos | **um veículo pesado embarcando**, para a opção Veículo e a capa; carga e encomenda nos carrosséis. Precisa de fotos da NAVEG ou da MOCORONGO |
+
+**Depende do KMP** (a issue sai lá com as respostas H a K): a reserva de passageiros sem o tipo da passagem, a
+quantidade de pessoas sem o teto da acomodação, e a reserva com pessoas e veículo. Enquanto isso, o que não depende
+dele pode ir antes: as etapas pelo nome, o quadro da saída com o cais, o aviso de alteração e o texto da apresentação.
