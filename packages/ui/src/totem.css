@@ -282,6 +282,23 @@
   border-color: var(--accent);
 }
 
+/* O contador do "5 ou mais": menos, o número e mais, numa linha, com os botões no tamanho do toque. */
+.totem-contador {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: stretch;
+}
+
+.totem-contador input {
+  width: 6ch;
+  text-align: center;
+}
+
+.totem-contador .acao {
+  min-width: var(--alvo-toque);
+  font-size: 1.25rem;
+}
+
 .totem-opcional {
   color: var(--text-secondary);
   font-weight: 400;

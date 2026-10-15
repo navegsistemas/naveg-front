@@ -26,15 +26,24 @@ const totem = (page: Page): Locator => page.locator('.totem:not(.totem--encomend
 /** A pergunta do passo: `h3` na página, sob o título da seção; `h2` no quiosque, que não tem seção. */
 const pergunta = (page: Page): Locator => totem(page).locator('.totem-pergunta')
 
-/** Da lista ao botão "Confirmar reserva": ferry, passageiro, rede, inteira, Maria Souza. */
-async function preencherAteAConferencia(page: Page) {
+/**
+ * Da lista ao botão "Confirmar reserva": ferry, passageiro, rede, Maria Souza. No quiosque, com o tipo (inteira); na
+ * página, sem ele, e com quantos viajam antes da acomodação (naveg-front#65).
+ */
+async function preencherAteAConferencia(page: Page, onde: 'quiosque' | 'pagina' = 'quiosque') {
   const saida = totem(page).getByRole('listitem').filter({ hasText: 'Ferry de demonstração' }).first()
   await saida.getByRole('button', { name: 'Reservar esta saída' }).click()
 
   await expect(pergunta(page)).toHaveText('O que vai embarcar?')
   await page.getByRole('button', { name: 'Passageiro' }).click()
-  await page.getByRole('button', { name: /^Rede/ }).click()
-  await page.getByRole('button', { name: 'Inteira' }).click()
+  if (onde === 'pagina') {
+    await expect(pergunta(page)).toHaveText('Quantos viajam?')
+    await page.getByRole('button', { name: '1 pessoa' }).click()
+    await page.getByRole('button', { name: /^Rede/ }).click()
+  } else {
+    await page.getByRole('button', { name: /^Rede/ }).click()
+    await page.getByRole('button', { name: 'Inteira' }).click()
+  }
 
   await expect(pergunta(page)).toHaveText('Em nome de quem fica a reserva?')
   await page.getByLabel('Nome').fill('Maria Souza')
@@ -42,7 +51,9 @@ async function preencherAteAConferencia(page: Page) {
   await page.getByRole('button', { name: 'Continuar' }).click()
 
   await expect(pergunta(page)).toHaveText('Confira a reserva')
-  await expect(page.getByText('Rede · Inteira · 1 pessoa')).toBeVisible()
+  await expect(
+    page.getByText(onde === 'pagina' ? 'Rede · 1 pessoa · inteira, meia ou gratuidade no atendimento' : 'Rede · Inteira · 1 pessoa'),
+  ).toBeVisible()
 }
 
 test.describe('a reserva no quiosque', () => {
@@ -186,9 +197,14 @@ test.describe('a reserva na página', () => {
     await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeFocused()
     await expect(totem(page).locator('.totem-saidas-do-dia__titulo')).toBeInViewport()
 
-    await preencherAteAConferencia(page)
+    await preencherAteAConferencia(page, 'pagina')
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()
     await expect(page.getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible(PRAZO_DO_ENVIO)
     expect(api.pedidos).toHaveLength(1)
+    /* A página manda o canal, e a API remonta pelo caminho do site: sem o tipo. */
+    const [pedido] = api.pedidos
+    const respostas = pedido !== undefined && 'respostas' in pedido ? pedido.respostas : undefined
+    expect(respostas).toMatchObject({ canal: 'SITE', categoria: 'PASSAGEIRO', acomodacao: 'REDE', quantidadePessoas: 1 })
+    expect(respostas).not.toHaveProperty('tipo')
   })
 })

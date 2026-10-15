@@ -436,6 +436,14 @@ o escopo estava fechado, e ela entrou por força maior (ver o
 navegsistemas/fluviapp-kmp#62 (a reserva sem o tipo e sem o teto da acomodação) e #63 (passageiros e veículo numa
 reserva só). A ordem é KMP → domain → API e site.
 
+**A reserva sem o tipo e de 1 a 50 (#65, 2026-10-15):** o KMP entrou no `master` (fluviapp-kmp#67). Na página, depois de
+"Passageiro", vêm "Quantos viajam?" (1, 2, 3, 4 e "5 ou mais", que abre um contador até 50) e "Onde vocês querem
+viajar?", uma acomodação para o grupo; o tipo não é perguntado, e o resumo diz "inteira, meia ou gratuidade no
+atendimento". O quiosque não muda. A página manda `canal: 'SITE'` nas respostas, e é por ele que a API remonta a reserva
+pelo mesmo caminho. Por isso a ordem tem um passo a mais: o domain 0.9.0 primeiro, depois a API com ele **promovida**, e
+só então a página: com a API de antes, a reserva sem o tipo seria recusada. Falta a primeira pergunta ("o que vai
+embarcar", com Passageiros e veículo), que é a #66.
+
 **O que vai antes, sem o KMP:**
 - a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;
 - o quadro da saída com o cais e o aviso de alteração vale também no quiosque, porque é informação e não muda o fluxo;

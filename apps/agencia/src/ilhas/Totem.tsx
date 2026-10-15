@@ -41,6 +41,7 @@ import {
   ReservaConcluida,
   SaidaEscolhida,
   TEXTO_DO_PASSO,
+  TEXTO_DO_PASSO_NO_SITE,
   mesesDoCalendario,
   origensDaOferta,
   primeiroDiaReservavel,
@@ -104,6 +105,10 @@ const OCIOSO: Envio = { estado: 'OCIOSO' }
 /** O código provisório da prévia. É um código válido — só nunca é gravado. */
 const CODIGO_DA_PREVIA = 'NVG-000000'
 
+/* Constantes, e não literais no componente: o `recomecar` depende delas, e um objeto novo a cada desenho o refaria. */
+const RESPOSTAS_DO_QUIOSQUE: RespostasDaReserva = {}
+const RESPOSTAS_DO_SITE: RespostasDaReserva = { canal: 'SITE' }
+
 const relogioDoSistema = () => new Date()
 
 export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema }: PropsDoTotem) {
@@ -164,7 +169,10 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   /* A travessia fica guardada **inteira**, e não por id: se ela partir com a tela aberta, some da oferta — e
      é justamente aí que a conferência precisa dela para dizer "esta saída já partiu". */
   const [travessia, setTravessia] = useState<TravessiaOfertada | null>(null)
-  const [respostas, setRespostas] = useState<RespostasDaReserva>({})
+  /* O canal é fixado aqui, no começo, e nenhum passo o apaga: na página, a reserva vai sem o tipo da passagem e com
+     quantos viajam antes da acomodação (naveg-front#65); o quiosque não muda. */
+  const inicio: RespostasDaReserva = quiosque ? RESPOSTAS_DO_QUIOSQUE : RESPOSTAS_DO_SITE
+  const [respostas, setRespostas] = useState<RespostasDaReserva>(inicio)
   const [envio, setEnvio] = useState<Envio>(OCIOSO)
 
   const raiz = useRef<HTMLDivElement>(null)
@@ -176,9 +184,9 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
 
   const recomecar = useCallback(() => {
     setTravessia(null)
-    setRespostas({})
+    setRespostas(inicio)
     setEnvio(OCIOSO)
-  }, [])
+  }, [inicio])
 
   // --- a inatividade, no quiosque: o dado do próximo cliente não nasce com o do anterior ---
   const emAndamento = travessia !== null || envio.estado !== 'OCIOSO'
@@ -367,7 +375,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       </>
     )
   } else {
-    const texto = TEXTO_DO_PASSO[atual.passo]
+    const texto = (quiosque ? undefined : TEXTO_DO_PASSO_NO_SITE[atual.passo]) ?? TEXTO_DO_PASSO[atual.passo]
     pergunta = texto.pergunta
     ajuda = texto.ajuda
     corpo = <PassoDaReserva no={atual} respostas={respostas} aoResponder={responder} />
