@@ -36,12 +36,20 @@ export interface RotulosDaMensagem {
   readonly partida: string
   /** O cais do dia, "Porto do Grego · Santana/AP" — o atendimento confirma por ele onde a pessoa embarca. */
   readonly embarque?: string
+  /** O aviso da data alterada, "Embarque alterado nesta data: …" (UI 2.2, decisão B), quando há. */
+  readonly alteracao?: string | null
 }
 
-/** "Belém/PA → Macapá/AP · Qua, 14/10 · 18:00", e o cais de embarque na linha de baixo, quando se sabe. */
+/**
+ * "Belém/PA → Macapá/AP · Qua, 14/10 · 18:00"; na linha de baixo, o cais de embarque, quando se sabe; e o aviso da
+ * data alterada, quando há — o atendente vê na conversa que a saída não é a de sempre.
+ */
 export function linhasDaTravessia(rotulos: RotulosDaMensagem): string[] {
-  const travessia = `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`
-  return rotulos.embarque === undefined ? [travessia] : [travessia, `Embarque: ${rotulos.embarque}`]
+  return [
+    `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`,
+    ...(rotulos.embarque === undefined ? [] : [`Embarque: ${rotulos.embarque}`]),
+    ...(rotulos.alteracao === undefined || rotulos.alteracao === null ? [] : [rotulos.alteracao]),
+  ]
 }
 
 /**

@@ -30,7 +30,17 @@ export { PassoDaReserva } from './PassoDaReserva.js'
 export type { PropsDoPasso } from './PassoDaReserva.js'
 export { PassoDaEncomenda } from './PassoDaEncomenda.js'
 export type { PropsDoPassoDaEncomenda } from './PassoDaEncomenda.js'
-export { Conferencia, IndicadorDePasso, ListaDeTravessias, ReservaConcluida } from './Telas.js'
+export {
+  Conferencia,
+  ETAPAS_DA_RESERVA,
+  EtapasDaReserva,
+  IndicadorDePasso,
+  ListaDeTravessias,
+  RecomecarComConfirmacao,
+  ReservaConcluida,
+  SaidaEscolhida,
+} from './Telas.js'
+export type { EtapaDaReserva } from './Telas.js'
 export { resumoDaEncomenda, resumoDaReserva } from './resumo.js'
 export type { LinhaDoResumo } from './resumo.js'
 export {

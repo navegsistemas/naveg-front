@@ -30,6 +30,7 @@ import {
   ListaDeTravessias,
   PassoDaEncomenda,
   ReservaConcluida,
+  SaidaEscolhida,
   TEXTO_DO_PASSO_DA_ENCOMENDA,
   resumoDaEncomenda,
 } from '@navegsistemas/ui'
@@ -261,10 +262,10 @@ export function Encomenda({
           {pergunta}
         </h3>
         {ajuda !== undefined && <p className="totem-ajuda">{ajuda}</p>}
-        {travessia !== null && envio.estado !== 'ENVIADA' && (
-          <p className="totem-ajuda">
-            {travessia.rotulos.origem} → {travessia.rotulos.destino} · {travessia.rotulos.partida}
-          </p>
+        {/* O quadro da saída, com o cais onde a encomenda é entregue e o aviso da data alterada (UI 2.2, A e B). O
+            fluxo da encomenda é a 2.7, e não muda aqui. */}
+        {travessia !== null && envio.estado !== 'ENVIADA' && atual !== null && atual.passo !== 'CONFERENCIA' && (
+          <SaidaEscolhida travessia={travessia} />
         )}
       </div>
 

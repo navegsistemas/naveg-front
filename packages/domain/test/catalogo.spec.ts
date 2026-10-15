@@ -186,6 +186,7 @@ describe('as travessias ofertadas', () => {
       /* 21:30 + 3h30 = 01:00 do dia seguinte — e o aplicativo escreve o dia quando muda. */
       chegada: 'Qui 01:00',
       embarcacao: 'Ferry Exemplo · Ferry Boat',
+      alteracao: null,
     })
   })
 
@@ -292,6 +293,10 @@ describe('a rota liga cidades, o cais é da viagem, e uma data pode ser alterada
     /* 19:00 + 24h: a chegada parte da hora do dia. */
     expect(saida?.rotulos.chegada).toBe('Qui 19:00')
     expect(saida?.alteracao).toEqual({ mudancas: ['DESEMBARQUE', 'HORA'], motivo: 'Cais em obra' })
+    /* O aviso da 2.2 (decisão B): a frase, sem o cais de antes. */
+    expect(saida?.rotulos.alteracao).toBe('Embarque alterado nesta data: Cais em obra')
+    const semMotivo = travessiasOfertadas({ ...MACAPA, alteracoes: [{ ...ALTERADA, motivo: '  ' }] }, TERCA)[0]
+    expect(semMotivo?.rotulos.alteracao).toBe('Embarque alterado nesta data.')
     /* A validade da reserva é a partida do dia. */
     expect(saida?.contexto.partida).toBe('2026-10-14T19:00:00')
   })

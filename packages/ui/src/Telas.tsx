@@ -62,6 +62,100 @@ export function IndicadorDePasso({ posicao, total }: { readonly posicao: number;
 
 // ---------------------------------------------------------------------------------------------------------
 
+/** As etapas da reserva na página, pelo nome e fixas (UI 2.2, decisão C). O quiosque continua com o "Passo n de m". */
+export const ETAPAS_DA_RESERVA = ['Saída', 'Embarque', 'Seus dados', 'Conferir'] as const
+export type EtapaDaReserva = (typeof ETAPAS_DA_RESERVA)[number]
+
+/**
+ * **Onde a pessoa está**, pelo nome: o total não cresce, porque o número de perguntas dentro de "Embarque" muda com as
+ * respostas, e um "Passo 3 de 5" que vira "4 de 6" parece um formulário que não acaba.
+ */
+export function EtapasDaReserva({ atual }: { readonly atual: EtapaDaReserva }) {
+  const posicao = ETAPAS_DA_RESERVA.indexOf(atual)
+  return (
+    <ol className="totem-etapas" aria-label="Etapas da reserva">
+      {ETAPAS_DA_RESERVA.map((etapa, i) => (
+        <li
+          key={etapa}
+          className={i < posicao ? 'totem-etapas__feita' : i === posicao ? 'totem-etapas__atual' : undefined}
+          aria-current={i === posicao ? 'step' : undefined}
+        >
+          {etapa}
+          {i < posicao && <span className="apenas-leitor"> (feita)</span>}
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------------------
+
+export interface PropsDaSaidaEscolhida {
+  readonly travessia: TravessiaOfertada
+  /** Volta à escolha da saída, sem perder as respostas. Ausente, o quadro não oferece a troca. */
+  readonly aoTrocar?: (() => void) | undefined
+}
+
+/**
+ * **A saída escolhida, num quadro só**, igual em todas as fases até a conferência (UI 2.2, decisão A): o dia e a
+ * hora, o trecho pelas cidades da rota, o cais de embarque e o de desembarque, e a embarcação. A data alterada avisa
+ * aqui mesmo (decisão B), com o cais e a hora já do dia.
+ */
+export function SaidaEscolhida({ travessia, aoTrocar }: PropsDaSaidaEscolhida) {
+  const { rotulos } = travessia
+  return (
+    <div className="totem-saida">
+      <div className="totem-saida__topo">
+        <p className="totem-saida__quando">{rotulos.partida}</p>
+        {aoTrocar !== undefined && (
+          <button type="button" className="totem-saida__trocar" onClick={aoTrocar}>
+            Trocar a saída
+          </button>
+        )}
+      </div>
+      <p className="totem-saida__trecho">
+        {rotulos.origem} <span aria-hidden="true">→</span>
+        <span className="apenas-leitor"> para </span> {rotulos.destino}
+      </p>
+      <p className="totem-saida__detalhe">Embarque: {rotulos.embarque}</p>
+      <p className="totem-saida__detalhe">
+        Desembarque: {rotulos.desembarque} · {rotulos.embarcacao}
+      </p>
+      {rotulos.alteracao !== null && <p className="totem-saida__alterada">{rotulos.alteracao}</p>}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------------------
+
+/**
+ * **Recomeçar, sem o mesmo peso de voltar** (UI 2.2, decisão E): um link discreto que pergunta antes, na própria
+ * tela, porque apaga tudo o que foi respondido.
+ */
+export function RecomecarComConfirmacao({ aoRecomecar }: { readonly aoRecomecar: () => void }) {
+  const [confirmando, setConfirmando] = useState(false)
+  if (!confirmando) {
+    return (
+      <button type="button" className="totem-recomecar" onClick={() => setConfirmando(true)}>
+        Recomeçar a reserva
+      </button>
+    )
+  }
+  return (
+    <div className="totem-recomecar__confirmacao" role="group" aria-label="Recomeçar a reserva">
+      <p>Apagar as respostas e começar de novo?</p>
+      <button type="button" className="acao acao--secundaria" onClick={aoRecomecar}>
+        Sim, recomeçar
+      </button>
+      <button type="button" className="totem-recomecar" onClick={() => setConfirmando(false)}>
+        Não, continuar
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------------------
+
 export interface PropsDaConferencia {
   readonly linhas: readonly LinhaDoResumo[]
   readonly pendencias: readonly PendenciaDaReserva[]
