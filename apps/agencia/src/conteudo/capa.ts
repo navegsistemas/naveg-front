@@ -39,11 +39,13 @@ export const CAPA = {
   titulo: 'Belém ⇄ Macapá, com reserva em um minuto',
   /* Duas ou três linhas no celular (decisão E da 1.2). Os 15 anos e os três ferry boats saíram daqui porque as
      credenciais logo abaixo já os dizem. */
-  lead: 'Reserve sua passagem ou mande sua encomenda por aqui, e o atendimento da NAVEG cuida do resto.',
+  /* As três coisas que a NAVEG leva (UI 2.2, PO, 2026-10-14): a passagem, o veículo e a encomenda. */
+  lead: 'Reserve sua passagem, mande seu veículo ou sua encomenda por aqui, e o atendimento da NAVEG cuida do resto.',
 
   foto: daFoto?.imagem ?? null,
 
-  acaoPrimaria: { rotulo: 'Reservar passagem', href: '#totem' } satisfies Acao,
+  /* Genérico, como no topo (UI 2.2, PO, 2026-10-14): a reserva leva passageiro e veículo, e não só passagem. */
+  acaoPrimaria: { rotulo: 'Reservar agora', href: '#totem' } satisfies Acao,
   /** A segunda porta, para quem quer mandar uma caixa e não comprar passagem (§3.1 do plano). */
   acaoDaEncomenda: { rotulo: 'Enviar encomenda', href: '#encomendas' } satisfies Acao,
   /**

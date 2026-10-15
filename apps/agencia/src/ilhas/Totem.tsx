@@ -27,15 +27,19 @@ import {
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
+import type { EtapaDaReserva } from '@navegsistemas/ui'
 import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
   CalendarioDeSaidas,
   Conferencia,
+  EtapasDaReserva,
   IndicadorDePasso,
   ListaDeTravessias,
   PassoDaReserva,
+  RecomecarComConfirmacao,
   ReservaConcluida,
+  SaidaEscolhida,
   TEXTO_DO_PASSO,
   mesesDoCalendario,
   origensDaOferta,
@@ -215,6 +219,13 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     setTravessia(escolhida)
   }
 
+  /* "Trocar a saída", no quadro da saída escolhida (UI 2.2, decisão A): volta à escolha, e as respostas ficam. */
+  function trocarDeSaida() {
+    interagiu.current = true
+    setEnvio(OCIOSO)
+    setTravessia(null)
+  }
+
   function passoAnterior() {
     interagiu.current = true
     setEnvio(OCIOSO)
@@ -362,8 +373,15 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     corpo = <PassoDaReserva no={atual} respostas={respostas} aoResponder={responder} />
   }
 
-  const anuncio =
-    roteiro !== null && envio.estado !== 'ENVIADA' ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}` : pergunta
+  /* Na página, as etapas pelo nome (UI 2.2, decisão C); o quiosque não muda, e segue com "Passo n de m". */
+  const etapa: EtapaDaReserva =
+    atual === null || atual.passo === 'CONFERENCIA' ? 'Conferir' : atual.passo === 'CLIENTE' ? 'Seus dados' : 'Embarque'
+  const emAndamentoNaTela = roteiro !== null && envio.estado !== 'ENVIADA'
+  const anuncio = !emAndamentoNaTela
+    ? pergunta
+    : quiosque
+      ? `Passo ${roteiro.posicaoAtual} de ${roteiro.total}. ${pergunta}`
+      : `${etapa}. ${pergunta}`
 
   const Pergunta = quiosque ? 'h2' : 'h3'
 
@@ -387,18 +405,21 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       )}
 
       <div className="totem-cabecalho">
-        {roteiro !== null && envio.estado !== 'ENVIADA' && (
-          <IndicadorDePasso posicao={roteiro.posicaoAtual} total={roteiro.total} />
+        {emAndamentoNaTela &&
+          (quiosque ? (
+            <IndicadorDePasso posicao={roteiro.posicaoAtual} total={roteiro.total} />
+          ) : (
+            <EtapasDaReserva atual={etapa} />
+          ))}
+        {/* O quadro da saída (UI 2.2, decisões A e B) vale também no quiosque: é informação, e não muda o fluxo. Vai até
+            a conferência, e não nela: o resumo de lá já diz a saída, o cais e o aviso, e o quadro repetiria tudo. */}
+        {travessia !== null && envio.estado !== 'ENVIADA' && etapa !== 'Conferir' && (
+          <SaidaEscolhida travessia={travessia} aoTrocar={quiosque ? undefined : trocarDeSaida} />
         )}
         <Pergunta className="totem-pergunta" ref={titulo} tabIndex={-1}>
           {pergunta}
         </Pergunta>
         {ajuda !== undefined && <p className="totem-ajuda">{ajuda}</p>}
-        {travessia !== null && envio.estado !== 'ENVIADA' && (
-          <p className="totem-ajuda">
-            {travessia.rotulos.origem} → {travessia.rotulos.destino} · {travessia.rotulos.partida}
-          </p>
-        )}
       </div>
 
       <p className="apenas-leitor" aria-live="polite">
@@ -412,9 +433,13 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           <button type="button" className="acao acao--secundaria" onClick={passoAnterior}>
             Voltar
           </button>
-          <button type="button" className="acao acao--secundaria" onClick={recomecar}>
-            Recomeçar
-          </button>
+          {quiosque ? (
+            <button type="button" className="acao acao--secundaria" onClick={recomecar}>
+              Recomeçar
+            </button>
+          ) : (
+            <RecomecarComConfirmacao aoRecomecar={recomecar} />
+          )}
         </div>
       )}
     </div>

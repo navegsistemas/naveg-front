@@ -79,6 +79,22 @@ describe('a mensagem da reserva', () => {
     expect(mensagemDaReserva(carro, ROTULOS).split('\n')[2]).toBe('Carro · Maria Souza')
   })
 
+  it('o cais do dia e o aviso da data alterada vão logo abaixo da travessia (UI 2.2)', () => {
+    const rotulos = {
+      origem: 'Belém/PA',
+      destino: 'Macapá/AP',
+      partida: 'Qua, 14/10 · 19:00',
+      embarque: 'Porto Brilhante · Belém/PA',
+      alteracao: 'Embarque alterado nesta data: Cais em obra',
+    }
+    expect(mensagemDaReserva(REDE, rotulos).split('\n').slice(1, 4)).toEqual([
+      'Belém/PA → Macapá/AP · Qua, 14/10 · 19:00',
+      'Embarque: Porto Brilhante · Belém/PA',
+      'Embarque alterado nesta data: Cais em obra',
+    ])
+    expect(mensagemDaReserva(REDE, { ...rotulos, alteracao: null }).split('\n')[3]).toBe('Rede · 1 pessoa · Maria Souza')
+  })
+
   it('nem telefone nem documento vão na mensagem', () => {
     const mensagem = mensagemDaReserva(REDE, ROTULOS)
     expect(mensagem).not.toMatch(/9888|7777/)

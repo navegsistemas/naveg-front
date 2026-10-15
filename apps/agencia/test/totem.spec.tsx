@@ -11,6 +11,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { CatalogoDoFluviapp, DataCalendario } from '@navegsistemas/domain'
 import { catalogoFixo, envioLocal, ReservaEmMemoria } from '@navegsistemas/dados'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
@@ -32,12 +33,13 @@ function montar(
     demonstracao?: Demonstracao | null
     atendimento?: string | null
     quiosque?: boolean
+    catalogo?: CatalogoDoFluviapp
   } = {},
 ) {
   const repositorio = new ReservaEmMemoria()
   render(
     <Totem
-      fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
+      fonte={catalogoFixo(opcoes.catalogo ?? CATALOGO_DE_DEMONSTRACAO)}
       envio={envioLocal(repositorio)}
       fuso={FUSO_DA_OPERACAO}
       inatividadeMs={opcoes.inatividadeMs ?? null}
@@ -264,14 +266,15 @@ describe('o roteiro, na tela', () => {
     })
   })
 
-  it('gratuidade acrescenta o passo do subtipo — e o indicador cresce', async () => {
-    montar()
+  it('no quiosque, gratuidade acrescenta o passo do subtipo — e o indicador cresce', async () => {
+    montar({ quiosque: true })
     await escolherSaida('Ferry de demonstração')
     tocar('Passageiro')
     tocar(/^Rede/)
     expect(indicador()).toBe('Passo 3 de 5')
     tocar('Gratuidade')
-    expect(pergunta()).toBe('Qual gratuidade?')
+    /* No quiosque, a pergunta é o h2: a página cheia não tem título de seção acima dela. */
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Qual gratuidade?')
     expect(indicador()).toBe('Passo 4 de 6')
   })
 
@@ -337,11 +340,106 @@ describe('o roteiro, na tela', () => {
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3 }))
   })
 
-  it('o passo em foco é anunciado ao leitor de tela', async () => {
+  it('o passo em foco é anunciado ao leitor de tela: a etapa na página, o número no quiosque', async () => {
     montar()
     await escolherSaida('Ferry de demonstração')
     tocar('Passageiro')
+    expect(screen.getByText('Embarque. Onde você quer viajar?')).toBeTruthy()
+    cleanup()
+    montar({ quiosque: true })
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
     expect(screen.getByText('Passo 2 de 4. Onde você quer viajar?')).toBeTruthy()
+  })
+})
+
+/* A 2.2 do roteiro (PO, 2026-10-14): as etapas pelo nome, o quadro da saída com o cais e o aviso de alteração, e o
+   recomeçar que pergunta antes. O quiosque não muda, a não ser pelo quadro da saída, que é informação. */
+describe('a saída escolhida e as etapas (UI 2.2)', () => {
+  const etapas = () => within(screen.getByRole('list', { name: 'Etapas da reserva' }))
+  const atual = () => etapas().getByText((_, el) => el?.getAttribute('aria-current') === 'step').textContent
+
+  it('as etapas pelo nome não crescem com as respostas', async () => {
+    montar()
+    await escolherSaida('Ferry de demonstração')
+    expect(atual()).toBe('Embarque')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Gratuidade')
+    expect(pergunta()).toBe('Qual gratuidade?')
+    expect(atual()).toBe('Embarque')
+    expect(etapas().getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.queryByText(/^Passo \d+ de \d+$/)).toBeNull()
+  })
+
+  it('o quadro diz o cais de embarque e o de desembarque, e "Trocar a saída" volta sem perder as respostas', async () => {
+    montar()
+    await escolherSaida('Ferry de demonstração')
+    expect(screen.getByText('Embarque: Porto de demonstração · Cidade Exemplo A/PA')).toBeTruthy()
+    expect(screen.getByText(/^Desembarque: Porto de demonstração · Cidade Exemplo B\/PA · Ferry de demonstração/)).toBeTruthy()
+    tocar('Passageiro')
+    tocar('Trocar a saída')
+    expect(pergunta()).toBe('Escolha a saída')
+    await escolherSaida('Ferry de demonstração')
+    /* As respostas ficaram: o roteiro continua de onde parou. */
+    expect(pergunta()).toBe('Onde você quer viajar?')
+  })
+
+  it('recomeçar pergunta antes de apagar', async () => {
+    montar()
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar('Recomeçar a reserva')
+    expect(screen.getByText('Apagar as respostas e começar de novo?')).toBeTruthy()
+    tocar('Não, continuar')
+    expect(pergunta()).toBe('Onde você quer viajar?')
+    tocar('Recomeçar a reserva')
+    tocar('Sim, recomeçar')
+    expect(pergunta()).toBe('Escolha a saída')
+  })
+
+  it('o quiosque não muda: "Passo n de m", o recomeçar de antes, e o quadro sem "Trocar"', async () => {
+    montar({ quiosque: true })
+    await escolherSaida('Ferry de demonstração')
+    expect(screen.getByText(/^Passo \d+ de \d+$/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Recomeçar' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Trocar a saída' })).toBeNull()
+    expect(screen.getByText('Embarque: Porto de demonstração · Cidade Exemplo A/PA')).toBeTruthy()
+  })
+
+  it('a data alterada avisa no quadro e na conferência, com a hora do dia', async () => {
+    const ferryDeQuarta = CATALOGO_DE_DEMONSTRACAO.viagens.find((v) => v.id === 'demo-ferry-ida-wednesday')
+    if (ferryDeQuarta === undefined) throw new Error('o catálogo de demonstração mudou')
+    montar({
+      catalogo: {
+        ...CATALOGO_DE_DEMONSTRACAO,
+        alteracoes: [
+          {
+            ocorrencia: { viagemId: ferryDeQuarta.id, data: '2026-10-14' as DataCalendario },
+            portoEmbarqueId: 'demo-porto-a',
+            portoDesembarqueId: 'demo-porto-b',
+            horaMin: 19 * 60,
+            motivo: 'Cais em obra',
+          },
+        ],
+      },
+    })
+    const itens = await screen.findAllByRole('listitem')
+    const quarta = itens.find((li) => li.textContent?.includes('14/10 · 19:00'))
+    if (quarta === undefined) throw new Error('a saída alterada não está na lista')
+    fireEvent.click(within(quarta).getByRole('button', { name: 'Reservar esta saída' }))
+    expect(screen.getByText('Embarque alterado nesta data: Cais em obra')).toBeTruthy()
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(atual()).toBe('Conferir')
+    /* Na conferência, o aviso está no resumo, e o quadro sai: ele repetiria a saída inteira. */
+    expect(screen.getAllByText('Embarque alterado nesta data: Cais em obra')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Trocar a saída' })).toBeNull()
+    expect(screen.getByText('a saída — Quarta-feira, 14/10 · 19:00')).toBeTruthy()
   })
 })
 

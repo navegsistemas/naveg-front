@@ -114,7 +114,18 @@ export interface TravessiaOfertada {
     readonly chegada: string
     /** "Nome · Ferry Boat" */
     readonly embarcacao: string
+    /**
+     * "Embarque alterado nesta data: Cais em obra" — o aviso da data alterada (UI 2.2, decisão B), ou `null`. O cais e
+     * a hora dos outros rótulos já são os do dia; o de antes não aparece, para ninguém ir ao lugar errado.
+     */
+    readonly alteracao: string | null
   }
+}
+
+/** A frase do aviso. Sem motivo, o aviso fica, sem inventar um. */
+function rotuloDaAlteracao(aviso: AvisoDeAlteracao | null): string | null {
+  if (aviso === null) return null
+  return aviso.motivo.length === 0 ? 'Embarque alterado nesta data.' : `Embarque alterado nesta data: ${aviso.motivo}`
 }
 
 function porId<T extends { readonly id: string }>(itens: readonly T[]): ReadonlyMap<string, T> {
@@ -192,6 +203,8 @@ export function travessiasOfertadas(
     /* A chegada parte da hora do dia: a saída adiada uma hora chega uma hora depois. O `comAHoraDoDia` do Início. */
     const chegada = chegadaEstimada({ ...viagem, horaMin: ocorrencia.horaMin }, rota)
     const mudancas = saida.alteracao === null ? [] : mudancasSobre(saida.alteracao, viagem)
+    const alteracao: AvisoDeAlteracao | null =
+      saida.alteracao === null || mudancas.length === 0 ? null : { mudancas, motivo: saida.alteracao.motivo.trim() }
     const { dia, mes } = DataCalendario.partes(ocorrencia.data)
 
     return [
@@ -206,8 +219,7 @@ export function travessiasOfertadas(
         embarcacao,
         partida,
         chegada,
-        alteracao:
-          saida.alteracao === null || mudancas.length === 0 ? null : { mudancas, motivo: saida.alteracao.motivo.trim() },
+        alteracao,
         contexto: {
           ocorrencia: ViagemSemana.ocorrencia(ocorrencia),
           tipoEmbarcacao: embarcacao.tipo,
@@ -227,6 +239,7 @@ export function travessiasOfertadas(
           embarcacao: [embarcacao.nome, TipoEmbarcacao.rotulo(embarcacao.tipo)]
             .filter((parte) => parte.trim().length > 0)
             .join(' · '),
+          alteracao: rotuloDaAlteracao(alteracao),
         },
       },
     ]

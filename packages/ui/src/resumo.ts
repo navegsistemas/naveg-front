@@ -48,6 +48,21 @@ function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
   }
 }
 
+/**
+ * A travessia, a saída, o cais do dia e, quando a data foi alterada, o aviso (UI 2.2, decisões A e B). A cidade é a da
+ * rota; o cais é o do dia, já com a alteração.
+ */
+function aSaida(travessia: TravessiaOfertada): LinhaDoResumo[] {
+  const { rotulos } = travessia
+  return [
+    { rotulo: 'Travessia', valor: `${rotulos.origem} → ${rotulos.destino}` },
+    { rotulo: 'Saída', valor: rotulos.partida },
+    { rotulo: 'Embarque', valor: rotulos.embarque },
+    { rotulo: 'Desembarque', valor: rotulos.desembarque },
+    ...(rotulos.alteracao === null ? [] : [{ rotulo: 'Atenção', valor: rotulos.alteracao }]),
+  ]
+}
+
 function telefoneOuNao(telefone: string | undefined): string {
   return telefone === undefined ? 'Não informado' : formatarWhatsapp(telefone)
 }
@@ -56,8 +71,7 @@ function telefoneOuNao(telefone: string | undefined): string {
 export function resumoDaEncomenda(reserva: ReservaDeEncomenda, travessia: TravessiaOfertada): readonly LinhaDoResumo[] {
   const { destinatario } = reserva
   return [
-    { rotulo: 'Travessia', valor: `${travessia.rotulos.origem} → ${travessia.rotulos.destino}` },
-    { rotulo: 'Saída', valor: travessia.rotulos.partida },
+    ...aSaida(travessia),
     { rotulo: 'Embarcação', valor: travessia.rotulos.embarcacao },
     { rotulo: 'Encomenda', valor: oQueVai(reserva) },
     { rotulo: 'Quem manda', valor: reserva.cliente.nome },
@@ -76,8 +90,7 @@ export function resumoDaEncomenda(reserva: ReservaDeEncomenda, travessia: Traves
 export function resumoDaReserva(reserva: Reserva, travessia: TravessiaOfertada): readonly LinhaDoResumo[] {
   if (reserva.categoria === 'ENCOMENDA') return resumoDaEncomenda(reserva, travessia)
   return [
-    { rotulo: 'Travessia', valor: `${travessia.rotulos.origem} → ${travessia.rotulos.destino}` },
-    { rotulo: 'Saída', valor: travessia.rotulos.partida },
+    ...aSaida(travessia),
     { rotulo: 'Embarcação', valor: travessia.rotulos.embarcacao },
     { rotulo: 'Passagem', valor: aPassagem(reserva) },
     { rotulo: 'Em nome de', valor: reserva.cliente.nome },

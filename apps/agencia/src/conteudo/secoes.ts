@@ -45,7 +45,8 @@ export const SECOES: readonly SecaoDaPagina[] = [
   },
   {
     id: 'totem',
-    titulo: 'Reserve sua passagem',
+    /* As três coisas na apresentação (UI 2.2, PO, 2026-10-14). */
+    titulo: 'Reserve sua passagem, mande seu veículo ou sua encomenda',
     /* Um texto só no lugar do subtítulo e da caixa do aviso, que diziam o mesmo recado duas vezes (UI 1.3, PO,
        2026-10-09). O aviso continua inteiro no quiosque, que não tem subtítulo, e no rodapé. */
     subtitulo:

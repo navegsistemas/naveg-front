@@ -86,6 +86,118 @@
   color: var(--text-secondary);
 }
 
+/* ── As etapas, pelo nome (UI 2.2, decisão C) ───────────────────────────────────────────────── */
+
+.totem-etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1) var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.totem-etapas li + li::before {
+  content: '›';
+  margin-inline-end: var(--espaco-2);
+  color: var(--text-secondary);
+}
+
+.totem-etapas__feita::after {
+  content: ' ✓';
+}
+
+.totem-etapas__atual {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ── A saída escolhida (UI 2.2, decisões A e B) ─────────────────────────────────────────────── */
+
+.totem-saida {
+  display: grid;
+  gap: var(--espaco-1);
+  margin-block: var(--espaco-2);
+  padding: var(--espaco-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cartao);
+  background: var(--surface-2);
+  font-size: 1rem;
+}
+
+.totem-saida p {
+  margin: 0;
+}
+
+.totem-saida__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-1) var(--espaco-3);
+}
+
+.totem-saida__quando {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.totem-saida__trecho {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.totem-saida__detalhe {
+  color: var(--text-secondary);
+}
+
+/* Um link de texto, e não um botão: trocar é a saída rara, e não pode disputar com a pergunta. */
+.totem-saida__trocar,
+.totem-recomecar {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* O aviso da data alterada: o laranja é superfície, nunca texto (a régua da §2). */
+.totem-saida .totem-saida__alterada {
+  margin-block-start: var(--espaco-1);
+  padding: var(--espaco-2) var(--espaco-3);
+  border-inline-start: 4px solid var(--accent-superficie);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Recomeçar, com confirmação (UI 2.2, decisão E) ─────────────────────────────────────────── */
+
+.totem-recomecar {
+  color: var(--text-secondary);
+}
+
+.totem-recomecar__confirmacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) var(--espaco-3);
+  flex-basis: 100%;
+}
+
+.totem-recomecar__confirmacao p {
+  margin: 0;
+  flex-basis: 100%;
+  color: var(--text);
+}
+
 /* ── Cartões de escolha ─────────────────────────────────────────────────────────────────────── */
 
 .totem-cartoes,
@@ -129,6 +241,14 @@
 .totem-cartao__descricao {
   color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+/* No computador, as opções em colunas (UI 2.2, decisão F): uma palavra não ocupa uma faixa inteira. Só no totem da
+   página: o quiosque não muda, e a encomenda é a 2.7. */
+@media (min-width: 64rem) {
+  .totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
 }
 
 /* ── Formulários ────────────────────────────────────────────────────────────────────────────── */
