@@ -4,16 +4,25 @@ Aqui fica a foto **original** de cada embarcação, do jeito que chegou: sem rec
 O Astro gera no build os tamanhos e os formatos (AVIF e WebP) que cada lugar da página pede, e o recorte é regra
 de CSS (`object-position`), não edição do arquivo. Trocar o enquadramento não pede foto nova.
 
-## O que colocar
+## O que colocar — o nome diz para onde a foto vai
+
+O nome do arquivo é o `id` da embarcação em `src/conteudo/embarcacoes.ts`, com um sufixo que diz o uso (PO,
+2026-10-15), e a extensão que o arquivo tiver (`.jpg`, `.jpeg`, `.png`, `.webp`, `.avif`):
+
+| nome | onde aparece |
+|---|---|
+| `<id>-apresentacao` | a vitrine "Nossa flotilha", em 16:9: **deitada**, com o navio inteiro |
+| `<id>-capa` | o fundo da capa, que no celular é em pé |
+| `<id>` | os dois, quando uma foto só serve |
+
+Uma foto só nem sempre serve: a do Maria Ivanir em pé, recortada na vitrine, perdia metade do navio.
 
 | arquivo | embarcação | onde aparece |
 |---|---|---|
-| `maria-ivanir.jpg` | F/B Maria Ivanir | fundo da capa (escolha do PO, 2026-10-08) |
-| `regional.jpeg` | F/B Regional | a vitrine (2026-10-15) e o cartão do Veículo da reserva |
-| `maria-eduarda.jpg` | F/B Maria Eduarda | a vitrine, quando chegar |
-
-O nome é o `id` da embarcação em `src/conteudo/embarcacoes.ts`, com a extensão que o arquivo tiver (`.jpg`,
-`.jpeg`, `.png`, `.webp`).
+| `maria-ivanir-capa.jpg` | F/B Maria Ivanir | fundo da capa (escolha do PO, 2026-10-08) |
+| `maria-ivanir-apresentacao.jpg` | F/B Maria Ivanir | a vitrine (2026-10-15) |
+| `regional.jpeg` | F/B Regional | a vitrine e o cartão do Veículo da reserva (2026-10-15) |
+| `maria-eduarda-apresentacao.jpg` | F/B Maria Eduarda | a vitrine, quando chegar |
 
 **A vitrine só aparece a partir da segunda foto.** Com uma, ela já é o fundo da capa, e a vitrine repetiria a
 mesma imagem logo abaixo.
@@ -27,14 +36,13 @@ mesma imagem logo abaixo.
 
 ## Como ligar
 
-Em `src/conteudo/embarcacoes.ts`, importar o arquivo e apontar a entrada da embarcação:
+Pôr o arquivo aqui, com o nome certo, já basta: `embarcacoes.ts` acha a foto pelo nome. O que falta é o
+**texto alternativo** da foto da vitrine, na entrada da embarcação:
 
 ```ts
-import fotoDoRegional from '../assets/embarcacoes/regional.jpg'
-// …
-imagem: fotoDoRegional,
 alt: 'O ferry boat Regional atracado no porto de Belém, visto de bombordo.',
 ```
 
 O `alt` **não é opcional quando há foto**: há um cenário que reprova foto sem texto alternativo. Ele descreve
-o que se vê, e não repete o nome que já está na legenda ao lado.
+o que se vê, e não repete o nome que já está na legenda ao lado. A da capa não leva: ali a foto é fundo, e o
+texto por cima é que diz o que importa.
