@@ -735,6 +735,18 @@ do site da entrega 7 do plano do MVP do KMP: as decisões de UX (U1–U8), a ord
 cada passo espera do KMP e da API. O 14 é o [roteiro de UI/UX](roteiro-de-ui-ux.md), seção por seção — das seções
 vigentes à emissão online —, e começa **depois** do 13 (PO, 2026-10-06); o 16 espera o domínio da homologação (U8).
 
+**Requisito do MVP que entrou por força maior (PO, 2026-10-14).** O escopo do MVP estava fechado, e a 2.2 do
+roteiro trouxe uma exigência do negócio que não cabia esperar:
+- a reserva começa pelo **que vai embarcar** (Veículo, leve ou pesado, em destaque; Passageiros e veículo;
+  Passageiros), antes do dia;
+- **passageiros com a quantidade** (1 a 50), **sem o tipo da passagem** e **sem o teto da acomodação**: quem decide
+  o tipo e divide o grupo é o atendente;
+- **passageiros e veículo numa reserva só**.
+
+As regras do Firestore não mudam. O que muda são o leitor e o fluxo de converter no KMP
+(navegsistemas/fluviapp-kmp#62 e #63), depois o domínio, a API e o site. O quiosque (`/totem`) não muda. A ficha é a
+2.2 do [roteiro](roteiro-de-ui-ux.md).
+
 **Marco de valor antecipado:** ao fim do passo 6 a página institucional é publicável e útil, sem nenhuma linha de Firebase. O totem entra por cima, sem reforma — porque a casca já foi desenhada para recebê-lo como ilha.
 
 **Caminho crítico (revisto em 2026-09-23):** ~~a conta de leitura e o `NAVEG_EMPRESA_ID`~~ (feito); ~~as Rules de `reservas`~~ (feitas e publicadas no KMP). ~~O domínio 0.5.0 publicado, a API sob as regras no ar, os segredos do Turnstile e do Upstash e o projeto do front na Vercel~~ (ligados em 2026-09-25, passo 10). Falta: a emissão a partir da reserva no KMP (F4, passo 12); e, para o contrato rodar no CI, o token da org e os jobs (os repositórios do fluviapp já estão na org).

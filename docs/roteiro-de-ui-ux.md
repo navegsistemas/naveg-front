@@ -429,3 +429,14 @@ Conferido nas regras (`firestore.rules`, `formaDoPedido`): a passagem e o veícu
 exigem o tipo, não limitam a quantidade pela acomodação e não separam pessoas de veículo. Quem recusa hoje é o leitor
 do KMP (`ReservaDocumento.paraDominio`), que exige o tipo e descarta a reserva de passageiro com veículo. A mudança é
 lá, no leitor e no fluxo de converter, e aqui, na montagem do `@navegsistemas/domain`.
+
+**G a K e M pela recomendação (PO, 2026-10-14)**, e o PO registra a mudança como **requisito do negócio para o MVP**:
+o escopo estava fechado, e ela entrou por força maior (ver o
+[plano de implementação](plano-de-implementacao.md), "Resumo da ordem"). As issues do KMP:
+navegsistemas/fluviapp-kmp#62 (a reserva sem o tipo e sem o teto da acomodação) e #63 (passageiros e veículo numa
+reserva só). A ordem é KMP → domain → API e site.
+
+**O que vai antes, sem o KMP:**
+- a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;
+- o quadro da saída com o cais e o aviso de alteração vale também no quiosque, porque é informação e não muda o fluxo;
+- as etapas pelo nome, o "Recomeçar" discreto e as colunas valem **só na página**, porque o quiosque não muda.
