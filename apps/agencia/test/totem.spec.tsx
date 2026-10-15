@@ -498,6 +498,18 @@ describe('o roteiro, na tela', () => {
     expect(screen.getByText('Não informado')).toBeTruthy()
   })
 
+  it('o celular ganha a máscara enquanto se digita: só os dígitos viram "(91) 98888-7777"', async () => {
+    montar()
+    embarcarPassageiros()
+    await escolherSaida('Ferry de demonstração')
+    const usuario = userEvent.setup()
+    const campo = screen.getByLabelText(/Celular com DDD/) as HTMLInputElement
+    await usuario.type(campo, '9198888')
+    expect(campo.value).toBe('(91) 9888-8')
+    await usuario.type(campo, '7777')
+    expect(campo.value).toBe('(91) 98888-7777')
+  })
+
   it('voltar apaga a resposta do passo anterior, e o põe em foco', async () => {
     montar()
     tocar(PASSAGEIROS)
