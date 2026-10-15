@@ -243,6 +243,17 @@
   font-size: 0.95rem;
 }
 
+/* Na página, os cartões de uma pergunta têm todos a altura do maior: "Leve" e "Pesado" ficam do mesmo tamanho, com
+   espaço sobrando no texto de apoio do mais curto (PO, 2026-10-15). */
+.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
+  grid-auto-rows: 1fr;
+}
+
+.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes .totem-cartao {
+  height: 100%;
+  align-content: start;
+}
+
 /* No computador, as opções em colunas (UI 2.2, decisão F): uma palavra não ocupa uma faixa inteira. Só no totem da
    página: o quiosque não muda, e a encomenda é a 2.7. */
 @media (min-width: 64rem) {
@@ -285,10 +296,11 @@
   font-size: 1.25rem;
 }
 
+/* Uma faixa por porte, as duas da mesma largura: "Pesado" tem mais exemplos, e lado a lado elas ficavam desiguais
+   (PO, 2026-10-15). */
 .totem-cartao__pesos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-1) var(--espaco-2);
+  display: grid;
+  gap: var(--espaco-1);
 }
 
 /* Cantos do cartão, e não de pílula: no celular o exemplo quebra em duas linhas, e a pílula viraria um oval. */
