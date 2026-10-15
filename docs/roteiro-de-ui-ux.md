@@ -509,3 +509,10 @@ na largura de texto (680px), com duas caixas de aviso antes da pergunta.
 **A ordem, depois da decisão:** tirar quem retira e o destinatário muda o domain e a API. Vai como a #66: um PR com o
 domain e a página, a tag no commit do PR, a API sobe e é promovida, e só então o PR entra. O KMP não muda (fluviapp-kmp#43).
 O quiosque não muda: ele não tem encomenda.
+
+**Decisões do PO (2026-10-15):** **A a H pela recomendação**, com o texto da G. E uma mudança na #58: **o destinatário
+volta, opcional, depois de quem manda** — "o KMP nunca deixou de receber, então não tem tanto problema; foi um requisito
+que o negócio gostou que tenha". "Quem retira no destino?" continua fora: com o destinatário informado, a reserva vai
+como "outra pessoa retira"; sem ele, sem a retirada, e o atendimento combina (é o que o KMP já lê, fluviapp-kmp#43). O
+celular de quem manda é obrigatório nos dois casos (F). A política de privacidade passa a dizer que o destinatário é
+opcional.
