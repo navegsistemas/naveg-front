@@ -26,6 +26,11 @@ const DESCRICAO: Readonly<Record<Exclude<OQueEmbarca, 'VEICULO'>, string>> = {
   PASSAGEIROS: 'Uma ou mais pessoas, de rede, suíte ou camarote.',
 }
 
+/** "Carro, SUV, van" vira "carro, SUV, van": depois de "Leve:", só a primeira letra muda — a sigla fica. */
+function minusculaNoComeco(texto: string): string {
+  return texto.charAt(0).toLowerCase() + texto.slice(1)
+}
+
 export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, hrefDaEncomenda = '#encomendas', foto }: PropsDoQueVaiEmbarcar) {
   return (
     <div className="totem-embarques">
@@ -44,7 +49,7 @@ export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, hrefDaEncomenda
                 <span className="totem-cartao__pesos">
                   {PorteDoVeiculo.valores.map((porte) => (
                     <span key={porte} className="totem-cartao__peso">
-                      {PorteDoVeiculo.rotulo(porte)}: {PorteDoVeiculo.exemplos(porte).toLowerCase()}
+                      {PorteDoVeiculo.rotulo(porte)}: {minusculaNoComeco(PorteDoVeiculo.exemplos(porte))}
                     </span>
                   ))}
                 </span>

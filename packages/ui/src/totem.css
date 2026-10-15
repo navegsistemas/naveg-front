@@ -492,10 +492,21 @@
 
 /* ── O calendário (UI 1.3): o dia primeiro, e as saídas daquele dia ───────────────────────────── */
 
-/* No computador, o calendário e as saídas do dia ficam lado a lado (decisão D); os passos seguintes voltam à
-   coluna de texto. No celular, um embaixo do outro. */
+/* No computador, o calendário e as saídas do dia ficam lado a lado (decisão D). No celular, um embaixo do outro. */
 .totem--calendario {
   max-width: none;
+}
+
+/* Na página, o card da reserva usa a largura do conteúdo em todas as telas, e não só no calendário (pedido do PO na
+   prévia da 2.2, 2026-10-15: "espremido na esquerda, com um espaço inútil na direita"). Os cartões se distribuem em
+   colunas; o que se lê ou preenche linha a linha — os formulários, o resumo da conferência e os quadros — fica na
+   largura de leitura. O quiosque já ocupa a tela, e a encomenda é a 2.7. */
+.totem:not(.totem--quiosque):not(.totem--encomenda) {
+  max-width: none;
+}
+
+.totem:not(.totem--quiosque):not(.totem--encomenda) :is(.totem-formulario, .totem-conferencia, .totem-conclusao, .totem-saida) {
+  max-width: var(--largura-texto);
 }
 
 .totem-dia-e-saidas {
