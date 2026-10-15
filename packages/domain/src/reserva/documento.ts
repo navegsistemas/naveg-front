@@ -191,7 +191,7 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
         ...comum,
         ...(reserva.passagemId !== undefined ? { passagemId: reserva.passagemId } : {}),
         acomodacao: reserva.acomodacao,
-        tipo: reserva.tipo,
+        ...(reserva.tipo !== undefined ? { tipo: reserva.tipo } : {}),
         ...(reserva.gratuidade !== undefined ? { gratuidade: reserva.gratuidade } : {}),
         quantidadePessoas: reserva.quantidadePessoas,
       }
@@ -302,12 +302,13 @@ function destinatarioDoDocumento(valor: unknown): DestinatarioDaEncomenda | unde
  * 4. **status** ou **origem** ilegíveis — a FSM e a origem são o que a Rule confere;
  * 5. **instantes** ilegíveis — sem `expiraEm`, ninguém sabe se o pedido ainda vale;
  * 6. **cliente** ausente ou sem nome — a reserva existe para que alguém seja atendido;
- * 7. **o que define o pedido** ausente — acomodação, tipo e quantidade; a classe do veículo; ou o tipo do
- *    volume, a quantidade, a faixa de peso e quem retira;
+ * 7. **o que define o pedido** ausente — acomodação e quantidade; a classe do veículo; ou o tipo do volume, a
+ *    quantidade, a faixa de peso e quem retira. O tipo da passagem ausente é "a definir no atendimento";
+ *    presente e ilegível, recusa;
  * 8. **estado misto** — reserva de passageiro com `classe`, de veículo com `acomodacao`, de passagem com chave de
  *    encomenda, de encomenda com `passagemId`; ou o destinatário pela metade;
- * 9. **incoerência** — tudo legível, mas `pendenciasDaReserva` não está vazio: meia numa suíte, quatro
- *    pessoas num camarote, gratuidade sem subtipo, moto sem cilindrada, 21 volumes, outra pessoa retira e não
+ * 9. **incoerência** — tudo legível, mas `pendenciasDaReserva` não está vazio: meia numa suíte, 51
+ *    pessoas, gratuidade sem subtipo, moto sem cilindrada, 21 volumes, outra pessoa retira e não
  *    há destinatário.
  *
  * Chaves que o codec não usa são ignoradas na leitura — quem recusa chave extra é a Rule, na escrita.
@@ -359,7 +360,9 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
       if (DA_ENCOMENDA.some((chave) => dado[chave] !== undefined)) return null
 
       const acomodacao = Acomodacao.de(texto(dado, 'acomodacao'))
-      const tipo = TipoPassagem.de(texto(dado, 'tipo'))
+      /* Ausente é "a definir no atendimento" (naveg-front#65): o site deixa de perguntar. Presente e ilegível
+         continua sendo recusa — como no `ReservaDocumento.kt`. */
+      const tipo = dado['tipo'] === undefined || dado['tipo'] === null ? undefined : TipoPassagem.de(texto(dado, 'tipo'))
       const quantidadePessoas = numeroOpcional(dado, 'quantidadePessoas')
       const gratuidadeBruta = textoOpcional(dado, 'gratuidade')
       const passagemId = textoOpcional(dado, 'passagemId')
@@ -381,7 +384,7 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
         ...(passagemId !== undefined ? { passagemId } : {}),
         categoria,
         acomodacao,
-        tipo,
+        ...(tipo !== undefined ? { tipo } : {}),
         ...(gratuidade !== undefined ? { gratuidade } : {}),
         quantidadePessoas,
       }

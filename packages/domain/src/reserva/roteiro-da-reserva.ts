@@ -37,6 +37,7 @@ import type { InstanteLocal } from '../primitivos/calendario.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import { TipoEmbarcacao } from '../viagem/tipo-embarcacao.js'
 import type { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
+import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
 
 /**
  * Um **nó do roteiro**: a pergunta, e o que ela oferece como resposta. As opções vêm **no nó** — um seletor
@@ -64,8 +65,26 @@ export interface RascunhoDoCliente {
   readonly telefone?: string
 }
 
+/**
+ * **Por onde o pedido vem**, e com isso que perguntas ele faz (naveg-front#65):
+ *
+ * - `'SITE'`: a página. Não pergunta o tipo da passagem — "quem é guardião dessas regras do negócio é o
+ *   atendente" (PO, 2026-10-14) — e pergunta quantos viajam antes da acomodação, de 1 a 50, sem teto por ela;
+ * - `'QUIOSQUE'`: o `/totem`, que não muda (PO, 2026-10-14): a acomodação, o tipo e a quantidade que cabe nela.
+ *
+ * Ausente é o quiosque: é o caminho de antes, e é o que um site antigo manda.
+ */
+export const CANAIS_DA_RESERVA = ['SITE', 'QUIOSQUE'] as const
+
+export type CanalDaReserva = (typeof CANAIS_DA_RESERVA)[number]
+
 /** **As respostas da reserva em curso.** Tudo opcional, por definição. */
 export interface RespostasDaReserva {
+  /**
+   * Não é uma pergunta: quem desenha o roteiro o fixa no começo, e nenhum nó o apaga. Mora nas respostas porque é
+   * com elas que a API remonta a reserva — e tem de remontar pelo mesmo caminho.
+   */
+  readonly canal?: CanalDaReserva
   readonly categoria?: CategoriaPassagem
   readonly acomodacao?: Acomodacao
   readonly tipo?: TipoPassagem
@@ -127,17 +146,30 @@ function faixa(maximo: number): readonly number[] {
   return Array.from({ length: maximo }, (_, indice) => indice + 1)
 }
 
-/** **O tipo tarifário em vigor**: sem escolha, o único permitido; com escolha, a resposta se admitida. */
+function peloSite(respostas: RespostasDaReserva): boolean {
+  return respostas.canal === 'SITE'
+}
+
+/** No site, quantos viajam: de 1 a 50, sem teto pela acomodação — o atendimento divide o grupo. */
+const PESSOAS_DO_SITE = faixa(LIMITE_DE_PESSOAS_DA_RESERVA)
+
+/**
+ * **O tipo tarifário em vigor**: sem escolha, o único permitido; com escolha, a resposta se admitida. No site, nenhum:
+ * o tipo é definido no atendimento.
+ */
 export function tipoEmVigor(respostas: RespostasDaReserva, acomodacao: Acomodacao): TipoPassagem | undefined {
+  if (peloSite(respostas)) return undefined
   const permitidos = Acomodacao.tiposPermitidos(acomodacao)
   return Acomodacao.temEscolhaDeTipo(acomodacao) ? escolhida(permitidos, respostas.tipo) : permitidos[0]
 }
 
 /**
- * **Quantas pessoas o bilhete cobre.** Sem escolha (rede), uma. Com escolha, a resposta se estiver na faixa
- * — e `undefined` enquanto não houver, porque aqui a quantidade **vai para a reserva**, e não se inventa.
+ * **Quantas pessoas a reserva pede.** No quiosque, as que o bilhete cobre: sem escolha (rede), uma; com escolha, a
+ * resposta se estiver na faixa. No site, a resposta de 1 a 50. E `undefined` enquanto não houver, porque aqui a
+ * quantidade **vai para a reserva**, e não se inventa.
  */
 export function pessoasEmVigor(respostas: RespostasDaReserva, acomodacao: Acomodacao): number | undefined {
+  if (peloSite(respostas)) return escolhida(PESSOAS_DO_SITE, respostas.quantidadePessoas)
   if (!Acomodacao.comportaAcompanhante(acomodacao)) return 1
   return escolhida(faixa(Acomodacao.ocupacaoMaxima(acomodacao)), respostas.quantidadePessoas)
 }
@@ -155,7 +187,19 @@ export function classeEmVigor(
   return opcoes.length === 1 ? opcoes[0] : escolhida(opcoes, respostas.classeVeiculo)
 }
 
+/**
+ * O site pergunta quantos viajam, e depois onde: a acomodação é a do grupo todo, e o tipo fica para o atendimento
+ * (UI 2.2, decisões do PO de 2026-10-14). As duas perguntas existem desde o começo — nenhuma depende da outra.
+ */
+function nosDePassageiroPeloSite(): readonly NoDoRoteiro[] {
+  return [
+    { passo: 'QUANTIDADE_PESSOAS', opcoes: PESSOAS_DO_SITE },
+    { passo: 'ACOMODACAO', opcoes: Acomodacao.valores },
+  ]
+}
+
 function nosDePassageiro(respostas: RespostasDaReserva): readonly NoDoRoteiro[] {
+  if (peloSite(respostas)) return nosDePassageiroPeloSite()
   const nos: NoDoRoteiro[] = [{ passo: 'ACOMODACAO', opcoes: Acomodacao.valores }]
 
   const acomodacao = escolhida(Acomodacao.valores, respostas.acomodacao)

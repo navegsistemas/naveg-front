@@ -93,6 +93,12 @@ describe('as respostas, campo a campo', () => {
     expect(com({ categoria: ' passageiro ' })?.categoria).toBe('PASSAGEIRO')
   })
 
+  it('o canal passa, e fora do conjunto é recusado — sem ele, é o quiosque (naveg-front#65)', () => {
+    expect(com({ canal: 'SITE' })?.canal).toBe('SITE')
+    expect(com({ canal: 'APP' })).toBeNull()
+    expect(com({})?.canal).toBeUndefined()
+  })
+
   it('número que não é inteiro positivo, ou grande demais, é recusado', () => {
     for (const torto of [
       { quantidadePessoas: 0 }, { quantidadePessoas: 1.5 }, { quantidadePessoas: '2' }, { quantidadePessoas: 1e6 },

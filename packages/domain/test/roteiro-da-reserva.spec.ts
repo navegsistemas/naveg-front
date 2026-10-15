@@ -296,3 +296,42 @@ describe('voltar apaga a resposta certa', () => {
     expect(voltar({}, contexto())).toEqual({})
   })
 })
+
+/* naveg-front#65: o site não pergunta o tipo, e pergunta quantos viajam antes da acomodação, de 1 a 50. */
+describe('o ramo de passageiro, pelo site', () => {
+  const SITE: RespostasDaReserva = { canal: 'SITE', categoria: 'PASSAGEIRO' }
+
+  it('quantos viajam, depois a acomodação — e nenhum tipo, em acomodação nenhuma', () => {
+    expect(passos(roteiroDaReserva(SITE, contexto()))).toEqual([
+      'CATEGORIA',
+      'QUANTIDADE_PESSOAS',
+      'ACOMODACAO',
+      'CLIENTE',
+      'CONFERENCIA',
+    ])
+    for (const acomodacao of ['REDE', 'SUITE', 'CAMAROTE'] as const) {
+      const roteiro = roteiroDaReserva({ ...SITE, quantidadePessoas: 2, acomodacao }, contexto())
+      expect(passos(roteiro)).not.toContain('TIPO_TARIFARIO')
+      expect(roteiro.atual?.passo).toBe('CLIENTE')
+    }
+  })
+
+  it('de 1 a 50 pessoas, sem o teto da acomodação', () => {
+    const quantidade = no(roteiroDaReserva(SITE, contexto()), 'QUANTIDADE_PESSOAS')
+    expect(quantidade.opcoes[0]).toBe(1)
+    expect(quantidade.opcoes.at(-1)).toBe(50)
+    expect(roteiroDaReserva({ ...SITE, quantidadePessoas: 7, acomodacao: 'SUITE' }, contexto()).atual?.passo).toBe('CLIENTE')
+    expect(roteiroDaReserva({ ...SITE, quantidadePessoas: 51 }, contexto()).atual?.passo).toBe('QUANTIDADE_PESSOAS')
+  })
+
+  it('o tipo que sobrou nas respostas não abre passo nenhum', () => {
+    const roteiro = roteiroDaReserva({ ...SITE, quantidadePessoas: 1, acomodacao: 'REDE', tipo: 'GRATUIDADE' }, contexto())
+    expect(passos(roteiro)).not.toContain('TIPO_GRATUIDADE')
+  })
+
+  it('voltar não apaga o canal: ele não é um passo', () => {
+    const respostas: RespostasDaReserva = { ...SITE, quantidadePessoas: 2 }
+    expect(voltar(respostas, contexto())).toEqual(SITE)
+    expect(voltar(SITE, contexto())).toEqual({ canal: 'SITE' })
+  })
+})

@@ -32,11 +32,15 @@ function pessoas(quantidade: number): string {
 function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
   switch (reserva.categoria) {
     case 'PASSAGEIRO': {
+      /* Pelo site, o tipo não é perguntado: inteira, meia e gratuidade são do atendimento (naveg-front#65). */
+      const acomodacao = Acomodacao.rotulo(reserva.acomodacao)
+      const quantas = pessoas(reserva.quantidadePessoas)
+      if (reserva.tipo === undefined) return [acomodacao, quantas, 'inteira, meia ou gratuidade no atendimento'].join(' · ')
       const tipo =
         reserva.gratuidade === undefined
           ? TipoPassagem.rotulo(reserva.tipo)
           : `${TipoPassagem.rotulo(reserva.tipo)} (${TipoGratuidade.rotulo(reserva.gratuidade)})`
-      return [Acomodacao.rotulo(reserva.acomodacao), tipo, pessoas(reserva.quantidadePessoas)].join(' · ')
+      return [acomodacao, tipo, quantas].join(' · ')
     }
     case 'VEICULO':
       return [

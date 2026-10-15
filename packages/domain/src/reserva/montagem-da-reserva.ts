@@ -117,7 +117,8 @@ function deReservaDePassageiro(nos: readonly NoDoRoteiro[], respostas: Respostas
   if (acomodacao === undefined) return null
   const tipo = tipoEmVigor(respostas, acomodacao)
   const quantidadePessoas = pessoasEmVigor(respostas, acomodacao)
-  if (tipo === undefined || quantidadePessoas === undefined) return null
+  /* Pelo site, o tipo fica para o atendimento (naveg-front#65); pelo quiosque, ele é pergunta. */
+  if ((tipo === undefined && respostas.canal !== 'SITE') || quantidadePessoas === undefined) return null
 
   /* O subtipo entra **só se o nó dele estava no caminho**. */
   const gratuidade = noDoPasso(nos, 'TIPO_GRATUIDADE') === undefined ? undefined : respostas.gratuidade
@@ -126,7 +127,7 @@ function deReservaDePassageiro(nos: readonly NoDoRoteiro[], respostas: Respostas
     ...base,
     categoria: 'PASSAGEIRO',
     acomodacao,
-    tipo,
+    ...(tipo !== undefined ? { tipo } : {}),
     ...(gratuidade !== undefined ? { gratuidade } : {}),
     quantidadePessoas,
   }

@@ -217,3 +217,38 @@ describe('o que ficou para trás não entra na reserva', () => {
     expect('classe' in reserva).toBe(false)
   })
 })
+
+/* naveg-front#65 (fluviapp-kmp#62): pelo site, o tipo fica para o atendimento, e o grupo não tem o teto da acomodação. */
+describe('pelo site', () => {
+  const SITE: RespostasDaReserva = {
+    canal: 'SITE',
+    categoria: 'PASSAGEIRO',
+    quantidadePessoas: 5,
+    acomodacao: 'SUITE',
+    cliente: CLIENTE,
+  }
+
+  it('cinco numa suíte vão assim, e sem o tipo', () => {
+    const reserva = reservaDe(montarReserva(SITE, contexto(), IDENTIDADE))
+    expect(reserva).toMatchObject({ categoria: 'PASSAGEIRO', acomodacao: 'SUITE', quantidadePessoas: 5 })
+    expect('tipo' in reserva).toBe(false)
+  })
+
+  it('o tipo e a gratuidade que sobraram não entram', () => {
+    const reserva = reservaDe(montarReserva({ ...SITE, tipo: 'GRATUIDADE', gratuidade: 'IDOSO' }, contexto(), IDENTIDADE))
+    expect('tipo' in reserva).toBe(false)
+    expect('gratuidade' in reserva).toBe(false)
+  })
+
+  it('o documento vai sem o tipo, e volta igual', () => {
+    const reserva = reservaDe(montarReserva(SITE, contexto(), IDENTIDADE))
+    const documento = paraDocumento(reserva)
+    expect(documento).not.toHaveProperty('tipo')
+    expect(paraDominio(reserva.codigo, JSON.parse(JSON.stringify(documento)))).toEqual(reserva)
+  })
+
+  it('sem o canal, é o quiosque: a rede sem o tipo não fecha', () => {
+    const { canal: _, ...quiosque } = { ...SITE, acomodacao: 'REDE' as const, quantidadePessoas: 1 }
+    expect(montarReserva(quiosque, contexto(), IDENTIDADE)).toMatchObject({ caso: 'INCOMPLETA', faltando: { passo: 'TIPO_TARIFARIO' } })
+  })
+})
