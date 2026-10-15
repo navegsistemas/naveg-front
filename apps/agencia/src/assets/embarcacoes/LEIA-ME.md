@@ -9,7 +9,7 @@ de CSS (`object-position`), não edição do arquivo. Trocar o enquadramento nã
 | arquivo | embarcação | onde aparece |
 |---|---|---|
 | `maria-ivanir.jpg` | F/B Maria Ivanir | fundo da capa (escolha do PO, 2026-10-08) |
-| `regional.jpg` | F/B Regional | a vitrine, quando chegar |
+| `regional.jpeg` | F/B Regional | a vitrine (2026-10-15) e o cartão do Veículo da reserva |
 | `maria-eduarda.jpg` | F/B Maria Eduarda | a vitrine, quando chegar |
 
 O nome é o `id` da embarcação em `src/conteudo/embarcacoes.ts`, com a extensão que o arquivo tiver (`.jpg`,
