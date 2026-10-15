@@ -144,8 +144,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário); **próximo, pedido do PO em 2026-10-09: as fases do totem depois da escolha da saída** (etapa 2); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43); **1.2 no ar** (#45); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 em análise, esperando o PO** (pedido de 2026-10-09: as fases depois da escolha da saída; com o cais e o aviso de alteração da #56); as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -345,3 +345,98 @@ na API sai quando o desenho de lá fechar.
 na página, a passagem se reserva nos 90 dias, sem as datas que a transportadora suspendeu. A encomenda fica na
 semana, e o quiosque não muda. O estado "reserva pelo atendimento" continua no calendário, para o dia que ele
 mostrar além do que se reserva. A **lotação (C)** segue esperando a API.
+
+### 2.2 — O que vai embarcar
+
+**Situação:** em análise, esperando o PO (2026-10-14). É a primeira das fases depois da escolha da saída, o pedido do
+PO de 2026-10-09. Entra junto a parte visual da #56: o cais do dia e o aviso de alteração, no resumo da saída escolhida
+que acompanha todas as fases. **Wireframe** (privado do PO): [2.2](https://claude.ai/artifact/RYxFSUYBb5Fj8GctwXKZYQ).
+
+**Levantamento** (2026-10-14, build de demonstração, o fluxo inteiro depois da escolha, 360px e 1280px): uma
+pergunta por tela, com "Passo n de m" em cima, a pergunta, a ajuda quando há, e a saída numa linha de texto cinza
+("Cidade Exemplo A/PA → Cidade Exemplo B/PA · Quinta-feira, 15/10 · 18:00", três linhas no celular). As opções são
+cartões com o nome ("Passageiro", "Veículo"); a acomodação diz quantas pessoas cabem. Embaixo, "Voltar" e
+"Recomeçar" lado a lado. O caminho do passageiro de rede inteira: categoria, acomodação, tipo, quem reserva,
+conferência (5 passos); o do veículo: categoria, natureza, classe, e a cilindrada se for moto.
+
+**Achados:**
+
+1. **O total do indicador cresce**: "Passo 1 de 3", depois "2 de 4", depois "3 de 5". O código faz de propósito (o
+   caminho se revela com as respostas), mas para quem usa parece um formulário que não acaba;
+2. **a saída escolhida não diz de onde o barco sai.** A linha tem as cidades da rota e a hora, sem o cais e sem a
+   embarcação. Desde o #59, a rota é Belém → Macapá e o cais em Santana só aparece na mensagem do WhatsApp. A data
+   alterada (fluviapp-kmp#52) não avisa em lugar nenhum da tela;
+3. **as opções não dizem o que se escolhe.** "Veículo" não diz se quem dirige precisa de passagem própria; "Rede",
+   "Suíte" e "Camarote" dizem só a lotação. O texto precisa de fatos da operação;
+4. **"Recomeçar" tem o mesmo peso de "Voltar"** e apaga tudo sem perguntar;
+5. **no computador, cada opção ocupa a largura inteira** (uma palavra numa faixa de 630px);
+6. **para outras partes:** a conferência repete a travessia duas vezes, no cabeçalho e na primeira linha, e não deixa
+   corrigir um passo (a 2.4); a conclusão repete o resumo inteiro (a 2.5); o preço da tabela (a 7.2).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O resumo da saída escolhida | **um quadro só, igual em todas as fases**: dia e hora, as cidades da rota, o cais de embarque e o de desembarque com a cidade, a embarcação, e "Trocar" (volta ao calendário sem perder as respostas) |
+| **B** | O aviso da data alterada | **no quadro da saída, na conferência, na conclusão e na mensagem do WhatsApp**: "Embarque alterado nesta data: {motivo}", com o cais e a hora do dia, sem mostrar o cais de antes. A lista de saídas do dia (2.1) também, se o PO quiser |
+| **C** | O indicador | **as quatro etapas pelo nome**: Saída › Embarque › Seus dados › Conferir |
+| **D** | O texto das opções | **uma linha curta em cada opção**, com fatos que o PO dá: o que a rede inclui (o passageiro leva a rede?), se quem dirige o veículo precisa de passagem, o que distingue a suíte do camarote |
+| **E** | O "Recomeçar" | **um link discreto, com confirmação na tela**; "Voltar" fica como o botão |
+| **F** | O computador | **as opções em duas ou três colunas** |
+
+**Decisões do PO (2026-10-14):** **A a F pela recomendação.** E, no lugar da D:
+
+- **a rede não leva texto**: quem viaja de navio sabe que leva a própria rede;
+- **três opções**: **Passageiros** (no plural), **Veículo** e **Passageiros e veículo**. O veículo muitas vezes vai
+  sozinho, e a reserva serve ao atendimento: o máximo de informação com o mínimo de esforço;
+- **passageiros**: "Quantos viajam?" 1, 2, 3, 4, 5 ou mais; depois a acomodação e os dados;
+- **sem o tipo da passagem** (inteira, meia, gratuidade): quem define é o balcão;
+- **"O que vai embarcar" é a primeira pergunta**, antes do dia, e o veículo se divide em **leve ou pesado**;
+- **a apresentação fala das três coisas**: "Reserve sua passagem, mande seu veículo ou sua encomenda", e o
+  "Reservar agora", no topo e na capa, fica genérico;
+- **o site faz sentir que dá para levar pesados e encomendas** (a encomenda é a próxima fase, a 2.7), também nas fotos
+  dos carrosséis. O passageiro vem em segundo plano, mas continua importante.
+
+**A segunda proposta** ([wireframe](https://claude.ai/artifact/WosK1u2zNW21aKVvGFbano)): o caminho passa a ser o que
+vai embarcar → o dia e a saída → os dados → conferir. O calendário só acende os dias cuja embarcação leva o que foi
+escolhido (a lancha não leva veículo; o navio, só carro e moto). A linha de hoje só tem ferries, com 45 vagas de
+veículo cada.
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **G** | A ordem e o peso das opções | **Veículo grande, com foto**; depois Passageiros e veículo; depois Passageiros; a Encomenda como link para a seção dela, até a 2.7 |
+| **H** | Leve ou pesado, e a classe | **"Leve ou pesado?" e depois "Qual?"**, só com as classes do grupo (a tarifa é por classe). Leves: carro, SUV, van, moto, quadriciclo, carretilha, jet ski. Pesados: caminhão, ônibus, motorhome, cavalo mecânico, carreta, trailer, lancha, trator, empilhadeira, retroescavadeira |
+| **I** | "5 ou mais" | **abre um contador, de 5 a 50** |
+| **J** | Mais de uma pessoa | **uma acomodação para o grupo**; grupo misto, o balcão resolve |
+| **K** | Passageiros e veículo | **uma reserva só, com um código** |
+| **L** | O quiosque | **o mesmo caminho novo**, com a lista de saídas no lugar do calendário |
+| **M** | As fotos | **um veículo pesado embarcando**, para a opção Veículo e a capa; carga e encomenda nos carrosséis. Precisa de fotos da NAVEG ou da MOCORONGO |
+
+**Depende do KMP** (a issue sai lá com as respostas H a K): a reserva de passageiros sem o tipo da passagem, a
+quantidade de pessoas sem o teto da acomodação, e a reserva com pessoas e veículo. Enquanto isso, o que não depende
+dele pode ir antes: as etapas pelo nome, o quadro da saída com o cais, o aviso de alteração e o texto da apresentação.
+
+**Decisões do PO sobre a segunda proposta (2026-10-14):**
+
+- **O quiosque (`/totem`) não muda** (L, contra a recomendação). A operação interna pode e deve ser diferente do que se
+  exige do cliente;
+- **o tipo da passagem nunca é exigido na reserva**: quem guarda essa regra do negócio é o atendente;
+- **a reserva não recusa a acomodação pela quantidade**: 5 pessoas em suíte vão assim, e o atendimento resolve, por
+  exemplo, em duas suítes. O que importa é a informação que chega;
+- **as regras do Firestore não mudam**: elas também guardam o negócio. O que muda no KMP são casos de uso e fluxos.
+
+Conferido nas regras (`firestore.rules`, `formaDoPedido`): a passagem e o veículo só têm as chaves conferidas. Elas não
+exigem o tipo, não limitam a quantidade pela acomodação e não separam pessoas de veículo. Quem recusa hoje é o leitor
+do KMP (`ReservaDocumento.paraDominio`), que exige o tipo e descarta a reserva de passageiro com veículo. A mudança é
+lá, no leitor e no fluxo de converter, e aqui, na montagem do `@navegsistemas/domain`.
+
+**G a K e M pela recomendação (PO, 2026-10-14)**, e o PO registra a mudança como **requisito do negócio para o MVP**:
+o escopo estava fechado, e ela entrou por força maior (ver o
+[plano de implementação](plano-de-implementacao.md), "Resumo da ordem"). As issues do KMP:
+navegsistemas/fluviapp-kmp#62 (a reserva sem o tipo e sem o teto da acomodação) e #63 (passageiros e veículo numa
+reserva só). A ordem é KMP → domain → API e site.
+
+**O que vai antes, sem o KMP:**
+- a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;
+- o quadro da saída com o cais e o aviso de alteração vale também no quiosque, porque é informação e não muda o fluxo;
+- as etapas pelo nome, o "Recomeçar" discreto e as colunas valem **só na página**, porque o quiosque não muda.
