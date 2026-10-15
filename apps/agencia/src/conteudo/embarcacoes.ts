@@ -15,6 +15,7 @@
 import type { SlugIcone } from '@navegsistemas/design-system'
 
 import fotoDoMariaIvanir from '../assets/embarcacoes/maria-ivanir.jpg'
+import fotoDoRegional from '../assets/embarcacoes/regional.jpeg'
 
 export interface Embarcacao {
   readonly id: string
@@ -39,8 +40,8 @@ export const EMBARCACOES: readonly Embarcacao[] = [
     nome: 'F/B Regional',
     tipo: 'Ferry Boat',
     descricao: 'Passageiros e veículos na travessia Belém ⇄ Macapá.',
-    imagem: null,
-    alt: null,
+    imagem: fotoDoRegional,
+    alt: 'O ferry boat Regional navegando com a rampa de proa erguida e caminhões e carros no convés, sob um céu azul com nuvens.',
   },
   {
     id: 'maria-ivanir',
