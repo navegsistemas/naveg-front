@@ -36,9 +36,13 @@ const DIST = fileURLToPath(new URL('../apps/agencia/dist/', import.meta.url))
  *
  * Em 2026-10-09 o calendário da reserva (UI 1.3) levou o resto a 25,7: +2,6 kB no pedaço comum, que agora tem a
  * conta dos meses e a grade com o teclado. O teto sobe para 28, com a mesma folga de ~2 kB.
+ *
+ * Em 2026-10-15 a reserva sem o tipo (#65) e o caminho novo da 2.2 (#66) levaram o resto a 29,5: o que vai embarcar
+ * antes do dia, com o porte e as classes, o contador do "5 ou mais", os cartões e o quadro do embarque. O teto sobe
+ * para 31,5, com a mesma folga de ~2 kB.
  */
 const TETO_DO_RUNTIME = 70
-const TETO_DO_RESTO = 28
+const TETO_DO_RESTO = 31.5
 
 const CARA_DE_CREDENCIAL = [
   ['chave privada', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
