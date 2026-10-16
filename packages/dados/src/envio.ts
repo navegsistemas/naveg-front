@@ -27,6 +27,8 @@
 import {
   enviarEncomenda,
   enviarReserva,
+  encomendaPeloSite,
+  respostasDaEncomendaDoSite,
   PENDENCIAS_DA_RESERVA,
   paraDominio,
   type InstanteLocal,
@@ -162,11 +164,13 @@ const fetchDoNavegador: Buscar = (url, init) => fetch(url, init)
 export function envioHttp(urlDaApi: string, obterDesafio: ObterDesafio, buscar: Buscar = fetchDoNavegador): EnvioDaReserva {
   const endereco = enderecoDasReservas(urlDaApi)
   return {
+    /* A encomenda do site (2.7) vai como pedido de encomenda: é por ele que a API aplica a semana da encomenda e monta
+       com as regras dela. O resto vai como sempre, com as respostas. */
     enviar: ({ travessia, respostas }) =>
       postar(endereco, obterDesafio, buscar, {
         viagemId: travessia.contexto.ocorrencia.viagemId,
         data: travessia.contexto.ocorrencia.data,
-        respostas,
+        ...(encomendaPeloSite(respostas) ? { encomenda: respostasDaEncomendaDoSite(respostas) } : { respostas }),
       }),
   }
 }

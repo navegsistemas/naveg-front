@@ -214,7 +214,7 @@ export function paraDocumento(reserva: Reserva): ReservaDocumento {
         quantidadeVolumes: reserva.quantidadeVolumes,
         ...(reserva.complemento !== undefined ? { complemento: reserva.complemento } : {}),
         faixaPeso: reserva.faixaPeso,
-        retirada: reserva.retirada,
+        ...(reserva.retirada !== undefined ? { retirada: reserva.retirada } : {}),
         ...(reserva.destinatario !== undefined
           ? { destinatario: { nome: reserva.destinatario.nome, telefone: reserva.destinatario.telefone } }
           : {}),
@@ -434,7 +434,9 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
       const quantidadeVolumes = numeroOpcional(dado, 'quantidadeVolumes')
       const complemento = textoOpcional(dado, 'complemento')
       const faixaPeso = FaixaPeso.de(texto(dado, 'faixaPeso'))
-      const retirada = Retirada.de(texto(dado, 'retirada'))
+      /* Ausente é "a definir no atendimento" (naveg-front#58, fluviapp-kmp#43); presente e ilegível, recusa. */
+      const retirada =
+        dado['retirada'] === undefined || dado['retirada'] === null ? undefined : Retirada.de(texto(dado, 'retirada'))
       const destinatario = destinatarioDoDocumento(dado['destinatario'])
       const encomendaId = textoOpcional(dado, 'encomendaId')
       if (
@@ -458,7 +460,7 @@ export function paraDominio(id: string, dado: unknown): Reserva | null {
         quantidadeVolumes,
         ...(complemento !== undefined ? { complemento } : {}),
         faixaPeso,
-        retirada,
+        ...(retirada !== undefined ? { retirada } : {}),
         ...(destinatario !== undefined ? { destinatario } : {}),
       }
       break

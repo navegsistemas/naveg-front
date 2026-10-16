@@ -18,9 +18,9 @@ import Rodape from '../componentes/Rodape.astro'
 import Pendente from '../componentes/Pendente.astro'
 import SemJavaScript from '../componentes/SemJavaScript.astro'
 import TotemDaAgencia from '../ilhas/TotemDaAgencia'
-import EncomendaDaAgencia from '../ilhas/EncomendaDaAgencia'
+import EnvieSuaEncomenda from '../componentes/EnvieSuaEncomenda.astro'
 
-import { SECOES } from '../conteudo/secoes'
+import { ANCORA_DA_RESERVA_DE_ENCOMENDA, SECOES } from '../conteudo/secoes'
 import { getImage } from 'astro:assets'
 
 import { FOTO_DO_CARTAO_DO_VEICULO, VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
@@ -58,10 +58,11 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
           {secao.id === 'atendentes' && <Atendimento />}
           {secao.id === 'depoimentos' && <Depoimentos />}
           {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}
+          {/* A âncora da reserva já em "Encomenda" (2.7, B): o botão da seção da encomenda aponta para cá. */}
+          {secao.id === 'totem' && <span id={ANCORA_DA_RESERVA_DE_ENCOMENDA}></span>}
           {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" fotoDoVeiculo={fotoDoVeiculo} />}
-          {secao.id === 'encomendas' && <EncomendaDaAgencia client:visible />}
+          {secao.id === 'encomendas' && <EnvieSuaEncomenda />}
           {secao.id === 'totem' && <SemJavaScript oQue="o totem de reserva" paraQue="reservar" />}
-          {secao.id === 'encomendas' && <SemJavaScript oQue="o envio de encomenda" paraQue="enviar a encomenda" />}
           {secao.pendenteDoPasso !== null && (
             <Pendente passo={secao.pendenteDoPasso} descricao={PENDENCIAS[secao.id] ?? ''} />
           )}

@@ -57,7 +57,7 @@ export function montarEncomenda(
   const retirada = retiradaEmVigor(respostas)
   const { tipoVolume, quantidadeVolumes, faixaPeso } = respostas
   /* O roteiro fechou, então estes existem — é o compilador pedindo a prova. */
-  if (retirada === undefined || tipoVolume === undefined || quantidadeVolumes === undefined || faixaPeso === undefined) {
+  if (tipoVolume === undefined || quantidadeVolumes === undefined || faixaPeso === undefined) {
     return { caso: 'INCOMPLETA', faltando: roteiro.nos[0] as NoDaEncomenda }
   }
 
@@ -83,7 +83,8 @@ export function montarEncomenda(
     quantidadeVolumes,
     ...(complemento.length > 0 ? { complemento } : {}),
     faixaPeso,
-    retirada,
+    /* Ausente é "a definir no atendimento" (naveg-front#58, fluviapp-kmp#43). */
+    ...(retirada !== undefined ? { retirada } : {}),
     ...(destinatario !== undefined ? { destinatario } : {}),
   }
 

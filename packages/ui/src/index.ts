@@ -24,16 +24,15 @@ export type {
 } from './calendario.js'
 export { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 export type { OpcaoEmCartao, PropsDaEscolha } from './EscolhaEmCartoes.js'
-export { CampoDeCilindrada, FormularioDoCliente, FormularioDoVolume } from './Formularios.js'
-export type { RespostaDoVolume } from './Formularios.js'
+export { CampoDeCilindrada, FormularioDoCliente, FormularioDoTipoDoVolume } from './Formularios.js'
+export type { RespostaDoTipoDoVolume } from './Formularios.js'
 export { OQueVaiEmbarcar } from './OQueVaiEmbarcar.js'
 export type { FotoDoCartao, PropsDoQueVaiEmbarcar } from './OQueVaiEmbarcar.js'
 export { PassoDaReserva } from './PassoDaReserva.js'
 export { QuantidadeDePessoas } from './QuantidadeDePessoas.js'
-export type { PropsDaQuantidade } from './QuantidadeDePessoas.js'
+export { PESSOAS, VOLUMES } from './QuantidadeDePessoas.js'
+export type { PropsDaQuantidade, UnidadeDaQuantidade } from './QuantidadeDePessoas.js'
 export type { PropsDoPasso } from './PassoDaReserva.js'
-export { PassoDaEncomenda } from './PassoDaEncomenda.js'
-export type { PropsDoPassoDaEncomenda } from './PassoDaEncomenda.js'
 export {
   Conferencia,
   EmbarqueEscolhido,
@@ -49,12 +48,12 @@ export type { EtapaDaReserva } from './Telas.js'
 export { resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
 export type { LinhaDoResumo } from './resumo.js'
 export {
-  AJUDA_DO_REMETENTE,
-  AVISO_ENCOMENDA_NAO_VENDA,
+  ALCANCE_DA_ENCOMENDA,
   AVISO_RESERVA_NAO_VENDA,
+  RETIRADA_A_COMBINAR,
+  TEXTO_DE_QUEM_MANDA,
   TEXTO_DA_PENDENCIA,
   TEXTO_DO_PASSO,
-  TEXTO_DO_PASSO_DA_ENCOMENDA,
   TEXTO_DO_PASSO_NO_SITE,
 } from './textos.js'
 export type { TextoDoPasso } from './textos.js'

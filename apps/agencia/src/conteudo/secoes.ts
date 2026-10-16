@@ -33,6 +33,13 @@ export interface SecaoDaPagina {
 /** O rodapé não é uma `<Secao>` — tem moldura própria —, mas é alvo de âncora como qualquer outra. */
 export const ID_DO_RODAPE = 'contato'
 
+/**
+ * **A reserva já em "Encomenda"** (2.7, decisão B): o botão da seção "Envie sua encomenda" leva a esta âncora, dentro da
+ * seção da reserva. A ilha, ao carregar ou quando a âncora muda, começa a reserva pela encomenda. É âncora, e não um
+ * clique ouvido, porque a ilha só carrega quando a seção da reserva entra na tela.
+ */
+export const ANCORA_DA_RESERVA_DE_ENCOMENDA = 'reservar-encomenda'
+
 export const SECOES: readonly SecaoDaPagina[] = [
   {
     id: 'capa',
@@ -61,7 +68,8 @@ export const SECOES: readonly SecaoDaPagina[] = [
     /* Uma porta própria para quem quer mandar uma caixa, e não comprar passagem (`docs/plano-da-reserva-de-encomenda.md`, §1). */
     id: 'encomendas',
     titulo: 'Envie sua encomenda',
-    subtitulo: 'Diga o que vai mandar e para quem. O atendente confirma pelo WhatsApp e você entrega no porto.',
+    /* A seção explica, e a reserva é a do caminho único (2.7, decisões A e B). */
+    subtitulo: 'Caixas, sacos, eletrodomésticos e móveis, na mesma travessia dos passageiros.',
     rotulo: 'Encomendas',
     rotuloNoTopo: 'Encomendas',
     pendenteDoPasso: null,

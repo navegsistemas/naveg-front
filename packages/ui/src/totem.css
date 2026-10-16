@@ -245,25 +245,25 @@
 
 /* Na página, os cartões de uma pergunta têm todos a altura do maior: "Leve" e "Pesado" ficam do mesmo tamanho, com
    espaço sobrando no texto de apoio do mais curto (PO, 2026-10-15). */
-.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
+.totem:not(.totem--quiosque) .totem-cartoes {
   grid-auto-rows: 1fr;
 }
 
-.totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes .totem-cartao {
+.totem:not(.totem--quiosque) .totem-cartoes .totem-cartao {
   height: 100%;
   align-content: start;
 }
 
 /* No computador, as opções em colunas (UI 2.2, decisão F): uma palavra não ocupa uma faixa inteira. Só no totem da
-   página: o quiosque não muda, e a encomenda é a 2.7. */
+   página: o quiosque não muda. */
 @media (min-width: 64rem) {
-  .totem:not(.totem--quiosque):not(.totem--encomenda) .totem-cartoes {
+  .totem:not(.totem--quiosque) .totem-cartoes {
     grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
   }
 }
 
-/* O que vai embarcar (UI 2.2, decisão G): o veículo grande, as outras duas menores, e a encomenda como link. No
-   computador, o veículo ocupa a coluna da esquerda inteira. */
+/* O que vai embarcar (UI 2.2, decisão G; 2.7, decisão C): o veículo grande, e as outras três menores. No computador,
+   o veículo ocupa a coluna da esquerda inteira. */
 .totem-embarques {
   display: grid;
   gap: var(--espaco-3);
@@ -312,21 +312,16 @@
   font-size: 0.9rem;
 }
 
-.totem-embarques__encomenda {
-  margin: 0;
-  color: var(--text-body);
-}
-
 @media (min-width: 64rem) {
   .totem-embarques__opcoes {
     grid-template-columns: 1.3fr 1fr;
   }
 
   .totem-embarques__principal {
-    grid-row: span 2;
+    grid-row: span 3;
   }
 
-  /* Os dois da direita dividem a altura do veículo, sem um vão entre eles. */
+  /* Os três da direita dividem a altura do veículo, sem um vão entre eles. */
   .totem-embarques__opcoes .totem-cartao {
     height: 100%;
     align-content: center;
@@ -523,12 +518,21 @@
 /* Na página, o card da reserva usa a largura do conteúdo em todas as telas, e não só no calendário (pedido do PO na
    prévia da 2.2, 2026-10-15: "espremido na esquerda, com um espaço inútil na direita"). Os cartões se distribuem em
    colunas; o que se lê ou preenche linha a linha — os formulários, o resumo da conferência e os quadros — fica na
-   largura de leitura. O quiosque já ocupa a tela, e a encomenda é a 2.7. */
-.totem:not(.totem--quiosque):not(.totem--encomenda) {
+   largura de leitura. O quiosque já ocupa a tela. */
+.totem:not(.totem--quiosque) {
   max-width: none;
 }
 
-.totem:not(.totem--quiosque):not(.totem--encomenda) :is(.totem-formulario, .totem-conferencia, .totem-conclusao, .totem-saida) {
+/* O tipo do volume (2.7) é um formulário com cartões: os cartões usam a largura, e só o campo fica na de leitura. */
+.totem:not(.totem--quiosque) .totem-formulario.totem-formulario--largo {
+  max-width: none;
+}
+
+.totem:not(.totem--quiosque) .totem-campo--leitura {
+  max-width: var(--largura-texto);
+}
+
+.totem:not(.totem--quiosque) :is(.totem-formulario:not(.totem-formulario--largo), .totem-conferencia, .totem-conclusao, .totem-saida) {
   max-width: var(--largura-texto);
 }
 

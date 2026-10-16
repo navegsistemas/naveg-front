@@ -98,7 +98,7 @@ describe('as respostas, campo a campo', () => {
       embarque: 'PASSAGEIROS_E_VEICULO',
       porteVeiculo: 'PESADO',
     })
-    expect(com({ embarque: 'ENCOMENDA' })).toBeNull()
+    expect(com({ embarque: 'CARGA' })).toBeNull()
     expect(com({ porteVeiculo: 'MEDIO' })).toBeNull()
   })
 

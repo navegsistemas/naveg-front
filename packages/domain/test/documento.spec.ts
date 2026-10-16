@@ -343,8 +343,17 @@ describe('a reserva de encomenda', () => {
     expect(Object.keys(paraDocumento(CONVERTIDA))).not.toContain('encomendaId')
   })
 
+  /* naveg-front#58 (fluviapp-kmp#43): sem a retirada, o atendimento combina quem busca. */
+  it('sem a retirada é lida, com o celular de quem manda; com um destinatário sobrando, é recusa', () => {
+    const { retirada: _r, destinatario: _d, ...semRetirada } = CAIXAS_PARA_OUTRA
+    const comCelular: ReservaDeEncomenda = { ...semRetirada, cliente: { nome: 'Maria Souza', telefone: '5591988887777' } }
+    expect(estragar(comCelular, () => {})).toEqual(comCelular)
+    expect(estragar(comCelular, (d) => void (d['cliente'] = { nome: 'Maria Souza' }))).toBeNull()
+    expect(estragar(CAIXAS_PARA_OUTRA, (d) => void delete d['retirada'])).toBeNull()
+  })
+
   it('o que define o envio ausente ou fora da lista recusa', () => {
-    for (const chave of ['tipoVolume', 'quantidadeVolumes', 'faixaPeso', 'retirada']) {
+    for (const chave of ['tipoVolume', 'quantidadeVolumes', 'faixaPeso']) {
       expect(estragar(CAIXAS_PARA_OUTRA, (d) => void delete d[chave]), chave).toBeNull()
     }
     expect(estragar(CAIXAS_PARA_OUTRA, (d) => void (d['tipoVolume'] = 'CONTAINER'))).toBeNull()

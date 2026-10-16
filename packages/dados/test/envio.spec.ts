@@ -77,6 +77,34 @@ describe('o envio pela API', () => {
     })
   })
 
+  /* 2.7: a encomenda do site vai como pedido de encomenda — é por ele que a API aplica a semana e as regras dela. */
+  it('a encomenda pelo site vai como encomenda, sem o canal nem o que vai embarcar', async () => {
+    const { buscar, pedidos } = respondendo(500, {})
+    await envioHttp('https://api/', desafio, buscar).enviar({
+      ...PEDIDO,
+      respostas: {
+        canal: 'SITE',
+        embarque: 'ENCOMENDA',
+        tipoVolume: 'CAIXA',
+        quantidadeVolumes: 3,
+        faixaPeso: 'DE_5_A_20',
+        cliente: { nome: 'Maria', telefone: '(91) 98888-7777' },
+        semDestinatario: true,
+      },
+    })
+    expect(JSON.parse(String(pedidos[0]?.init?.body))).toEqual({
+      viagemId: 'v1',
+      data: '2026-10-14',
+      encomenda: {
+        tipoVolume: 'CAIXA',
+        quantidadeVolumes: 3,
+        faixaPeso: 'DE_5_A_20',
+        cliente: { nome: 'Maria', telefone: '(91) 98888-7777' },
+      },
+      desafio: 'token-do-turnstile',
+    })
+  })
+
   it('201: a reserva é a do servidor, com o código dele', async () => {
     const { buscar } = respondendo(201, { codigo: 'NVG-SRV123', reserva: paraDocumento(doServidor('NVG-SRV123')) })
     const resultado = await envioHttp('https://api', desafio, buscar).enviar(PEDIDO)
