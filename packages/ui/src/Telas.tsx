@@ -7,7 +7,7 @@ import { useState, type ReactNode } from 'react'
 
 import type { PendenciaDaReserva, TravessiaOfertada } from '@navegsistemas/domain'
 
-import type { LinhaDoResumo } from './resumo.js'
+import type { AlvoDoBloco, BlocoDoResumo, LinhaDoResumo } from './resumo.js'
 import { TEXTO_DA_PENDENCIA } from './textos.js'
 
 // ---------------------------------------------------------------------------------------------------------
@@ -188,6 +188,58 @@ export interface PropsDaConferencia {
   readonly aoConfirmar: () => void
   /** O botão de confirmar. O padrão é o do totem de passagem. */
   readonly rotuloDoConfirmar?: string
+  /**
+   * Na página, a conferência em blocos (2.4, A), cada um com o "Mudar" que leva ao passo dele (B). Sem eles, as
+   * linhas — o quiosque não muda.
+   */
+  readonly blocos?: readonly BlocoDoResumo[]
+  readonly aoMudar?: (alvo: AlvoDoBloco) => void
+  /** O que acontece ao confirmar, embaixo do botão (2.4, D). */
+  readonly nota?: ReactNode
+}
+
+/** O rótulo do "Mudar" de cada bloco: a saída se troca; o resto se muda. */
+const ROTULO_DO_MUDAR: Readonly<Record<AlvoDoBloco, string>> = {
+  EMBARQUE: 'Mudar',
+  SAIDA: 'Trocar',
+  CLIENTE: 'Mudar',
+  DESTINATARIO: 'Mudar',
+}
+
+/** Os blocos da reserva — na conferência, com o "Mudar"; na conclusão, sem ele. */
+export function BlocosDoResumo({
+  blocos,
+  aoMudar,
+}: {
+  readonly blocos: readonly BlocoDoResumo[]
+  readonly aoMudar?: (alvo: AlvoDoBloco) => void
+}) {
+  return (
+    <div className="totem-blocos">
+      {blocos.map((bloco) => (
+        <section key={bloco.alvo} className="totem-bloco" aria-label={bloco.titulo}>
+          <div className="totem-bloco__cabeca">
+            <h4 className="totem-bloco__titulo">{bloco.titulo}</h4>
+            {aoMudar !== undefined && (
+              <button
+                type="button"
+                className="totem-saida__trocar"
+                aria-label={`${ROTULO_DO_MUDAR[bloco.alvo]}: ${bloco.titulo.toLowerCase()}`}
+                onClick={() => aoMudar(bloco.alvo)}
+              >
+                {ROTULO_DO_MUDAR[bloco.alvo]}
+              </button>
+            )}
+          </div>
+          {bloco.linhas.map((linha) => (
+            <p key={linha.texto} className={`totem-bloco__linha totem-bloco__linha--${linha.peso}`}>
+              {linha.texto}
+            </p>
+          ))}
+        </section>
+      ))}
+    </div>
+  )
 }
 
 /**
@@ -200,17 +252,24 @@ export function Conferencia({
   enviando,
   aoConfirmar,
   rotuloDoConfirmar = 'Confirmar reserva',
+  blocos,
+  aoMudar,
+  nota,
 }: PropsDaConferencia) {
   return (
     <div className="totem-conferencia">
-      <dl className="totem-resumo">
-        {linhas.map((linha) => (
-          <div key={linha.rotulo} className="totem-resumo__linha">
-            <dt>{linha.rotulo}</dt>
-            <dd>{linha.valor}</dd>
-          </div>
-        ))}
-      </dl>
+      {blocos !== undefined ? (
+        <BlocosDoResumo blocos={blocos} {...(aoMudar !== undefined ? { aoMudar } : {})} />
+      ) : (
+        <dl className="totem-resumo">
+          {linhas.map((linha) => (
+            <div key={linha.rotulo} className="totem-resumo__linha">
+              <dt>{linha.rotulo}</dt>
+              <dd>{linha.valor}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {pendencias.length > 0 ? (
         <ul className="totem-pendencias" role="alert">
           {pendencias.map((pendencia) => (
@@ -218,9 +277,12 @@ export function Conferencia({
           ))}
         </ul>
       ) : (
-        <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando}>
-          {enviando ? 'Enviando…' : rotuloDoConfirmar}
-        </button>
+        <>
+          <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando}>
+            {enviando ? 'Enviando…' : rotuloDoConfirmar}
+          </button>
+          {nota !== undefined && <p className="totem-ajuda totem-nota">{nota}</p>}
+        </>
       )}
     </div>
   )
@@ -237,6 +299,11 @@ export interface PropsDaConclusao {
   /** A frase sobre o código, e o botão de recomeçar. Os padrões são os do totem de passagem. */
   readonly registrada?: string
   readonly rotuloDoRecomecar?: string
+  /**
+   * Na página (2.4, E, PO, 2026-10-16): o "Copiar" ao lado do código, sem a frase, e a reserva em blocos, sem o
+   * "Mudar". O quiosque segue com a frase, o botão embaixo e as linhas.
+   */
+  readonly blocos?: readonly BlocoDoResumo[]
 }
 
 /**
@@ -250,6 +317,7 @@ export function ReservaConcluida({
   atendimento,
   registrada = 'Reserva registrada. Guarde este código:',
   rotuloDoRecomecar = 'Fazer outra reserva',
+  blocos,
 }: PropsDaConclusao) {
   const [copiado, setCopiado] = useState(false)
 
@@ -262,15 +330,36 @@ export function ReservaConcluida({
     }
   }
 
+  const botaoDeCopiar = (
+    <button type="button" className="acao acao--secundaria" onClick={copiar}>
+      {copiado ? 'Código copiado' : blocos !== undefined ? 'Copiar' : 'Copiar código'}
+    </button>
+  )
+
+  /* Na página (2.4, E): o código com o "Copiar" ao lado, e logo o passo que falta; a reserva em blocos, embaixo. */
+  if (blocos !== undefined) {
+    return (
+      <div className="totem-conclusao">
+        <div className="totem-codigo-e-copiar">
+          <p className="totem-codigo">{codigo}</p>
+          {botaoDeCopiar}
+        </div>
+        {atendimento}
+        <BlocosDoResumo blocos={blocos} />
+        <button type="button" className="acao acao--secundaria" onClick={aoRecomecar}>
+          {rotuloDoRecomecar}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="totem-conclusao">
       <p>{registrada}</p>
       <p className="totem-codigo">
         {codigo}
       </p>
-      <button type="button" className="acao acao--secundaria" onClick={copiar}>
-        {copiado ? 'Código copiado' : 'Copiar código'}
-      </button>
+      {botaoDeCopiar}
       {atendimento}
       <dl className="totem-resumo">
         {linhas.map((linha) => (

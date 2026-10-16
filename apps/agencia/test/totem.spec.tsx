@@ -317,7 +317,7 @@ describe('o que vai embarcar, na página', () => {
     tocar('Continuar')
     expect(pergunta()).toBe('Confira a reserva')
     expect(
-      screen.getByText('Veículo: Caminhão · + 3 pessoas em rede · inteira, meia ou gratuidade no atendimento'),
+      screen.getByText('Caminhão, com 3 pessoas em rede'),
     ).toBeTruthy()
     tocar('Confirmar reserva')
     const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
@@ -416,7 +416,7 @@ describe('a encomenda, na página', () => {
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'João Lima' } })
     fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '96988887777' } })
     tocar('Continuar')
-    expect(screen.getByText('João Lima, (96) 98888-7777')).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Quem recebe' }).textContent).toBe('Quem recebeMudarJoão Lima(96) 98888-7777')
     tocar('Confirmar reserva')
     const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
     expect(repositorio.documento(codigo)).toMatchObject({
@@ -456,6 +456,76 @@ describe('a encomenda, na página', () => {
   })
 })
 
+/* 2.4 (PO, 2026-10-16): a conferência em três blocos, com o "Mudar", e o que acontece ao confirmar. */
+describe('a conferência, na página', () => {
+  async function ateAConferencia() {
+    const montado = montar()
+    embarcarPassageiros('2 pessoas')
+    await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Confira a reserva')
+    return montado
+  }
+
+  it('três blocos, na ordem de quem escolheu, e a nota embaixo do botão, sem "Vale até"', async () => {
+    await ateAConferencia()
+    const blocos = screen.getAllByRole('region').map((bloco) => bloco.getAttribute('aria-label'))
+    expect(blocos).toEqual(['O que vai', 'A viagem', 'Em nome de'])
+    expect(screen.getByText('2 pessoas em rede')).toBeTruthy()
+    expect(screen.getByText(/^Embarque no .* · Ferry de demonstração$/)).toBeTruthy()
+    expect(screen.queryByText('Vale até')).toBeNull()
+    expect(screen.queryByText('Desembarque')).toBeNull()
+    expect(
+      screen.getByText(
+        'Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp. A reserva vale até a saída.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('"Mudar" em quem reserva: o formulário volta preenchido, e a saída e o embarque ficam', async () => {
+    await ateAConferencia()
+    tocar('Mudar: em nome de')
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
+    expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('Maria Souza')
+    expect((screen.getByLabelText(/^Celular com/) as HTMLInputElement).value).toBe('(91) 98888-7777')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria S. Lima' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(screen.getByText('Maria S. Lima')).toBeTruthy()
+    expect(screen.getByText('2 pessoas em rede')).toBeTruthy()
+  })
+
+  it('"Trocar" na viagem volta à escolha da saída, com o que vai embarcar respondido', async () => {
+    await ateAConferencia()
+    tocar('Trocar: a viagem')
+    /* Sem o alcance do calendário, a escolha é pela lista; com ele, pelo calendário — o mesmo "Trocar a saída". */
+    expect(pergunta()).toBe('Escolha a saída')
+    expect(screen.getByText('2 pessoas em rede')).toBeTruthy()
+  })
+
+  it('"Voltar" da conferência não apaga o nome e o celular', async () => {
+    await ateAConferencia()
+    tocar('Voltar')
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
+    expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('Maria Souza')
+  })
+
+  it('o quiosque segue com as linhas, sem blocos', async () => {
+    montar({ quiosque: true })
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
+    expect(screen.getByText('Vale até')).toBeTruthy()
+  })
+})
+
 describe('o roteiro, na tela', () => {
   it('passageiros de ponta a ponta: do embarque ao código, e o documento gravado sem o tipo', async () => {
     const { repositorio } = montar()
@@ -476,7 +546,8 @@ describe('o roteiro, na tela', () => {
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     expect(pergunta()).toBe('Confira a reserva')
-    expect(screen.getByText('Rede · 1 pessoa · inteira, meia ou gratuidade no atendimento')).toBeTruthy()
+    expect(screen.getByText('1 pessoa em rede')).toBeTruthy()
+    expect(screen.getByText('Inteira, meia ou gratuidade: no atendimento')).toBeTruthy()
     expect(screen.getByText('(91) 98888-7777')).toBeTruthy()
 
     await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
@@ -524,7 +595,7 @@ describe('o roteiro, na tela', () => {
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
     fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
-    expect(screen.getByText('Suíte · 7 pessoas · inteira, meia ou gratuidade no atendimento')).toBeTruthy()
+    expect(screen.getByText('7 pessoas em suíte')).toBeTruthy()
     tocar('Confirmar reserva')
     const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
     expect(repositorio.documento(codigo)).toMatchObject({ acomodacao: 'SUITE', quantidadePessoas: 7 })
@@ -609,7 +680,6 @@ describe('o roteiro, na tela', () => {
     await usuario.type(screen.getByLabelText('Celular com WhatsApp'), '91988887777')
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
     expect(pergunta()).toBe('Confira a reserva')
-    expect(screen.getByText('Celular')).toBeTruthy()
     expect(screen.getByText('(91) 98888-7777')).toBeTruthy()
   })
 
@@ -758,7 +828,8 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
     /* Na conferência, o aviso está no resumo, e o quadro sai: ele repetiria a saída inteira. */
     expect(screen.getAllByText('Embarque alterado nesta data: Cais em obra')).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Trocar a saída' })).toBeNull()
-    expect(screen.getByText('a saída — Quarta-feira, 14/10 · 19:00')).toBeTruthy()
+    expect(screen.getByText('Quarta-feira, 14/10 · 19:00')).toBeTruthy()
+    expect(screen.getByText(/Nada é pago agora. .* A reserva vale até a saída./)).toBeTruthy()
   })
 })
 
@@ -848,7 +919,10 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     montar({ demonstracao: null, atendimento: '(91) 98888-7777' })
     const codigo = await reservarRede(userEvent.setup())
 
-    const botao = screen.getByRole('link', { name: 'Enviar ao atendimento' })
+    /* Na página, o WhatsApp é o passo que falta, logo abaixo do código (2.4, E). */
+    expect(screen.getByText(/^Falta um passo: envie a reserva ao atendimento/)).toBeTruthy()
+    expect(screen.getByText('Se não abrir, fale com o atendimento pelo (91) 98888-7777, com o código.')).toBeTruthy()
+    const botao = screen.getByRole('link', { name: 'Enviar pelo WhatsApp' })
     const href = botao.getAttribute('href') ?? ''
     expect(href.startsWith('https://wa.me/5591988887777?text=')).toBe(true)
     expect(botao.getAttribute('target')).toBe('_blank')
@@ -864,15 +938,40 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     montar({ demonstracao: null, atendimento: null })
     await reservarRede(userEvent.setup())
 
-    expect(screen.queryByRole('link', { name: 'Enviar ao atendimento' })).toBeNull()
-    expect(screen.getByText('Fale com o atendimento pelo WhatsApp informando este código.')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Enviar pelo WhatsApp' })).toBeNull()
+    expect(screen.getByText('Fale com o atendimento pelo WhatsApp, com o código.')).toBeTruthy()
   })
 
   it('na demonstração, o botão não aparece — a reserva não foi enviada a ninguém', async () => {
     montar({ demonstracao: 'SAIDAS_E_ENVIO', atendimento: '(91) 98888-7777' })
     await reservarRede(userEvent.setup())
 
-    expect(screen.queryByRole('link', { name: 'Enviar ao atendimento' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Enviar pelo WhatsApp' })).toBeNull()
     expect(screen.getByText(/Nesta demonstração a reserva não é enviada/)).toBeTruthy()
+  })
+
+  it('na página, a conclusão traz a reserva em blocos, sem o "Mudar", e o "Copiar" ao lado do código', async () => {
+    montar({ demonstracao: null, atendimento: '(91) 98888-7777' })
+    await reservarRede(userEvent.setup())
+    const blocos = screen.getAllByRole('region').map((bloco) => bloco.getAttribute('aria-label'))
+    expect(blocos).toEqual(['O que vai', 'A viagem', 'Em nome de'])
+    expect(screen.queryByRole('button', { name: /^Mudar/ })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Copiar' })).toBeTruthy()
+    expect(screen.queryByText('Reserva registrada. Guarde este código:')).toBeNull()
+  })
+
+  it('no quiosque, a conclusão não muda: "Enviar ao atendimento" e as linhas', async () => {
+    montar({ quiosque: true, demonstracao: null, atendimento: '(91) 98888-7777' })
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria' } })
+    tocar('Continuar')
+    tocar('Confirmar reserva')
+    await screen.findByText(/^NVG-[0-9A-Z]{6}$/)
+    expect(screen.getByRole('link', { name: 'Enviar ao atendimento' })).toBeTruthy()
+    expect(screen.getByText('Reserva registrada. Guarde este código:')).toBeTruthy()
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
   })
 })

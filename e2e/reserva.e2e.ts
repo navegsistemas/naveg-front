@@ -212,12 +212,14 @@ test.describe('a reserva na página', () => {
     await expect(totem(page).getByText('Informe um celular com DDD, como (91) 98888-7777.')).toBeVisible()
     await expect(pergunta(page)).toHaveText('Em nome de quem fica a reserva?')
     await preencherOsDados(page)
-    await expect(
-      page.getByText('Veículo: Caminhão · + 3 pessoas em rede · inteira, meia ou gratuidade no atendimento'),
-    ).toBeVisible()
+    /* A conferência em blocos, com o que acontece ao confirmar (2.4, A, C e D). */
+    await expect(totem(page).getByRole('region', { name: 'O que vai' })).toContainText('Caminhão, com 3 pessoas em rede')
+    await expect(totem(page).getByText(/^Nada é pago agora\./)).toBeVisible()
 
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()
     await expect(page.getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible(PRAZO_DO_ENVIO)
+    /* O passo que falta: o WhatsApp, logo abaixo do código (2.4, E). */
+    await expect(totem(page).getByRole('link', { name: 'Enviar pelo WhatsApp' })).toHaveAttribute('target', '_blank')
     expect(api.pedidos).toHaveLength(1)
     /* A página manda o canal e o que vai embarcar, e a API remonta pelo caminho do site: sem o tipo. */
     const [pedido] = api.pedidos

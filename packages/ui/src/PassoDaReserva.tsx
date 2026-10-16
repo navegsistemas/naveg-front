@@ -20,6 +20,7 @@ import {
   encomendaPeloSite,
   porteEmVigor,
   type NoDoRoteiro,
+  type RascunhoDoCliente,
   type RespostasDaReserva,
 } from '@navegsistemas/domain'
 import type { ReactNode } from 'react'
@@ -42,9 +43,14 @@ export interface PropsDoPasso {
   readonly aoResponder: (respostas: RespostasDaReserva) => void
   /** No passo de quem reserva, a linha antes do "Continuar" (2.3, C). Quem decide se ela aparece é a tela. */
   readonly avisoDoCliente?: ReactNode
+  /**
+   * O que já foi digitado e desfeito por "Voltar" ou "Mudar" (2.4, B): o formulário volta preenchido, e não vazio. A
+   * resposta em vigor, se houver, vale mais.
+   */
+  readonly anteriores?: { readonly cliente?: RascunhoDoCliente; readonly destinatario?: RascunhoDoCliente }
 }
 
-export function PassoDaReserva({ no, respostas, aoResponder, avisoDoCliente }: PropsDoPasso) {
+export function PassoDaReserva({ no, respostas, aoResponder, avisoDoCliente, anteriores }: PropsDoPasso) {
   const com = (parcial: RespostasDaReserva) => aoResponder({ ...respostas, ...parcial })
 
   switch (no.passo) {
@@ -133,7 +139,7 @@ export function PassoDaReserva({ no, respostas, aoResponder, avisoDoCliente }: P
     case 'CLIENTE':
       return (
         <FormularioDoCliente
-          inicial={respostas.cliente}
+          inicial={respostas.cliente ?? anteriores?.cliente}
           telefoneObrigatorio={no.telefoneObrigatorio === true}
           {...(encomendaPeloSite(respostas) ? { erroDoNome: 'Informe o nome de quem manda.' } : {})}
           /* O celular obrigatório é o do site, e lá ele é o do WhatsApp (2.3, B); o quiosque segue com "com DDD". */
@@ -177,7 +183,7 @@ export function PassoDaReserva({ no, respostas, aoResponder, avisoDoCliente }: P
       return (
         <>
           <FormularioDoCliente
-            inicial={respostas.destinatario}
+            inicial={respostas.destinatario ?? anteriores?.destinatario}
             telefoneObrigatorio
             erroDoNome="Informe o nome de quem recebe."
             aoConfirmar={(destinatario) => aoResponder({ ...semChaves(respostas, 'semDestinatario'), destinatario })}

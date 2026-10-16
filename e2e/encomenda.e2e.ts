@@ -91,7 +91,7 @@ test.describe('a encomenda na página', () => {
     expect(encomenda).not.toHaveProperty('retirada')
     expect(encomenda).not.toHaveProperty('destinatario')
 
-    const atendimento = totem(page).getByRole('link', { name: 'Enviar ao atendimento' })
+    const atendimento = totem(page).getByRole('link', { name: 'Enviar pelo WhatsApp' })
     await expect(atendimento).toHaveAttribute('target', '_blank')
     const link = new URL((await atendimento.getAttribute('href')) ?? '')
     expect(`${link.origin}${link.pathname}`).toBe(`https://wa.me/${WHATSAPP_DA_NAVEG}`)

@@ -62,7 +62,7 @@ O que está no ar hoje, na ordem da página. **É por aqui que o roteiro começa
 | **1.3** | **Reserve sua passagem** (o totem na página) | o roteiro da reserva, do jeito de hoje — **o fluxo em si é a etapa 2**; aqui, a seção como parte da página | o título e o subtítulo ("não pede cadastro nem documento"), que mudam de sentido quando houver compra |
 | **1.4** | **Envie sua encomenda** | a seção própria da encomenda | o mesmo: a seção na página; o fluxo é a etapa 2 |
 | **1.5** | **Quem atende você** | o cartão do atendente (nome, foto e WhatsApp pendentes) | o que falta de conteúdo e como o atendimento aparece para quem compra |
-| **1.6** | **O que dizem os passageiros** | as avaliações (lista vazia de propósito) e as redes | se a seção fica no ar vazia até haver depoimentos reais |
+| **1.6** | **O que dizem os passageiros** | as avaliações (lista vazia de propósito) e as redes | **decidido em 2026-10-16** (§9, "A ordem até o MVP"): vira "Deixe sua opinião", para quem tem conta, com o carrossel das aprovadas; as redes saem |
 | **1.7** | **Rodapé** | identificação da empresa (pendente), contatos, links legais, o aviso "reserva, não venda" | o aviso, que deixa de valer para o site inteiro (U2); onde ficam as páginas legais novas |
 | **1.8** | **O quiosque** (`/totem`) | o totem em página cheia, para o terminal físico | confirmar que continua só com reserva (U5) |
 | **1.9** | **Sem JavaScript e acessibilidade da página** | o que se lê com o JavaScript desligado | casa com o passo 13.2 do endurecimento: o que a análise achar, o 13.2 testa |
@@ -146,13 +146,41 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 em análise, esperando o PO** (quem reserva); as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 decidida, implementada no #77** (a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; depois a 2.6 |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
 entregas do KMP (7.2, 7.3, 7.5). O roteiro anda no ritmo das decisões do PO, não no do código.
+
+### A ordem até o MVP (PO, 2026-10-16)
+
+O PO conferiu a ordem contra o caminho do MVP: **a partir do cadastro, o site deixa de ser uma página só**. Ele passa a
+ter a área do cliente, e o topo passa a dizer se a pessoa está logada ou não. A ordem:
+
+1. **2.4, a conferência**; depois **2.5, a conclusão**, e **2.6, os erros**: duas seções curtas, porque os erros já
+   acontecem no ar e a reserva continua sendo o caminho livre depois da compra;
+2. **a área do cliente**: as etapas 3 (o cadastro, com o "Entrar" e o "Minha conta" no topo, a 3.5 com a 1.1) e 4.1 e
+   4.2 (Minha conta e Meus dados). **A implementação trava na U8 e na D4**, que o PO decide antes de a 2.4 terminar;
+3. **1.6, as opiniões** (abaixo);
+4. **a emissão e o pagamento online**: a etapa 5, com a 4.3 (Meus pedidos) e a 4.4 (as páginas legais de cancelamento
+   e reembolso, O5), que só fazem sentido com a compra.
+
+**As redes sociais saem do roteiro**: a NAVEG não as tem. O item "Social" do topo muda de nome com a 1.6. **O rodapé
+está bem estruturado**: falta só o que é do negócio (a identificação da empresa). A 1.5 (o atendente) espera o mesmo:
+conteúdo do negócio.
+
+**A 1.6 vira "Deixe sua opinião"** (PO, 2026-10-16): uma caixa de texto na própria seção, e ao lado um carrossel com as
+opiniões, **só quando houver**. Decisões:
+
+- **depois da área do cliente**: só quem tem conta deixa opinião, com o nome da conta. É menos spam, e casa com "cliente
+  é quem tem conta" (#57);
+- **a opinião só aparece depois de aprovada** por alguém da NAVEG, no painel do KMP. Protege a marca de ofensa, de spam
+  e de dado pessoal escrito na caixa.
+
+O trabalho fora daqui está em issues: a regra da coleção e a tela de aprovação no KMP
+(navegsistemas/fluviapp-kmp#69), e as rotas na API (navegsistemas/naveg-api-vercel#42).
 
 ## 10. As fichas
 
@@ -546,8 +574,8 @@ O que as capturas mostraram, e foi corrigido no mesmo PR:
 
 ### 2.3 — Quem reserva
 
-**Situação:** em análise, esperando o PO (2026-10-16). É o passo "Seus dados" da reserva de passagem e de veículo na
-página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
+**Situação:** no ar (#75, juntado em 2026-10-16), com a API do domain 0.12.0 promovida depois dele (naveg-api-vercel#41).
+É o passo "Seus dados" da reserva de passagem e de veículo na página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
 **Wireframe** (privado do PO): [2.3](https://claude.ai/artifact/U1rdUt7V5BZdR1VqF4E3GF).
 
 **Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; dois passageiros em rede): depois do quadro do que
@@ -599,3 +627,61 @@ continua opcional.
 - **a ordem é a inversa da 2.7: a página antes, a API depois.** A página nova sempre manda o celular, e a API que está no
   ar aceita. Depois, a tag `domain-v0.12.0` no commit do PR, e a API sobe o domain e é promovida. Na ordem da 2.7, a
   API nova recusaria, até o merge, quem reservasse sem celular pela página de antes.
+
+### 2.4 — A conferência
+
+**Situação:** decidida (2026-10-16) e implementada no #77, com a melhoria da conclusão (a 2.5) junto, a pedido do PO.
+É a última tela antes de confirmar a reserva de passagem ou de veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
+**Wireframe** (privado do PO): [2.4](https://claude.ai/artifact/Vq8MEfYSrWSRopTmXzzpZK).
+
+**Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; passageiros, veículo, e passageiros e veículo):
+as etapas, a pergunta "Confira a reserva" e uma lista de nove linhas: Travessia, Saída, Embarque, Desembarque,
+Embarcação, Passagem, Em nome de, Celular e Vale até. Depois, "Confirmar reserva", e "Voltar" com "Recomeçar a reserva".
+Os quadros "Mudar" e "Trocar a saída" das telas anteriores não aparecem aqui. No celular, ao chegar, a tela mostra a
+pergunta e as três primeiras linhas; o botão fica a quase duas telas. No computador, a lista cabe numa tela, em duas
+colunas.
+
+**Achados:**
+
+1. **no celular, o botão fica a quase duas telas da chegada**: nove linhas, boa parte endereço completo;
+2. **o que a pessoa escolheu aparece na sexta linha**, depois de cinco sobre a viagem;
+3. **o veículo aparece como "Passagem: Veículo: Carro · + 3 pessoas em suíte · inteira, meia ou gratuidade no
+   atendimento"**: um rótulo errado e quatro informações numa linha;
+4. **para corrigir uma coisa, só "Voltar", um passo de cada vez, ou "Recomeçar"**: os quadros com "Mudar" somem
+   justo aqui;
+5. **"Vale até: a saída — Sexta-feira, 16/10 · 18:00"** repete a saída e não diz o que acontece ao confirmar;
+6. **nada perto do botão diz que nada é pago** e que o próximo passo é o WhatsApp; só o subtítulo da seção, lá em cima;
+7. **para outras partes:** o desembarque e o tipo da embarcação ficam para o WhatsApp e para a conclusão (2.5); os erros
+   na conferência são da 2.6; o preço, da etapa 5. O achado da 2.2 ("a conferência repete a travessia no cabeçalho e na
+   primeira linha") não vale mais: o cabeçalho saiu com a 2.2.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | A ordem e o agrupamento | **três blocos: "O que vai", "A viagem" e "Em nome de"**, nessa ordem; no computador, lado a lado. A viagem com o dia e a hora, as cidades, o cais de embarque e a embarcação. O desembarque e o tipo da embarcação saem da conferência (ficam no WhatsApp e na conclusão) |
+| **B** | Corrigir sem recomeçar | **"Mudar" ou "Trocar" em cada bloco**, que leva ao passo e mantém o resto, como os quadros das telas anteriores |
+| **C** | O veículo escrito como se fala | **"Carro, com 3 pessoas em suíte"**, e numa linha à parte "Inteira, meia ou gratuidade: no atendimento"; para passageiros, "2 pessoas em rede". O KMP e o WhatsApp não mudam |
+| **D** | O que acontece ao confirmar | **sai "Vale até"**, e entra embaixo do botão: "Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp. A reserva vale até a saída." Com a compra (etapa 5), a linha muda para o caminho de quem reserva |
+
+**A ordem:** só a página. O domain e a API não mudam.
+
+**Decisões do PO (2026-10-16):** **A a D pela recomendação** ("gostei dos blocos"). E: **incluir na 2.4 uma melhoria no
+pós-confirmação**, que era a 2.5. O levantamento da conclusão, no modo que envia: "Reserva feita", "Reserva registrada.
+Guarde este código:", o código, "Copiar código" e só depois "Enviar ao atendimento", e a lista de nove linhas de novo.
+O achado: **a reserva só é confirmada pelo atendimento, no WhatsApp, mas a tela parece de algo terminado**. A pergunta E
+teve a recomendação aceita:
+
+| # | pergunta | decisão |
+|---|---|---|
+| **E** | A conclusão | **o WhatsApp como o passo que falta**: o código com "Copiar" ao lado; logo abaixo, num quadro, "Falta um passo: envie a reserva ao atendimento. É pelo WhatsApp que ela é confirmada.", o botão "Enviar pelo WhatsApp" e "Se não abrir, fale com o atendimento pelo (número), com o código."; depois os três blocos, sem o "Mudar". Contra: abrir o WhatsApp sozinho (o navegador pode bloquear) e só reordenar |
+
+**A implementação (#77):**
+
+- **a conferência em blocos**, lado a lado no computador, na largura do cartão; o texto corrido (a nota, o passo que
+  falta) segue na largura de leitura. Na encomenda, os blocos são "O que vai", "A viagem", "Quem manda" e "Quem recebe";
+- **"Mudar" e "Trocar"** levam ao passo e mantêm o resto. O que vai embarcar volta à primeira pergunta e à escolha da
+  saída, como o quadro "Mudar" já fazia. **O formulário de quem reserva volta preenchido**, também no "Voltar", que antes
+  o devolvia vazio. O que foi digitado se apaga ao recomeçar, inclusive na inatividade do quiosque;
+- **a nota da conferência** na encomenda troca "A reserva vale até a saída" pela entrega no porto;
+- **o quiosque não muda**: a conferência em linhas e a conclusão de antes.
