@@ -147,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **em análise** (2026-10-16): o levantamento da área do cliente, inteira, e quatro perguntas que vêm antes das telas; depois, uma seção por vez, a começar pela 3.1 |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 em análise**, esperando o PO; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -834,7 +834,8 @@ Uma conta por documento (fluviapp-kmp#70).
 
 ### 3.1 — Criar a conta
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+**Situação:** **decidida** (2026-10-16): os campos, o texto da versão 3 e **A a F pela recomendação** ("perfeito,
+recomendações aceitas"). A implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). **Wireframe** (privado do PO):
 [3.1](https://claude.ai/artifact/WTLLEkH8cCHm6WX8CgA1Es), com o formulário, os erros e a passagem para a 3.2, no
 celular e no computador.
 
@@ -892,3 +893,40 @@ embaixo de campo:
 - **Seus dados:** "Para comprar para outra pessoa, basta ter o documento e a data de nascimento dela.";
 - **Contato e acesso:** "O e-mail confirma a conta. Por ele e pelo celular, falamos com você sobre seus pedidos."
 
+
+### 3.2 — Confirmar o e-mail
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+[3.2](https://claude.ai/artifact/D7H3ptFWbr2dDrGAUDqgGq): a tela "Confira seu e-mail", o reenvio, a correção do e-mail,
+o próprio e-mail, o link confirmado e o link que não vale mais.
+
+**Levantamento** (2026-10-16): a tela não existe, e nenhum dos três repositórios manda e-mail. O que já está decidido:
+- **comprar pede o e-mail confirmado (O6)**; reservar não pede conta;
+- **o e-mail sai pelo Google Workspace**, de `naoresponda@gruponaveg.com.br` (B da área do cliente);
+- **o KMP guarda `confirmadaEm`** na conta, e o código de confirmação em `segredos/`, que só o servidor lê (ADR-0022);
+- **quem volta do link cai na compra**, e não no começo (U3).
+
+**Achados:**
+
+1. **o e-mail é aberto, muitas vezes, em outro aparelho** ou no aplicativo de e-mail. O link precisa funcionar fora do
+   navegador em que a conta foi criada. Por isso a volta à compra (U3) depende de o pedido estar guardado no servidor,
+   e não só no navegador;
+2. **quem errou o e-mail fica preso:** com uma conta por documento (E), não dá para criar outra. A tela precisa deixar
+   corrigir;
+3. **a conta que nunca confirma** guarda documento e nascimento sem uso. É dado pessoal parado, e prende o documento;
+4. **o e-mail cai no spam** às vezes, mesmo com SPF e DKIM. A tela diz onde procurar;
+5. **"Reenviar" sem freio** vira abuso, e o Workspace tem limite de envios por dia.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Link ou código | **um link no e-mail**, de um toque, que funciona em qualquer aparelho. Contra: um código de 6 números para digitar no site |
+| **B** | Quanto tempo o link vale | **24 horas**, e o "Reenviar" a cada 60 segundos, com um limite por hora. O link novo invalida o anterior |
+| **C** | Depois de confirmar | **a pessoa já fica dentro da conta** e volta para onde ia: a compra (U3) ou Minha conta, com o aviso "E-mail confirmado". Contra: pedir a senha de novo |
+| **D** | Entrar antes de confirmar | **pode**, com o aviso "Confirme seu e-mail para comprar" em Minha conta e na hora de pagar. Só a compra espera |
+| **E** | Errou o e-mail | **"Corrigir o e-mail"** na tela de espera, enquanto ele não foi confirmado; o link do e-mail antigo deixa de valer |
+| **F** | A conta que nunca confirma | **apagada sozinha depois de 7 dias**, e o documento fica livre. Pede a API (uma tarefa agendada, como a #21) e conta no resumo do painel |
+
+**A ordem:** como a 3.1, a implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). O
+PO cria o apelido `naoresponda@` e a senha de app quando a API for mandar o primeiro e-mail.
