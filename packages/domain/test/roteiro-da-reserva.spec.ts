@@ -13,6 +13,9 @@ import {
   chaveDoNo,
   embarcacaoLeva,
   embarqueRespondido,
+  encomendaPeloSite,
+  nosDoEmbarque,
+  respostasDaEncomendaDoSite,
   classesOfertadas,
   respondido,
   roteiroDaReserva,
@@ -343,10 +346,10 @@ describe('o ramo de passageiro, pelo site', () => {
 describe('o que vai embarcar, pelo site', () => {
   const SITE: RespostasDaReserva = { canal: 'SITE' }
 
-  it('começa pelo que vai embarcar: veículo, passageiros e veículo, passageiros', () => {
+  it('começa pelo que vai embarcar: veículo, passageiros e veículo, passageiros e, desde a 2.7, encomenda', () => {
     const roteiro = roteiroDaReserva(SITE, contexto())
     expect(passos(roteiro)).toEqual(['EMBARQUE', 'CLIENTE', 'CONFERENCIA'])
-    expect(no(roteiro, 'EMBARQUE').opcoes).toEqual(['VEICULO', 'PASSAGEIROS_E_VEICULO', 'PASSAGEIROS'])
+    expect(no(roteiro, 'EMBARQUE').opcoes).toEqual(['VEICULO', 'PASSAGEIROS_E_VEICULO', 'PASSAGEIROS', 'ENCOMENDA'])
   })
 
   it('o veículo: leve ou pesado, e depois só as classes daquele porte', () => {
@@ -406,5 +409,62 @@ describe('o que vai embarcar, pelo site', () => {
   it('a página da #65, que manda a categoria e a classe, continua fechando o roteiro', () => {
     const antigo: RespostasDaReserva = { ...SITE, categoria: 'VEICULO', naturezaVeiculo: 'AUTOMOTOR', classeVeiculo: 'CAMINHAO', cliente: CLIENTE }
     expect(roteiroDaReserva(antigo, contexto()).atual?.passo).toBe('CONFERENCIA')
+  })
+})
+
+/* 2.7: a encomenda no caminho da reserva — o tipo, quantos volumes e o peso; depois quem manda e quem recebe. */
+describe('a encomenda, pelo site', () => {
+  const ENCOMENDA: RespostasDaReserva = { canal: 'SITE', embarque: 'ENCOMENDA' }
+  const PRONTA: RespostasDaReserva = { ...ENCOMENDA, tipoVolume: 'CAIXA', quantidadeVolumes: 3, faixaPeso: 'DE_5_A_20' }
+
+  it('o tipo, quantos volumes (1 a 20) e o peso, antes do dia', () => {
+    const nos = nosDoEmbarque(ENCOMENDA)
+    expect(nos.map((n) => n.passo)).toEqual(['EMBARQUE', 'TIPO_VOLUME', 'QUANTIDADE_VOLUMES', 'FAIXA_PESO'])
+    const quantidade = nos[2]
+    expect(quantidade?.passo === 'QUANTIDADE_VOLUMES' && quantidade.opcoes.at(-1)).toBe(20)
+    expect(embarqueRespondido(PRONTA)).toBe(true)
+  })
+
+  it('depois do dia: quem manda, com o celular obrigatório, e quem recebe, opcional', () => {
+    const roteiro = roteiroDaReserva(PRONTA, contexto())
+    expect(passos(roteiro).slice(-3)).toEqual(['CLIENTE', 'DESTINATARIO', 'CONFERENCIA'])
+    expect(no(roteiro, 'CLIENTE')).toEqual({ passo: 'CLIENTE', telefoneObrigatorio: true })
+    expect(roteiroDaReserva({ ...PRONTA, cliente: { nome: 'Maria' } }, contexto()).atual?.passo).toBe('CLIENTE')
+    expect(roteiroDaReserva({ ...PRONTA, cliente: CLIENTE }, contexto()).atual?.passo).toBe('DESTINATARIO')
+  })
+
+  it('"Pular" responde quem recebe; informar pede os dois campos', () => {
+    const comCliente = { ...PRONTA, cliente: CLIENTE }
+    expect(roteiroDaReserva({ ...comCliente, semDestinatario: true }, contexto()).atual?.passo).toBe('CONFERENCIA')
+    expect(roteiroDaReserva({ ...comCliente, destinatario: { nome: 'João' } }, contexto()).atual?.passo).toBe('DESTINATARIO')
+    expect(
+      roteiroDaReserva({ ...comCliente, destinatario: { nome: 'João', telefone: '(96) 98888-7777' } }, contexto()).atual?.passo,
+    ).toBe('CONFERENCIA')
+  })
+
+  it('toda embarcação leva encomenda (C7)', () => {
+    for (const casco of ['FERRY_BOAT', 'NAVIO', 'LANCHA'] as const) expect(embarcacaoLeva(PRONTA, casco)).toBe(true)
+  })
+
+  it('voltar de quem recebe apaga quem manda; voltar do tipo leva o complemento junto', () => {
+    const comCliente = { ...PRONTA, cliente: CLIENTE }
+    expect(voltar(comCliente, contexto()).cliente).toBeUndefined()
+    expect(
+      semResposta({ passo: 'TIPO_VOLUME', opcoes: [] }, { ...ENCOMENDA, tipoVolume: 'CAIXA', complemento: 'mantimentos' }),
+    ).toEqual(ENCOMENDA)
+  })
+
+  it('as respostas viram o pedido de encomenda: o destinatário só se não foi pulado', () => {
+    const joao = { nome: 'João', telefone: '(96) 98888-7777' }
+    expect(respostasDaEncomendaDoSite({ ...PRONTA, cliente: CLIENTE, destinatario: joao })).toEqual({
+      tipoVolume: 'CAIXA',
+      quantidadeVolumes: 3,
+      faixaPeso: 'DE_5_A_20',
+      cliente: CLIENTE,
+      destinatario: joao,
+    })
+    expect(respostasDaEncomendaDoSite({ ...PRONTA, destinatario: joao, semDestinatario: true })).not.toHaveProperty('destinatario')
+    expect(encomendaPeloSite(PRONTA)).toBe(true)
+    expect(encomendaPeloSite({ embarque: 'ENCOMENDA' })).toBe(false)
   })
 })

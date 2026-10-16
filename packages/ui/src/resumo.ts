@@ -15,6 +15,8 @@ import {
   classeDoEmbarque,
   embarqueEmVigor,
   embarqueRespondido,
+  FaixaPeso,
+  TipoVolume,
   OQueEmbarca,
   oQueVai,
   pessoasComOVeiculo,
@@ -70,6 +72,15 @@ function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
 export function resumoDoEmbarque(respostas: RespostasDaReserva): string | null {
   const embarque = embarqueEmVigor(respostas)
   if (embarque === undefined || !embarqueRespondido(respostas)) return null
+  /* A encomenda (2.7), como a conferência a escreve: "8 volumes · Caixa (mantimentos) · 20 a 50 kg". */
+  if (OQueEmbarca.eEncomenda(embarque)) {
+    const { tipoVolume, quantidadeVolumes, faixaPeso } = respostas
+    if (tipoVolume === undefined || quantidadeVolumes === undefined || faixaPeso === undefined) return null
+    const complemento = respostas.complemento?.trim() ?? ''
+    const tipo = TipoVolume.rotulo(tipoVolume)
+    const volumes = quantidadeVolumes === 1 ? '1 volume' : `${quantidadeVolumes} volumes`
+    return `${volumes} · ${complemento.length > 0 ? `${tipo} (${complemento})` : tipo} · ${FaixaPeso.rotulo(faixaPeso)}`
+  }
   const { acomodacao, quantidadePessoas } = respostas
   const grupo =
     OQueEmbarca.levaPessoas(embarque) && acomodacao !== undefined && quantidadePessoas !== undefined
@@ -113,10 +124,13 @@ export function resumoDaEncomenda(reserva: ReservaDeEncomenda, travessia: Traves
     { rotulo: 'Celular de quem manda', valor: telefoneOuNao(reserva.cliente.telefone) },
     {
       rotulo: 'Quem retira',
+      /* Sem a retirada, o atendimento combina (naveg-front#58, 2.7). */
       valor:
-        reserva.retirada === 'REMETENTE' || destinatario === undefined
-          ? 'Quem manda'
-          : `${destinatario.nome}, ${formatarWhatsapp(destinatario.telefone)}`,
+        reserva.retirada === undefined
+          ? 'A combinar com o atendimento'
+          : reserva.retirada === 'REMETENTE' || destinatario === undefined
+            ? 'Quem manda'
+            : `${destinatario.nome}, ${formatarWhatsapp(destinatario.telefone)}`,
     },
     { rotulo: 'Entregar no porto', valor: `antes da saída — ${travessia.rotulos.partida}` },
   ]

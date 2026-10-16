@@ -176,7 +176,11 @@ export interface ReservaDeEncomenda extends ReservaBase {
   readonly complemento?: string
   /** Estimativa de quem manda. No balcão o volume é pesado, e o peso exato a substitui. */
   readonly faixaPeso: FaixaPeso
-  readonly retirada: Retirada
+  /**
+   * **Ausente = a definir no atendimento** (naveg-front#58, fluviapp-kmp#43): o site não pergunta quem retira. Com o
+   * destinatário informado, `OUTRA_PESSOA`.
+   */
+  readonly retirada?: Retirada
   /** Presente **só** com `retirada: 'OUTRA_PESSOA'`, e obrigatório nesse caso — como a gratuidade e o tipo. */
   readonly destinatario?: DestinatarioDaEncomenda
   /** A encomenda que nasceu da conversão — gravada pelo aplicativo junto com `CONVERTIDA`. Nunca pela web. */
@@ -280,7 +284,8 @@ export function pendenciasDaReserva(reserva: Reserva): ReadonlySet<PendenciaDaRe
 
 /**
  * O que só a encomenda tem: de 1 a 20 volumes, o complemento curto, e quem retira coerente com o destinatário.
- * Com `REMETENTE`, o celular de quem manda é obrigatório (C12) — é por ele que o destino avisa.
+ * Com `REMETENTE`, ou sem a retirada, o celular de quem manda é obrigatório (C12): é por ele que o atendimento fala com
+ * o cliente, e um destinatário ali é sobra. As mesmas do `Reserva.pendencias()` do KMP.
  */
 function pendenciasDoEnvio(reserva: ReservaDeEncomenda, pendencias: Set<PendenciaDaReserva>): void {
   const { quantidadeVolumes } = reserva
@@ -290,6 +295,7 @@ function pendenciasDoEnvio(reserva: ReservaDeEncomenda, pendencias: Set<Pendenci
   if (reserva.complemento !== undefined && reserva.complemento.length > LIMITE_DO_COMPLEMENTO) pendencias.add('COMPLEMENTO')
 
   switch (reserva.retirada) {
+    case undefined:
     case 'REMETENTE':
       if (reserva.cliente.telefone === undefined) pendencias.add('CLIENTE_TELEFONE_AUSENTE')
       if (reserva.destinatario !== undefined) pendencias.add('DESTINATARIO_INDEVIDO')

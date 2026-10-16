@@ -1,0 +1,38 @@
+---
+/**
+ * **Envie sua encomenda** — como funciona, e o botão que abre a reserva já em "Encomenda" (2.7, decisão B).
+ *
+ * Não tem script: é uma lista e um link. O link leva à âncora dentro da seção da reserva, e a ilha de lá começa pela
+ * encomenda (`ANCORA_DA_RESERVA_DE_ENCOMENDA`). Sem JavaScript, ele leva à reserva, que diz como falar com o
+ * atendimento.
+ */
+import { ENVIE_SUA_ENCOMENDA } from '../conteudo/encomenda'
+---
+
+<div class="encomenda">
+  <ol class="encomenda__passos">
+    {ENVIE_SUA_ENCOMENDA.passos.map((passo) => <li>{passo}</li>)}
+  </ol>
+  <a class="acao" href={ENVIE_SUA_ENCOMENDA.acao.href}>{ENVIE_SUA_ENCOMENDA.acao.rotulo}</a>
+</div>
+
+<style>
+  .encomenda {
+    display: grid;
+    gap: var(--espaco-4);
+    max-width: var(--largura-texto);
+  }
+
+  .encomenda__passos {
+    display: grid;
+    gap: var(--espaco-2);
+    margin: 0;
+    padding-inline-start: 1.25rem;
+    color: var(--text-body);
+    font-size: 1.0625rem;
+  }
+
+  .encomenda .acao {
+    justify-self: start;
+  }
+</style>

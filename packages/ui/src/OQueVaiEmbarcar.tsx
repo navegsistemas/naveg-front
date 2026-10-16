@@ -2,7 +2,7 @@
  * **O que vai embarcar** — a primeira pergunta da reserva na página (UI 2.2, decisão G; naveg-front#66).
  *
  * O **veículo** é a opção grande, com "leve" e "pesado" à vista: é o que faz sentir que a carga pesada cabe. Passageiros
- * e veículo, e Passageiros, vêm menores, mas inteiros. A encomenda é um link para a seção dela, até a 2.7.
+ * e veículo, Passageiros e Encomenda vêm menores, mas inteiros. A encomenda entrou com a 2.7 (decisões A e C).
  *
  * A foto de um veículo pesado embarcando (decisão M) entra pela propriedade `foto`: hoje, a do F/B Regional com
  * caminhões no convés (PO, 2026-10-15). Sem ela, o cartão se destaca pelo tamanho e pela posição, e não mostra molde:
@@ -20,8 +20,6 @@ export interface PropsDoQueVaiEmbarcar {
   readonly opcoes: readonly OQueEmbarca[]
   readonly escolhida: OQueEmbarca | undefined
   readonly aoEscolher: (embarque: OQueEmbarca) => void
-  /** Para onde aponta "Envie sua encomenda" — a seção dela na página. */
-  readonly hrefDaEncomenda?: string
   /** A foto do cartão do veículo, quando houver (decisão M). */
   readonly foto?: FotoDoCartao | null
 }
@@ -29,6 +27,8 @@ export interface PropsDoQueVaiEmbarcar {
 const DESCRICAO: Readonly<Record<Exclude<OQueEmbarca, 'VEICULO'>, string>> = {
   PASSAGEIROS_E_VEICULO: 'Quem viaja junto com o veículo.',
   PASSAGEIROS: 'Uma ou mais pessoas, de rede, suíte ou camarote.',
+  /* A encomenda (2.7, decisão C): o mesmo peso de Passageiros, com o que costuma ir. */
+  ENCOMENDA: 'Caixas, sacos, eletrodomésticos, móveis.',
 }
 
 /** "Carro, SUV, van" vira "carro, SUV, van": depois de "Leve:", só a primeira letra muda — a sigla fica. */
@@ -36,7 +36,7 @@ function minusculaNoComeco(texto: string): string {
   return texto.charAt(0).toLowerCase() + texto.slice(1)
 }
 
-export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, hrefDaEncomenda = '#encomendas', foto }: PropsDoQueVaiEmbarcar) {
+export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, foto }: PropsDoQueVaiEmbarcar) {
   return (
     <div className="totem-embarques">
       <ul className="totem-embarques__opcoes" role="list">
@@ -76,9 +76,6 @@ export function OQueVaiEmbarcar({ opcoes, escolhida, aoEscolher, hrefDaEncomenda
           </li>
         ))}
       </ul>
-      <p className="totem-embarques__encomenda">
-        Vai mandar uma caixa, um volume? <a href={hrefDaEncomenda}>Envie sua encomenda</a>
-      </p>
     </div>
   )
 }

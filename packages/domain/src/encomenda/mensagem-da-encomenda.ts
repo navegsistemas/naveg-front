@@ -38,6 +38,9 @@ export function oQueVai(reserva: ReservaDeEncomenda): string {
 /** Quem manda, quem retira, e o celular por onde o destino avisa. */
 export function quemRetira(reserva: ReservaDeEncomenda): string {
   switch (reserva.retirada) {
+    /* Sem a retirada, o atendimento combina quem busca (naveg-front#58): a mensagem diz quem manda, e o celular. */
+    case undefined:
+      return `De ${reserva.cliente.nome}, ${formatarWhatsapp(reserva.cliente.telefone ?? '')} · quem retira, a combinar`
     case 'REMETENTE':
       return `${reserva.cliente.nome} envia e retira no destino, ${formatarWhatsapp(reserva.cliente.telefone ?? '')}`
     case 'OUTRA_PESSOA': {

@@ -17,6 +17,7 @@
  * `expiraEm` é `validadeDaReserva(contexto.partida)` — hoje, a própria partida. Se o navio já partiu quando
  * a pessoa confirma, a reserva nasce com a pendência `VALIDADE`.
  */
+import { montarEncomenda } from '../encomenda/montagem-da-encomenda.js'
 import type { InstanteLocal } from '../primitivos/calendario.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import { normalizarWhatsapp } from './contato.js'
@@ -33,6 +34,8 @@ import {
   classeEmVigor,
   embarcacaoLeva,
   embarqueEmVigor,
+  encomendaPeloSite,
+  respostasDaEncomendaDoSite,
   pessoasEmVigor,
   roteiroDaReserva,
   tipoEmVigor,
@@ -207,6 +210,11 @@ export function montarReserva(
   if (!roteiro.prontoParaConferir && roteiro.atual !== null) return { caso: 'INCOMPLETA', faltando: roteiro.atual }
 
   const primeiro = roteiro.nos[0] as NoDoRoteiro
+  /* A encomenda do site (2.7) se monta como a encomenda de sempre: as mesmas regras, o mesmo documento. */
+  if (encomendaPeloSite(respostas)) {
+    const encomenda = montarEncomenda(respostasDaEncomendaDoSite(respostas), contexto, identidade)
+    return encomenda.caso === 'INCOMPLETA' ? { caso: 'INCOMPLETA', faltando: primeiro } : encomenda
+  }
   if (respostas.canal === 'SITE') {
     const reserva = deReservaPeloSite(roteiro.nos, respostas, montarBase(respostas, contexto, identidade), contexto)
     if (reserva === null) return { caso: 'INCOMPLETA', faltando: primeiro }

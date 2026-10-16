@@ -14,9 +14,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import {
   alcanceEmDias,
+  DataCalendario,
   DIAS_DA_JANELA,
   embarcacaoLeva,
   embarqueEmVigor,
+  encomendaPeloSite,
   InstanteLocal,
   linkDaReserva,
   montarReserva,
@@ -26,7 +28,6 @@ import {
   semResposta,
   travessiasOfertadas,
   voltar,
-  type DataCalendario,
   type PendenciaDaReserva,
   type Reserva,
   type RespostasDaReserva,
@@ -45,8 +46,11 @@ import {
   OQueVaiEmbarcar,
   PassoDaReserva,
   RecomecarComConfirmacao,
+  RETIRADA_A_COMBINAR,
   ReservaConcluida,
   SaidaEscolhida,
+  TEXTO_DE_QUEM_MANDA,
+  TRACEJADOS_DA_ENCOMENDA,
   TEXTO_DO_PASSO,
   TEXTO_DO_PASSO_NO_SITE,
   mesesDoCalendario,
@@ -58,6 +62,7 @@ import {
   saidasDoDia,
 } from '@navegsistemas/ui'
 
+import { ANCORA_DA_RESERVA_DE_ENCOMENDA } from '../conteudo/secoes'
 import { useAncoraNoCarregamento } from './ancora'
 import { useOferta } from './oferta'
 
@@ -115,6 +120,11 @@ const OCIOSO: Envio = { estado: 'OCIOSO' }
 /** O código provisório da prévia. É um código válido — só nunca é gravado. */
 const CODIGO_DA_PREVIA = 'NVG-000000'
 
+/** A encomenda sem o destinatário: quem retira fica para o atendimento (naveg-front#58, 2.7). */
+function retiradaACombinar(reserva: Reserva): boolean {
+  return reserva.categoria === 'ENCOMENDA' && reserva.retirada === undefined
+}
+
 /* Constantes, e não literais no componente: o `recomecar` depende delas, e um objeto novo a cada desenho o refaria. */
 const RESPOSTAS_DO_QUIOSQUE: RespostasDaReserva = {}
 const RESPOSTAS_DO_SITE: RespostasDaReserva = { canal: 'SITE' }
@@ -139,10 +149,20 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
 
   /* Na página, só as saídas cuja embarcação leva o que vai embarcar: a lancha não leva veículo, e o navio só leva carro
      e moto (ficha 2.2, segunda proposta). */
-  const ofertaDoEmbarque = useMemo(
-    () => (site ? oferta.filter((t) => embarcacaoLeva(respostas, t.contexto.tipoEmbarcacao)) : oferta),
-    [site, oferta, respostas],
+  /* A encomenda se reserva na semana (fluviapp-kmp#44, 2.7 decisão E): no calendário, só os próximos 7 dias acendem.
+     É a conta da regra do servidor (`saidaReservavel`): antes de hoje mais o alcance. */
+  const ehEncomenda = encomendaPeloSite(respostas)
+  const levaOEmbarque = useCallback(
+    (t: TravessiaOfertada) => {
+      if (!site) return true
+      if (!embarcacaoLeva(respostas, t.contexto.tipoEmbarcacao)) return false
+      if (!ehEncomenda) return true
+      const fim = DataCalendario.maisDias(InstanteLocal.data(agora), alcanceEmDias('ENCOMENDA'))
+      return DataCalendario.comparar(t.contexto.ocorrencia.data, fim) < 0
+    },
+    [site, respostas, ehEncomenda, agora],
   )
+  const ofertaDoEmbarque = useMemo(() => oferta.filter(levaOEmbarque), [oferta, levaOEmbarque])
 
   /* O calendário guarda só os gestos — a origem do filtro, o dia e o mês que a pessoa escolheu. O dia em vigor é
      derivado: se o escolhido deixou de se reservar (partiu, ou o filtro o apagou), vale o primeiro que se reserva. */
@@ -151,6 +171,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   const [mesEscolhido, setMesEscolhido] = useState<number | null>(null)
   const calendario = useMemo(() => {
     if (alcanceDoCalendario === null || catalogo === null) return null
+    /* As previstas não passam pelo alcance da encomenda: os dias depois da semana ficam apagados, e não somem. */
     const previstas = travessiasOfertadas(catalogo, agora, alcanceDoCalendario).filter(
       (t) => !site || embarcacaoLeva(respostas, t.contexto.tipoEmbarcacao),
     )
@@ -198,6 +219,20 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
 
   const raiz = useRef<HTMLDivElement>(null)
   useAncoraNoCarregamento(raiz, catalogo !== null)
+
+  /* "Mandar uma encomenda", da seção dela (2.7, B): a âncora começa a reserva pela encomenda. */
+  useEffect(() => {
+    if (!site) return
+    const aplicar = () => {
+      if (window.location.hash !== `#${ANCORA_DA_RESERVA_DE_ENCOMENDA}`) return
+      setEnvio(OCIOSO)
+      setTravessia(null)
+      setRespostas({ ...inicio, embarque: 'ENCOMENDA' })
+    }
+    aplicar()
+    window.addEventListener('hashchange', aplicar)
+    return () => window.removeEventListener('hashchange', aplicar)
+  }, [site, inicio])
 
   const titulo = useRef<HTMLHeadingElement>(null)
   /* Só se move o foco depois que a pessoa começou: roubá-lo no carregamento arrastaria a página até o totem. */
@@ -333,8 +368,12 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         codigo={envio.reserva.codigo}
         linhas={resumoDaReserva(envio.reserva, envio.travessia)}
         aoRecomecar={recomecar}
+        /* Uma reserva por vez (2.7, decisão H): quem também viaja, ou também manda, reserva de novo. */
+        {...(site ? { rotuloDoRecomecar: 'Reservar mais alguma coisa' } : {})}
         atendimento={
-          demonstracao !== null ? (
+          <>
+            {retiradaACombinar(envio.reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
+            {demonstracao !== null ? (
             <p className="totem-aviso">
               Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o
               atendimento pelo WhatsApp, já com o código.
@@ -353,9 +392,10 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
                 Abre o WhatsApp com a reserva escrita. Se não abrir, fale com o atendimento informando o código.
               </p>
             </>
-          ) : (
-            <p className="totem-aviso">Fale com o atendimento pelo WhatsApp informando este código.</p>
-          )
+            ) : (
+              <p className="totem-aviso">Fale com o atendimento pelo WhatsApp informando este código.</p>
+            )}
+          </>
         }
       />
     )
@@ -402,6 +442,9 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
             setMesEscolhido(null)
           }}
           atendimento={atendimento}
+          /* A encomenda se reserva na semana: a nota dos tracejados diz por quê (2.7, E). Dentro do calendário, e não
+             ao lado, para não tomar a coluna das saídas no computador. */
+          {...(ehEncomenda ? { tracejados: TRACEJADOS_DA_ENCOMENDA } : {})}
         />
         <div className="totem-saidas-do-dia">
           {dia !== null && (
@@ -427,6 +470,8 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           enviando={envio.estado === 'ENVIANDO'}
           aoConfirmar={confirmar}
         />
+        {/* Sem o destinatário, a retirada fica para o atendimento (2.7, G): a conferência diz como funciona. */}
+        {previa.caso === 'OK' && retiradaACombinar(previa.reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
         {envio.estado === 'FALHA' && (
           <p className="totem-pendencias" role="alert">
             Não foi possível enviar a reserva agora. Confira a conexão e tente de novo.
@@ -447,10 +492,16 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       </>
     )
   } else {
-    const texto = (quiosque ? undefined : TEXTO_DO_PASSO_NO_SITE[atual.passo]) ?? TEXTO_DO_PASSO[atual.passo]
+    /* Na encomenda, o passo do cliente é "Quem está mandando?", com o celular obrigatório (2.7, F). */
+    const texto =
+      atual.passo === 'CLIENTE' && atual.telefoneObrigatorio === true
+        ? TEXTO_DE_QUEM_MANDA
+        : ((quiosque ? undefined : TEXTO_DO_PASSO_NO_SITE[atual.passo]) ?? TEXTO_DO_PASSO[atual.passo])
     pergunta = texto.pergunta
     ajuda = texto.ajuda
-    corpo = <PassoDaReserva no={atual} respostas={respostas} aoResponder={responder} />
+    /* A chave é o passo: sem ela, o React reaproveita o formulário de quem manda em "Quem recebe?", com o que já
+       estava digitado, e o remetente iria como destinatário (2.7). */
+    corpo = <PassoDaReserva key={atual.passo} no={atual} respostas={respostas} aoResponder={responder} />
   }
 
   /* Na página, as etapas pelo nome (UI 2.2, decisão C), do que vai embarcar à conferência, e desde a primeira pergunta;
@@ -462,7 +513,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         ? 'Dia e saída'
         : atual === null || atual.passo === 'CONFERENCIA'
           ? 'Conferir'
-          : atual.passo === 'CLIENTE'
+          : atual.passo === 'CLIENTE' || atual.passo === 'DESTINATARIO'
             ? 'Seus dados'
             : 'O que vai embarcar'
   const emAndamentoNaTela = envio.estado !== 'ENVIADA' && (site || roteiro !== null)

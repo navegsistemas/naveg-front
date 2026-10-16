@@ -9,6 +9,7 @@ import {
   Acomodacao,
   CategoriaPassagem,
   ClasseVeiculo,
+  FaixaPeso,
   NaturezaVeiculo,
   OQueEmbarca,
   PorteDoVeiculo,
@@ -22,8 +23,15 @@ import {
 } from '@navegsistemas/domain'
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
-import { CampoDeCilindrada, FormularioDoCliente } from './Formularios.js'
-import { QuantidadeDePessoas } from './QuantidadeDePessoas.js'
+import { CampoDeCilindrada, FormularioDoCliente, FormularioDoTipoDoVolume } from './Formularios.js'
+import { QuantidadeDePessoas, VOLUMES } from './QuantidadeDePessoas.js'
+
+/** As respostas sem estas chaves — omitidas, e não `undefined`, como no domínio. */
+function semChaves(respostas: RespostasDaReserva, ...chaves: (keyof RespostasDaReserva)[]): RespostasDaReserva {
+  const copia: { -readonly [Chave in keyof RespostasDaReserva]: RespostasDaReserva[Chave] } = { ...respostas }
+  for (const chave of chaves) delete copia[chave]
+  return copia
+}
 
 export interface PropsDoPasso {
   /** Qualquer nó, menos a conferência — ela tem componente próprio. */
@@ -119,7 +127,63 @@ export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
     case 'CILINDRADA':
       return <CampoDeCilindrada inicial={respostas.cilindrada} aoConfirmar={(cilindrada) => com({ cilindrada })} />
     case 'CLIENTE':
-      return <FormularioDoCliente inicial={respostas.cliente} aoConfirmar={(cliente) => com({ cliente })} />
+      return (
+        <FormularioDoCliente
+          inicial={respostas.cliente}
+          telefoneObrigatorio={no.telefoneObrigatorio === true}
+          {...(no.telefoneObrigatorio === true ? { erroDoNome: 'Informe o nome de quem manda.' } : {})}
+          aoConfirmar={(cliente) => com({ cliente })}
+        />
+      )
+    case 'TIPO_VOLUME':
+      return (
+        <FormularioDoTipoDoVolume
+          tipos={no.opcoes}
+          inicial={{
+            ...(respostas.tipoVolume !== undefined ? { tipoVolume: respostas.tipoVolume } : {}),
+            ...(respostas.complemento !== undefined ? { complemento: respostas.complemento } : {}),
+          }}
+          aoConfirmar={({ tipoVolume, complemento }) =>
+            aoResponder({ ...semChaves(respostas, 'complemento'), tipoVolume, ...(complemento !== undefined ? { complemento } : {}) })
+          }
+        />
+      )
+    case 'QUANTIDADE_VOLUMES':
+      return (
+        <QuantidadeDePessoas
+          opcoes={no.opcoes}
+          unidade={VOLUMES}
+          escolhida={respostas.quantidadeVolumes}
+          aoEscolher={(quantidadeVolumes) => com({ quantidadeVolumes })}
+        />
+      )
+    case 'FAIXA_PESO':
+      return (
+        <EscolhaEmCartoes
+          opcoes={no.opcoes.map((valor) => ({ valor, rotulo: FaixaPeso.rotulo(valor) }))}
+          escolhida={respostas.faixaPeso}
+          aoEscolher={(faixaPeso) => com({ faixaPeso })}
+        />
+      )
+    case 'DESTINATARIO':
+      /* Opcional (PO, 2026-10-15): informar é preencher os dois campos; "Pular" também responde. */
+      return (
+        <>
+          <FormularioDoCliente
+            inicial={respostas.destinatario}
+            telefoneObrigatorio
+            erroDoNome="Informe o nome de quem recebe."
+            aoConfirmar={(destinatario) => aoResponder({ ...semChaves(respostas, 'semDestinatario'), destinatario })}
+          />
+          <button
+            type="button"
+            className="acao acao--secundaria"
+            onClick={() => aoResponder({ ...semChaves(respostas, 'destinatario'), semDestinatario: true })}
+          >
+            Pular: combino com o atendimento
+          </button>
+        </>
+      )
     default:
       return casoImpossivel(no, 'PassoDaReserva')
   }

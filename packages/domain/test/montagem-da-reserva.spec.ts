@@ -315,3 +315,47 @@ describe('o que vai embarcar, pelo site', () => {
     expect(reserva).toMatchObject({ categoria: 'VEICULO', classe: 'CAMINHAO' })
   })
 })
+
+/* 2.7 (naveg-front#58): a encomenda pelo site se monta como a encomenda de sempre, sem "Quem retira?". */
+describe('a encomenda, pelo site', () => {
+  const ENCOMENDA: RespostasDaReserva = {
+    canal: 'SITE',
+    embarque: 'ENCOMENDA',
+    tipoVolume: 'CAIXA',
+    complemento: 'mantimentos',
+    quantidadeVolumes: 8,
+    faixaPeso: 'DE_20_A_50',
+    cliente: CLIENTE,
+  }
+
+  it('sem o destinatário: a reserva de encomenda sem a retirada — o atendimento combina', () => {
+    const reserva = reservaDe(montarReserva({ ...ENCOMENDA, semDestinatario: true }, contexto(), IDENTIDADE))
+    expect(reserva).toMatchObject({
+      categoria: 'ENCOMENDA',
+      tipoVolume: 'CAIXA',
+      complemento: 'mantimentos',
+      quantidadeVolumes: 8,
+      faixaPeso: 'DE_20_A_50',
+      cliente: { nome: 'Maria Souza', telefone: '5591988887777' },
+    })
+    expect('retirada' in reserva).toBe(false)
+    expect('destinatario' in reserva).toBe(false)
+    expect(paraDominio(reserva.codigo, JSON.parse(JSON.stringify(paraDocumento(reserva))))).toEqual(reserva)
+  })
+
+  it('com o destinatário: "outra pessoa retira", com o nome e o celular dele', () => {
+    const reserva = reservaDe(
+      montarReserva({ ...ENCOMENDA, destinatario: { nome: 'João Lima', telefone: '(96) 98888-7777' } }, contexto(), IDENTIDADE),
+    )
+    expect(reserva).toMatchObject({
+      retirada: 'OUTRA_PESSOA',
+      destinatario: { nome: 'João Lima', telefone: '5596988887777' },
+    })
+  })
+
+  it('sem o celular de quem manda, não fecha', () => {
+    expect(
+      montarReserva({ ...ENCOMENDA, cliente: { nome: 'Maria' }, semDestinatario: true }, contexto(), IDENTIDADE).caso,
+    ).toBe('INCOMPLETA')
+  })
+})

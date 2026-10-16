@@ -12,7 +12,6 @@
 import { useId, useState, type FormEvent } from 'react'
 
 import {
-  LIMITE_DE_VOLUMES,
   LIMITE_DO_COMPLEMENTO,
   LIMITE_DO_NOME,
   LIMITE_DO_TELEFONE,
@@ -161,46 +160,41 @@ export function CampoDeCilindrada({ inicial, aoConfirmar }: PropsDaCilindrada) {
   )
 }
 
-/** O que o passo do volume escreve nas respostas: o tipo, quantos, e o complemento, se houver. */
-export interface RespostaDoVolume {
+/** O que o passo do tipo escreve nas respostas: o tipo, e o complemento, se houver. */
+export interface RespostaDoTipoDoVolume {
   readonly tipoVolume: TipoVolume
-  readonly quantidadeVolumes: number
   readonly complemento?: string
 }
 
-export interface PropsDoFormularioDoVolume {
+export interface PropsDoFormularioDoTipoDoVolume {
   readonly tipos: readonly TipoVolume[]
-  readonly inicial: Partial<RespostaDoVolume>
-  readonly aoConfirmar: (volume: RespostaDoVolume) => void
+  readonly inicial: Partial<RespostaDoTipoDoVolume>
+  readonly aoConfirmar: (volume: RespostaDoTipoDoVolume) => void
 }
 
 /**
- * **O que vai** — o tipo, a quantidade e o complemento, numa tela só (C3). O tipo é escolhido em cartão, como
- * os outros passos; aqui o toque só marca, porque a quantidade ainda falta.
+ * **O que vai mandar** — o tipo em cartões e o "O que é" opcional, numa tela (2.7, decisão D). O toque no cartão só
+ * marca, porque o complemento ainda pode ser escrito; quem responde é o "Continuar". A quantidade é a tela seguinte.
  */
-export function FormularioDoVolume({ tipos, inicial, aoConfirmar }: PropsDoFormularioDoVolume) {
+export function FormularioDoTipoDoVolume({ tipos, inicial, aoConfirmar }: PropsDoFormularioDoTipoDoVolume) {
   const id = useId()
   const [tipo, setTipo] = useState<TipoVolume | undefined>(inicial.tipoVolume)
-  const [quantidade, setQuantidade] = useState(String(inicial.quantidadeVolumes ?? 1))
   const [complemento, setComplemento] = useState(inicial.complemento ?? '')
   const [tentou, setTentou] = useState(false)
-
-  const numero = /^\d{1,2}$/.test(quantidade.trim()) ? Number(quantidade.trim()) : null
-  const quantidadeInvalida = numero === null || numero < 1 || numero > LIMITE_DE_VOLUMES
   const semTipo = tipo === undefined
 
   function enviar(evento: FormEvent) {
     evento.preventDefault()
     setTentou(true)
-    if (tipo === undefined || numero === null || quantidadeInvalida) return
+    if (tipo === undefined) return
     const texto = complemento.trim()
-    aoConfirmar({ tipoVolume: tipo, quantidadeVolumes: numero, ...(texto.length > 0 ? { complemento: texto } : {}) })
+    aoConfirmar({ tipoVolume: tipo, ...(texto.length > 0 ? { complemento: texto } : {}) })
   }
 
   return (
-    <form className="totem-formulario" onSubmit={enviar} noValidate>
+    <form className="totem-formulario totem-formulario--largo" onSubmit={enviar} noValidate>
       <fieldset className="totem-campo totem-grupo" aria-describedby={tentou && semTipo ? `${id}-tipo-erro` : undefined}>
-        <legend>Tipo do volume</legend>
+        <legend className="apenas-leitor">Tipo do volume</legend>
         <EscolhaEmCartoes
           opcoes={tipos.map((valor) => ({ valor, rotulo: TipoVolume.rotulo(valor) }))}
           escolhida={tipo}
@@ -213,26 +207,7 @@ export function FormularioDoVolume({ tipos, inicial, aoConfirmar }: PropsDoFormu
         )}
       </fieldset>
 
-      <div className="totem-campo">
-        <label htmlFor={`${id}-quantidade`}>Quantos volumes</label>
-        <input
-          id={`${id}-quantidade`}
-          name="quantidadeVolumes"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={quantidade}
-          onChange={(e) => setQuantidade(e.target.value)}
-          aria-invalid={tentou && quantidadeInvalida}
-          aria-describedby={tentou && quantidadeInvalida ? `${id}-quantidade-erro` : undefined}
-        />
-        {tentou && quantidadeInvalida && (
-          <p id={`${id}-quantidade-erro`} className="totem-erro">
-            De 1 a {LIMITE_DE_VOLUMES} volumes.
-          </p>
-        )}
-      </div>
-
-      <div className="totem-campo">
+      <div className="totem-campo totem-campo--leitura">
         <label htmlFor={`${id}-complemento`}>
           O que é <span className="totem-opcional">(opcional)</span>
         </label>

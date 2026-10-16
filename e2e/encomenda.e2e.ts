@@ -1,10 +1,12 @@
 /**
- * **A encomenda, de ponta a ponta, num navegador de verdade** — `docs/plano-da-reserva-de-encomenda.md`, §7.
+ * **A encomenda, de ponta a ponta, num navegador de verdade** — a 2.7 do roteiro de UI/UX.
  *
- * Os cenários de `apps/agencia/test/encomenda.spec.tsx` dirigem o roteiro em jsdom. Aqui se confere o que só o
- * navegador prova: as duas portas de entrada (o item "Encomendas" na barra e o botão da capa) levando à seção, a
- * ilha hidratando quando ela entra na tela, o Turnstile, o corpo que vai à API (`encomenda`, e não `respostas`),
- * o código do servidor e o `href` do WhatsApp. E o quiosque **sem** encomenda (C9).
+ * A encomenda é reservada pelo caminho da reserva ("O que vai embarcar?" → Encomenda), e a seção "Envie sua encomenda"
+ * só explica, com o botão que abre a reserva já em "Encomenda" (decisões A e B, PO, 2026-10-15). Os cenários de
+ * `apps/agencia/test/totem.spec.tsx` dirigem o roteiro em jsdom. Aqui se confere o que só o navegador prova: o menu
+ * levando à seção, o botão levando à âncora da reserva, a ilha hidratando e começando pela encomenda, o calendário da
+ * semana, o Turnstile, o corpo que vai à API (`encomenda`, sem `retirada`: naveg-front#58), o código do servidor e o
+ * `href` do WhatsApp. E o quiosque **sem** encomenda (C9).
  */
 import type { Locator, Page } from '@playwright/test'
 
@@ -15,77 +17,90 @@ import { irPeloMenu } from './topo'
 const WHATSAPP_DA_NAVEG = '5591992035322'
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
 
-const secao = (page: Page): Locator => page.locator('#encomendas .totem')
-const pergunta = (page: Page): Locator => secao(page).getByRole('heading', { level: 3 })
+const totem = (page: Page): Locator => page.locator('.totem')
+const pergunta = (page: Page): Locator => totem(page).locator('.totem-pergunta')
 
-/** Da lista à conclusão: três caixas, 5 a 20 kg, para João Lima, mandadas por Maria Souza. */
-async function enviarTresCaixas(page: Page) {
-  const saida = secao(page).getByRole('listitem').filter({ hasText: 'Ferry de demonstração' }).first()
-  await saida.getByRole('button', { name: 'Enviar nesta saída' }).click()
+/** Da seção "Envie sua encomenda" à reserva feita: três caixas de mantimentos, 5 a 20 kg, mandadas por Maria Souza. */
+async function mandarTresCaixas(page: Page) {
+  const titulo = page.getByRole('heading', { level: 2, name: 'Envie sua encomenda' })
+  await expect(titulo).toBeInViewport()
 
+  /* O botão leva à reserva, que começa pela encomenda: a primeira pergunta já é o tipo. */
+  await page.locator('#encomendas').getByRole('link', { name: 'Mandar uma encomenda' }).click()
   await expect(pergunta(page)).toHaveText('O que vai mandar?')
-  await secao(page).getByRole('button', { name: /^Caixa/ }).click()
-  await secao(page).getByLabel('Quantos volumes').fill('3')
-  await secao(page).getByLabel(/O que é/).fill('mantimentos')
-  await secao(page).getByRole('button', { name: 'Continuar' }).click()
+  await totem(page).getByRole('button', { name: /^Caixa/ }).click()
+  await totem(page).getByLabel(/O que é/).fill('mantimentos')
+  await totem(page).getByRole('button', { name: 'Continuar' }).click()
 
-  await secao(page).getByRole('button', { name: /^5 a 20 kg/ }).click()
-  await secao(page).getByRole('button', { name: /^Outra pessoa/ }).click()
+  await expect(pergunta(page)).toHaveText('Quantos volumes?')
+  await totem(page).getByRole('button', { name: '3 volumes' }).click()
+  await expect(pergunta(page)).toHaveText('Quanto pesa, mais ou menos?')
+  await totem(page).getByRole('button', { name: /^5 a 20 kg/ }).click()
 
-  await expect(pergunta(page)).toHaveText('Para quem vai?')
-  await secao(page).getByLabel('Nome').fill('João Lima')
-  await secao(page).getByLabel('Celular com DDD').fill('(96) 98888-7777')
-  await secao(page).getByRole('button', { name: 'Continuar' }).click()
+  /* O dia: só a semana acende (decisão E), e uma linha diz por quê. */
+  await expect(pergunta(page)).toHaveText('Escolha o dia')
+  await expect(totem(page).getByText('3 volumes · Caixa (mantimentos) · 5 a 20 kg')).toBeVisible()
+  await expect(totem(page).getByText(/A encomenda se reserva para os próximos 7 dias/)).toBeVisible()
+  await totem(page).locator('.calendario-dia--reservavel').first().click()
+  const saida = totem(page).locator('.totem-travessias').getByRole('listitem').first()
+  await saida.getByRole('button', { name: 'Reservar esta saída' }).click()
 
+  /* Quem manda, com o celular obrigatório (F); quem recebe, opcional, e aqui pulado. */
   await expect(pergunta(page)).toHaveText('Quem está mandando?')
-  await secao(page).getByLabel('Nome').fill('Maria Souza')
-  await secao(page).getByRole('button', { name: 'Continuar' }).click()
+  await totem(page).getByLabel('Nome').fill('Maria Souza')
+  await totem(page).getByLabel(/Celular com DDD/).fill('(91) 98888-7777')
+  await totem(page).getByRole('button', { name: 'Continuar' }).click()
 
-  await expect(pergunta(page)).toHaveText('Confira a encomenda')
-  await secao(page).getByRole('button', { name: 'Confirmar' }).click()
-  await expect(pergunta(page)).toHaveText('Encomenda reservada', PRAZO_DO_ENVIO)
+  await expect(pergunta(page)).toHaveText('Quem recebe no destino?')
+  await totem(page).getByRole('button', { name: /^Pular/ }).click()
+
+  /* Sem o destinatário, a retirada é a combinar (G), e a conferência diz como funciona. */
+  await expect(pergunta(page)).toHaveText('Confira a reserva')
+  await expect(totem(page).getByText('A combinar com o atendimento')).toBeVisible()
+  await expect(totem(page).getByText(/retirada no porto com documento/).first()).toBeVisible()
+  await totem(page).getByRole('button', { name: 'Confirmar reserva' }).click()
+  await expect(pergunta(page)).toHaveText('Reserva feita', PRAZO_DO_ENVIO)
 }
 
 test.describe('a encomenda na página', () => {
-  test('pelo item "Encomendas" da barra: da saída ao WhatsApp, com o corpo de encomenda', async ({ page }) => {
+  test('pelo item "Encomendas" do menu: da seção ao WhatsApp, com o corpo de encomenda e sem a retirada', async ({
+    page,
+  }) => {
     const api = await servirApiFalsa(page)
     await page.goto('/')
 
     await irPeloMenu(page, 'Encomendas')
-    const titulo = page.getByRole('heading', { level: 2, name: 'Envie sua encomenda' })
-    await expect(titulo).toBeInViewport()
-    /* E continua nela quando as saídas chegam: nada que hidrata acima pode empurrar a seção para baixo. */
-    await expect(secao(page).getByRole('listitem').first()).toBeVisible()
-    await expect(titulo).toBeInViewport()
+    await mandarTresCaixas(page)
+    await expect(totem(page).getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible()
+    await expect(totem(page).getByRole('button', { name: 'Reservar mais alguma coisa' })).toBeVisible()
 
-    await enviarTresCaixas(page)
-    await expect(secao(page).getByText(CODIGO_DO_SERVIDOR, { exact: true })).toBeVisible()
-
-    /* O que atravessou: a ocorrência, a encomenda e o token — sem `respostas`, e nada de reserva pronta. */
+    /* O que atravessou: a ocorrência, a encomenda e o token — sem `respostas`, e sem a retirada nem o destinatário. */
     expect(api.pedidos).toHaveLength(1)
     const [pedido] = api.pedidos
     expect(Object.keys(pedido ?? {}).sort()).toEqual(['data', 'desafio', 'encomenda', 'viagemId'])
     expect(pedido?.desafio).toBe(TOKEN_DE_TESTE_DO_TURNSTILE)
-    expect(pedido !== undefined && 'encomenda' in pedido ? pedido.encomenda : undefined).toEqual({
+    const encomenda = pedido !== undefined && 'encomenda' in pedido ? pedido.encomenda : undefined
+    expect(encomenda).toMatchObject({
       tipoVolume: 'CAIXA',
       quantidadeVolumes: 3,
       complemento: 'mantimentos',
       faixaPeso: 'DE_5_A_20',
-      retirada: 'OUTRA_PESSOA',
-      destinatario: { nome: 'João Lima', telefone: '(96) 98888-7777' },
       cliente: { nome: 'Maria Souza' },
     })
+    expect(encomenda?.cliente?.telefone).toMatch(/98888-?7777$/)
+    expect(encomenda).not.toHaveProperty('retirada')
+    expect(encomenda).not.toHaveProperty('destinatario')
 
-    const atendimento = secao(page).getByRole('link', { name: 'Enviar ao atendimento' })
+    const atendimento = totem(page).getByRole('link', { name: 'Enviar ao atendimento' })
     await expect(atendimento).toHaveAttribute('target', '_blank')
     const link = new URL((await atendimento.getAttribute('href')) ?? '')
     expect(`${link.origin}${link.pathname}`).toBe(`https://wa.me/${WHATSAPP_DA_NAVEG}`)
     const mensagem = (link.searchParams.get('text') ?? '').split('\n')
     expect(mensagem[0]).toBe(`Encomenda ${CODIGO_DO_SERVIDOR}`)
-    expect(mensagem[2]).toBe('Embarque: Porto de demonstração · Cidade Exemplo A/PA')
-    expect(mensagem[3]).toBe('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
-    expect(mensagem[4]).toBe('De Maria Souza para João Lima, (96) 98888-7777')
-    expect(mensagem[5]).toBe('Entregue no porto antes da partida.')
+    expect(mensagem).toContain('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
+    expect(mensagem.some((linha) => linha.startsWith('De Maria Souza, ') && linha.endsWith('quem retira, a combinar'))).toBe(
+      true,
+    )
   })
 
   test('pelo botão "Enviar encomenda" da capa, do mesmo jeito', async ({ page }) => {
@@ -93,7 +108,7 @@ test.describe('a encomenda na página', () => {
     await page.goto('/')
 
     await page.locator('#capa').getByRole('link', { name: 'Enviar encomenda' }).click()
-    await enviarTresCaixas(page)
+    await mandarTresCaixas(page)
     expect(api.pedidos).toHaveLength(1)
   })
 })

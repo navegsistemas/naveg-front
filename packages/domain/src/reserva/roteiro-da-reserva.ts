@@ -38,6 +38,8 @@ import { casoImpossivel } from '../primitivos/fronteira.js'
 import { TipoEmbarcacao } from '../viagem/tipo-embarcacao.js'
 import type { OcorrenciaViagem } from '../viagem/ocorrencia-viagem.js'
 import { PorteDoVeiculo } from '../passagem/porte-do-veiculo.js'
+import type { RespostasDaEncomenda } from '../encomenda/roteiro-da-encomenda.js'
+import { FaixaPeso, LIMITE_DE_VOLUMES, TipoVolume } from '../encomenda/volume.js'
 import { OQueEmbarca } from './o-que-embarca.js'
 import { LIMITE_DE_PESSOAS_DA_RESERVA } from './reserva.js'
 
@@ -65,8 +67,19 @@ export type NoDoRoteiro =
     }
   /** Só para a classe que a exige — hoje, a moto. */
   | { readonly passo: 'CILINDRADA'; readonly classe: ClasseVeiculo }
-  /** Nome obrigatório; telefone opcional — ver `ClienteDaReserva`. */
-  | { readonly passo: 'CLIENTE' }
+  /** Só no site, a encomenda (2.7): o tipo do volume, com "O que é" opcional na mesma tela. */
+  | { readonly passo: 'TIPO_VOLUME'; readonly opcoes: readonly TipoVolume[] }
+  /** Só no site, a encomenda: de 1 a 20 volumes. */
+  | { readonly passo: 'QUANTIDADE_VOLUMES'; readonly opcoes: readonly number[] }
+  /** Só no site, a encomenda: a estimativa do peso. */
+  | { readonly passo: 'FAIXA_PESO'; readonly opcoes: readonly FaixaPeso[] }
+  /**
+   * Nome obrigatório; telefone opcional — ver `ClienteDaReserva`. Obrigatório na encomenda (2.7, decisão F): é por ele
+   * que o atendimento fala com quem manda.
+   */
+  | { readonly passo: 'CLIENTE'; readonly telefoneObrigatorio?: boolean }
+  /** Só no site, a encomenda: quem recebe no destino, **opcional**, depois de quem manda (PO, 2026-10-15). */
+  | { readonly passo: 'DESTINATARIO' }
   | { readonly passo: 'CONFERENCIA' }
 
 export type PassoDaReserva = NoDoRoteiro['passo']
@@ -110,6 +123,15 @@ export interface RespostasDaReserva {
   readonly naturezaVeiculo?: NaturezaVeiculo
   readonly classeVeiculo?: ClasseVeiculo
   readonly cilindrada?: number
+  // --- só a encomenda do site (2.7) ---
+  readonly tipoVolume?: TipoVolume
+  readonly complemento?: string
+  readonly quantidadeVolumes?: number
+  readonly faixaPeso?: FaixaPeso
+  /** Quem recebe no destino, se quem manda quiser dizer. Com ele, a reserva vai como "outra pessoa retira". */
+  readonly destinatario?: RascunhoDoCliente
+  /** "Pular" o destinatário é uma resposta: o nó fica respondido sem ele. */
+  readonly semDestinatario?: boolean
   readonly cliente?: RascunhoDoCliente
   readonly observacao?: string
 }
@@ -254,7 +276,41 @@ export function nosDoEmbarque(respostas: RespostasDaReserva): readonly NoDoRotei
   if (OQueEmbarca.levaPessoas(embarque)) {
     nos.push({ passo: 'QUANTIDADE_PESSOAS', opcoes: PESSOAS_DO_SITE }, { passo: 'ACOMODACAO', opcoes: Acomodacao.valores })
   }
+  /* A encomenda (2.7, decisão D): o tipo, quantos volumes e o peso, uma pergunta por tela. */
+  if (OQueEmbarca.eEncomenda(embarque)) {
+    nos.push(
+      { passo: 'TIPO_VOLUME', opcoes: TipoVolume.valores },
+      { passo: 'QUANTIDADE_VOLUMES', opcoes: VOLUMES_DO_SITE },
+      { passo: 'FAIXA_PESO', opcoes: FaixaPeso.valores },
+    )
+  }
   return nos
+}
+
+/** De 1 a 20 volumes — o limite da encomenda pela reserva. Mais do que isso é carga, e conversa. */
+const VOLUMES_DO_SITE = faixa(LIMITE_DE_VOLUMES)
+
+/** A reserva do site é de encomenda: ela vai à API como pedido de encomenda, com o alcance de 7 dias. */
+export function encomendaPeloSite(respostas: RespostasDaReserva): boolean {
+  const embarque = peloSite(respostas) ? embarqueEmVigor(respostas) : undefined
+  return embarque !== undefined && OQueEmbarca.eEncomenda(embarque)
+}
+
+/**
+ * **As respostas da encomenda do site, na forma do pedido de encomenda.** A página pergunta tudo no roteiro da
+ * reserva; o que vai à API, e o que se monta, é a encomenda de sempre (`montarEncomenda`). O destinatário entra só se
+ * foi informado e não pulado; sem ele, sem a retirada — o atendimento combina (naveg-front#58).
+ */
+export function respostasDaEncomendaDoSite(respostas: RespostasDaReserva): RespostasDaEncomenda {
+  const { tipoVolume, quantidadeVolumes, complemento, faixaPeso, cliente, destinatario } = respostas
+  return {
+    ...(tipoVolume !== undefined ? { tipoVolume } : {}),
+    ...(quantidadeVolumes !== undefined ? { quantidadeVolumes } : {}),
+    ...(complemento !== undefined && complemento.trim().length > 0 ? { complemento } : {}),
+    ...(faixaPeso !== undefined ? { faixaPeso } : {}),
+    ...(cliente !== undefined ? { cliente } : {}),
+    ...(destinatario !== undefined && respostas.semDestinatario !== true ? { destinatario } : {}),
+  }
 }
 
 /** O que vai embarcar está todo respondido — e a página pode mostrar o calendário. */
@@ -341,7 +397,12 @@ export function roteiroDaReserva(respostas: RespostasDaReserva, contexto: Contex
 
   /* Cliente e conferência existem em qualquer caminho, e por isso entram desde o começo: o indicador
      precisa dizer "de 3" antes de o meio estar conhecido, senão ele encurta em vez de crescer. */
-  nos.push({ passo: 'CLIENTE' }, { passo: 'CONFERENCIA' })
+  /* Na encomenda do site, o celular de quem manda é obrigatório (2.7, F), e o destinatário vem depois, opcional. */
+  if (encomendaPeloSite(respostas)) {
+    nos.push({ passo: 'CLIENTE', telefoneObrigatorio: true }, { passo: 'DESTINATARIO' }, { passo: 'CONFERENCIA' })
+  } else {
+    nos.push({ passo: 'CLIENTE' }, { passo: 'CONFERENCIA' })
+  }
 
   const indiceAtual = nos.findIndex((no) => !respondido(no, respostas))
   const conferencia = nos.length - 1
@@ -386,8 +447,20 @@ export function respondido(no: NoDoRoteiro, respostas: RespostasDaReserva): bool
     case 'CILINDRADA':
       return respostas.cilindrada !== undefined && respostas.cilindrada > 0
     case 'CLIENTE':
-      /* O telefone é opcional: o nó se responde com o nome. */
-      return preenchido(respostas.cliente?.nome)
+      /* O telefone é opcional — a não ser na encomenda —: o nó se responde com o nome. */
+      return preenchido(respostas.cliente?.nome) && (no.telefoneObrigatorio !== true || preenchido(respostas.cliente?.telefone))
+    case 'TIPO_VOLUME':
+      return escolhida(no.opcoes, respostas.tipoVolume) !== undefined
+    case 'QUANTIDADE_VOLUMES':
+      return escolhida(no.opcoes, respostas.quantidadeVolumes) !== undefined
+    case 'FAIXA_PESO':
+      return escolhida(no.opcoes, respostas.faixaPeso) !== undefined
+    case 'DESTINATARIO':
+      /* Opcional: pular é responder. Informado, são os dois campos. */
+      return (
+        respostas.semDestinatario === true ||
+        (preenchido(respostas.destinatario?.nome) && preenchido(respostas.destinatario?.telefone))
+      )
     case 'CONFERENCIA':
       /* A conferência não se "responde": confirmá-la **é** enviar, e quem decide se pode é `montarReserva`. */
       return false
@@ -433,6 +506,15 @@ export function semResposta(no: NoDoRoteiro, respostas: RespostasDaReserva): Res
       return sem(respostas, 'cilindrada')
     case 'CLIENTE':
       return sem(respostas, 'cliente')
+    /* O tipo leva o "O que é" junto: os dois se respondem na mesma tela. */
+    case 'TIPO_VOLUME':
+      return sem(sem(respostas, 'tipoVolume'), 'complemento')
+    case 'QUANTIDADE_VOLUMES':
+      return sem(respostas, 'quantidadeVolumes')
+    case 'FAIXA_PESO':
+      return sem(respostas, 'faixaPeso')
+    case 'DESTINATARIO':
+      return sem(sem(respostas, 'destinatario'), 'semDestinatario')
     case 'CONFERENCIA':
       return respostas
     default:

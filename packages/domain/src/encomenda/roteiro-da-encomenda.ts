@@ -7,9 +7,15 @@
  * **cresce** conforme as respostas chegam; voltar é derivado, sem pilha.
  *
  * ```
- * VOLUMES → PESO → RETIRADA ─┬─ "Outra pessoa" → DESTINATARIO → REMETENTE (celular opcional) → CONFERENCIA
- *                            └─ "Eu mesmo" ─────────────────→ REMETENTE (celular obrigatório) → CONFERENCIA
+ * VOLUMES → PESO → REMETENTE → (DESTINATARIO, se outra pessoa retira) → CONFERENCIA
  * ```
+ *
+ * ### Quem retira não é mais pergunta (naveg-front#58, 2.7)
+ *
+ * O site deixou de perguntar "Quem retira no destino?" (PO, 2026-10-07), e o destinatário voltou como **opcional**,
+ * depois de quem manda (PO, 2026-10-15). A retirada passa a ser **derivada**: com o destinatário informado, é
+ * `OUTRA_PESSOA`; sem ele, fica ausente — "a definir no atendimento", como o KMP lê desde o fluviapp-kmp#43. Uma
+ * `retirada` explícita ainda vale: é o que a página de antes manda, e a API nova a aceita até a página nova entrar.
  *
  * A saída não é um nó, como no totem de passagem: ela é escolhida antes, na lista, e chega como o contexto.
  * Toda saída aceita encomenda por enquanto (C7 do plano), então o roteiro não pergunta nada ao casco.
@@ -23,8 +29,7 @@ export type NoDaEncomenda =
   /** O tipo, a quantidade (1 a `maximo`) e o complemento opcional — uma tela só. */
   | { readonly passo: 'VOLUMES'; readonly tipos: readonly TipoVolume[]; readonly maximo: number }
   | { readonly passo: 'PESO'; readonly opcoes: readonly FaixaPeso[] }
-  | { readonly passo: 'RETIRADA'; readonly opcoes: readonly Retirada[] }
-  /** Só com "Outra pessoa": nome e celular de quem retira, os dois obrigatórios (C5). */
+  /** Só quando outra pessoa retira: nome e celular de quem retira, os dois obrigatórios (C5). */
   | { readonly passo: 'DESTINATARIO' }
   /** Quem manda. O celular é obrigatório quando é a mesma pessoa que retira (C12) — é por ele que o destino avisa. */
   | { readonly passo: 'REMETENTE'; readonly telefoneObrigatorio: boolean }
@@ -61,24 +66,34 @@ function preenchido(texto: string | undefined): boolean {
   return texto !== undefined && texto.trim().length > 0
 }
 
-/** Quem retira, **se** a resposta está entre as opções. O roteiro e a montagem leem a mesma derivação. */
+/** O destinatário tem os dois campos — o nome e o celular. Pela metade, não é um destinatário (C5). */
+export function destinatarioInformado(respostas: RespostasDaEncomenda): boolean {
+  return preenchido(respostas.destinatario?.nome) && preenchido(respostas.destinatario?.telefone)
+}
+
+/**
+ * **Quem retira, em vigor.** A resposta explícita, se está entre as opções (a página de antes); sem ela, `OUTRA_PESSOA`
+ * quando o destinatário foi informado, e ausente quando não — o atendimento combina. O roteiro e a montagem leem a mesma
+ * derivação.
+ */
 export function retiradaEmVigor(respostas: RespostasDaEncomenda): Retirada | undefined {
-  return escolhida(Retirada.valores, respostas.retirada)
+  const explicita = escolhida(Retirada.valores, respostas.retirada)
+  if (explicita !== undefined) return explicita
+  return destinatarioInformado(respostas) ? 'OUTRA_PESSOA' : undefined
 }
 
 export function roteiroDaEncomenda(respostas: RespostasDaEncomenda): RoteiroDaEncomenda {
   const nos: NoDaEncomenda[] = [
     { passo: 'VOLUMES', tipos: TipoVolume.valores, maximo: LIMITE_DE_VOLUMES },
     { passo: 'PESO', opcoes: FaixaPeso.valores },
-    { passo: 'RETIRADA', opcoes: Retirada.valores },
   ]
 
+  /* O celular de quem manda é obrigatório, a não ser quando outra pessoa retira: é o que o KMP confere. O site o pede
+     sempre (decisão F da 2.7); a regra aqui é a do contrato, para a API aceitar o que a página de antes manda. */
   const retirada = retiradaEmVigor(respostas)
+  nos.push({ passo: 'REMETENTE', telefoneObrigatorio: retirada !== 'OUTRA_PESSOA' })
   if (retirada === 'OUTRA_PESSOA') nos.push({ passo: 'DESTINATARIO' })
-
-  /* Remetente e conferência existem em qualquer caminho, e entram desde o começo: o indicador diz "de 5"
-     antes de saber quem retira, e cresce para 6 se for outra pessoa — nunca encurta. */
-  nos.push({ passo: 'REMETENTE', telefoneObrigatorio: retirada === 'REMETENTE' }, { passo: 'CONFERENCIA' })
+  nos.push({ passo: 'CONFERENCIA' })
 
   const indiceAtual = nos.findIndex((no) => !respondidoNaEncomenda(no, respostas))
   const conferencia = nos.length - 1
@@ -107,10 +122,8 @@ export function respondidoNaEncomenda(no: NoDaEncomenda, respostas: RespostasDaE
     }
     case 'PESO':
       return escolhida(no.opcoes, respostas.faixaPeso) !== undefined
-    case 'RETIRADA':
-      return escolhida(no.opcoes, respostas.retirada) !== undefined
     case 'DESTINATARIO':
-      return preenchido(respostas.destinatario?.nome) && preenchido(respostas.destinatario?.telefone)
+      return destinatarioInformado(respostas)
     case 'REMETENTE':
       return preenchido(respostas.cliente?.nome) && (!no.telefoneObrigatorio || preenchido(respostas.cliente?.telefone))
     case 'CONFERENCIA':
@@ -135,10 +148,8 @@ export function semRespostaNaEncomenda(no: NoDaEncomenda, respostas: RespostasDa
       return sem(respostas, 'tipoVolume', 'quantidadeVolumes', 'complemento')
     case 'PESO':
       return sem(respostas, 'faixaPeso')
-    case 'RETIRADA':
-      return sem(respostas, 'retirada')
     case 'DESTINATARIO':
-      return sem(respostas, 'destinatario')
+      return sem(respostas, 'destinatario', 'retirada')
     case 'REMETENTE':
       return sem(respostas, 'cliente')
     case 'CONFERENCIA':

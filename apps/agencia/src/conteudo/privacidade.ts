@@ -13,9 +13,9 @@
  */
 
 /** Sobe a cada mudança de conteúdo; a data acompanha. A versão antiga não se reescreve, se substitui. */
-export const VERSAO_DA_POLITICA = '1.0'
+export const VERSAO_DA_POLITICA = '1.1'
 /** ISO `yyyy-MM-dd`. */
-export const DATA_DA_POLITICA = '2026-10-07'
+export const DATA_DA_POLITICA = '2026-10-15'
 
 /** Por quanto tempo o dado pessoal de uma reserva fica guardado depois da data da viagem (PO, 2026-10-07). */
 export const DIAS_DE_GUARDA_DA_RESERVA = 14
@@ -27,8 +27,6 @@ export const DIAS_DE_GUARDA_DA_RESERVA = 14
 export const PENDENCIAS_DA_POLITICA = {
   /** A tarefa que apaga o dado pessoal depois do prazo — naveg-api-vercel#21. */
   anonimizacao: 'a anonimização automática depois do prazo (naveg-api-vercel#21)',
-  /** O site deixa de pedir quem retira a encomenda — fluviapp-kmp#41. */
-  semDestinatario: 'a encomenda sem destinatário (fluviapp-kmp#41)',
   /** A revisão de um advogado, que a U7 junta com a das seções da conta e da compra. */
   revisaoJuridica: 'a revisão jurídica, com as bases legais',
 } as const

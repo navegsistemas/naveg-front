@@ -260,7 +260,7 @@ describe('o calendário, na página (UI 1.3)', () => {
 
 /* naveg-front#66: a reserva começa pelo que vai embarcar, e o dia vem depois (ficha 2.2, segunda proposta). */
 describe('o que vai embarcar, na página', () => {
-  it('a primeira pergunta: o veículo em destaque, leve e pesado à vista, e a encomenda como link', () => {
+  it('a primeira pergunta: o veículo em destaque, leve e pesado à vista, e a encomenda como quarta opção (2.7)', () => {
     montar()
     expect(pergunta()).toBe('O que vai embarcar?')
     const veiculo = screen.getByRole('button', { name: VEICULO })
@@ -268,7 +268,7 @@ describe('o que vai embarcar, na página', () => {
     expect(veiculo.textContent).toContain('Pesado: caminhão')
     expect(screen.getByRole('button', { name: PASSAGEIROS_E_VEICULO })).toBeTruthy()
     expect(screen.getByRole('button', { name: PASSAGEIROS })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Envie sua encomenda' }).getAttribute('href')).toBe('#encomendas')
+    expect(screen.getByRole('button', { name: /^Encomenda/ }).textContent).toContain('Caixas, sacos')
     /* Na primeira pergunta não há para onde voltar. */
     expect(screen.queryByRole('button', { name: 'Voltar' })).toBeNull()
   })
@@ -349,6 +349,109 @@ describe('o que vai embarcar, na página', () => {
     expect(screen.getByText('2 pessoas em suíte')).toBeTruthy()
     tocar('Mudar')
     expect(pergunta()).toBe('O que vai embarcar?')
+  })
+})
+
+/* 2.7: a encomenda no caminho da reserva (decisões A a H, PO, 2026-10-15), e o destinatário opcional (#58). */
+describe('a encomenda, na página', () => {
+  /** O tipo com o "O que é", quantos volumes e o peso — o que vai embarcar da encomenda. */
+  function embarcarEncomenda() {
+    tocar(/^Encomenda/)
+    expect(pergunta()).toBe('O que vai mandar?')
+    tocar('Caixa')
+    fireEvent.change(screen.getByLabelText(/O que é/), { target: { value: 'mantimentos' } })
+    tocar('Continuar')
+    expect(pergunta()).toBe('Quantos volumes?')
+    tocar('3 volumes')
+    expect(pergunta()).toBe('Quanto pesa, mais ou menos?')
+    tocar('5 a 20 kg')
+  }
+
+  it('de ponta a ponta, sem o destinatário: o celular obrigatório, "Pular", e quem retira a combinar', async () => {
+    const { repositorio } = montar()
+    embarcarEncomenda()
+    expect(screen.getByText('3 volumes · Caixa (mantimentos) · 5 a 20 kg')).toBeTruthy()
+    await escolherSaida('Ferry de demonstração')
+
+    expect(pergunta()).toBe('Quem está mandando?')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    tocar('Continuar')
+    /* Sem o celular, não segue: é por ele que o atendimento fala com quem manda. */
+    expect(pergunta()).toBe('Quem está mandando?')
+    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+
+    expect(pergunta()).toBe('Quem recebe no destino?')
+    /* Os campos de quem recebe começam vazios: não herdam o que se digitou para quem manda. */
+    expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/Celular com DDD/) as HTMLInputElement).value).toBe('')
+    tocar(/^Pular/)
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(screen.getByText('A combinar com o atendimento')).toBeTruthy()
+    expect(screen.getByText(/retirada no porto com documento/)).toBeTruthy()
+
+    tocar('Confirmar reserva')
+    const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
+    const documento = repositorio.documento(codigo)
+    expect(documento).toMatchObject({
+      categoria: 'ENCOMENDA',
+      tipoVolume: 'CAIXA',
+      complemento: 'mantimentos',
+      quantidadeVolumes: 3,
+      faixaPeso: 'DE_5_A_20',
+      cliente: { nome: 'Maria Souza', telefone: '5591988887777' },
+    })
+    expect(documento).not.toHaveProperty('retirada')
+    expect(screen.getByRole('button', { name: 'Reservar mais alguma coisa' })).toBeTruthy()
+  })
+
+  it('com o destinatário: "outra pessoa retira", com o nome e o celular dele', async () => {
+    const { repositorio } = montar()
+    embarcarEncomenda()
+    await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'João Lima' } })
+    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '96988887777' } })
+    tocar('Continuar')
+    expect(screen.getByText('João Lima, (96) 98888-7777')).toBeTruthy()
+    tocar('Confirmar reserva')
+    const codigo = (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string
+    expect(repositorio.documento(codigo)).toMatchObject({
+      retirada: 'OUTRA_PESSOA',
+      destinatario: { nome: 'João Lima', telefone: '5596988887777' },
+    })
+  })
+
+  it('no calendário, só os próximos 7 dias acendem, e uma linha diz por quê', async () => {
+    render(
+      <Totem
+        fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
+        envio={envioLocal(new ReservaEmMemoria())}
+        fuso={FUSO_DA_OPERACAO}
+        inatividadeMs={null}
+        demonstracao="SAIDAS_E_ENVIO"
+        alcanceDoCalendario={90}
+        relogio={() => TERCA_8H}
+      />,
+    )
+    embarcarEncomenda()
+    await screen.findByRole('heading', { level: 4 })
+    expect(screen.getByText(/A encomenda se reserva para os próximos 7 dias/)).toBeTruthy()
+    /* Hoje é 13/10: o 19 se reserva, o 20 não. */
+    expect(screen.getByRole('button', { name: /^segunda-feira, 19 de outubro/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^terça-feira, 20 de outubro/ })).toBeNull()
+  })
+
+  it('a âncora do botão "Mandar uma encomenda" começa a reserva pela encomenda', () => {
+    window.location.hash = '#reservar-encomenda'
+    try {
+      montar()
+      expect(pergunta()).toBe('O que vai mandar?')
+    } finally {
+      window.location.hash = ''
+    }
   })
 })
 

@@ -145,6 +145,8 @@ export {
   embarcacaoLeva,
   embarqueEmVigor,
   embarqueRespondido,
+  encomendaPeloSite,
+  respostasDaEncomendaDoSite,
   nosDoEmbarque,
   porteEmVigor,
   classesOfertadas,
@@ -216,6 +218,7 @@ export {
 } from './encomenda/volume.js'
 export {
   respondidoNaEncomenda,
+  destinatarioInformado,
   retiradaEmVigor,
   roteiroDaEncomenda,
   semRespostaNaEncomenda,

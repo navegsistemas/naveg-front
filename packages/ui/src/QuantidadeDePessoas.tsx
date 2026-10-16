@@ -1,5 +1,6 @@
 /**
- * **Quantos viajam** — 1, 2, 3, 4 ou "5 ou mais", que abre um contador (UI 2.2, decisão I; naveg-front#65).
+ * **Quantos viajam** — 1, 2, 3, 4 ou "5 ou mais", que abre um contador (UI 2.2, decisão I; naveg-front#65). E, desde a
+ * 2.7, quantos volumes vão na encomenda: o mesmo componente, com a unidade trocada.
  *
  * As opções vêm do nó, como em todo passo: este componente não sabe que o site vai até 50 nem que o quiosque vai até
  * a ocupação da acomodação. Ele só sabe que **mais de cinco opções não cabem em cartões** — e então mostra as quatro
@@ -12,10 +13,38 @@ import { useId, useState, type FormEvent } from 'react'
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 
+/** O que se conta: pessoas, ou os volumes da encomenda (2.7, decisão D). */
+export interface UnidadeDaQuantidade {
+  readonly singular: string
+  readonly plural: string
+  /** O rótulo do contador: "Quantas pessoas". */
+  readonly pergunta: string
+  readonly menos: string
+  readonly mais: string
+}
+
+export const PESSOAS: UnidadeDaQuantidade = {
+  singular: 'pessoa',
+  plural: 'pessoas',
+  pergunta: 'Quantas pessoas',
+  menos: 'Uma pessoa a menos',
+  mais: 'Uma pessoa a mais',
+}
+
+export const VOLUMES: UnidadeDaQuantidade = {
+  singular: 'volume',
+  plural: 'volumes',
+  pergunta: 'Quantos volumes',
+  menos: 'Um volume a menos',
+  mais: 'Um volume a mais',
+}
+
 export interface PropsDaQuantidade {
   readonly opcoes: readonly number[]
   readonly escolhida: number | undefined
   readonly aoEscolher: (quantidade: number) => void
+  /** Pessoas, por padrão. */
+  readonly unidade?: UnidadeDaQuantidade
 }
 
 /** Até tantas opções, cada uma é um cartão. Acima, as primeiras e o contador. */
@@ -23,24 +52,24 @@ const CARTOES = 5
 
 const MAIS = 'MAIS'
 
-function pessoas(quantidade: number): string {
-  return quantidade === 1 ? '1 pessoa' : `${quantidade} pessoas`
+function contar(quantidade: number, unidade: UnidadeDaQuantidade): string {
+  return `${quantidade} ${quantidade === 1 ? unidade.singular : unidade.plural}`
 }
 
-export function QuantidadeDePessoas({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) {
+export function QuantidadeDePessoas({ opcoes, escolhida, aoEscolher, unidade = PESSOAS }: PropsDaQuantidade) {
   if (opcoes.length <= CARTOES) {
     return (
       <EscolhaEmCartoes
-        opcoes={opcoes.map((valor) => ({ valor, rotulo: pessoas(valor) }))}
+        opcoes={opcoes.map((valor) => ({ valor, rotulo: contar(valor, unidade) }))}
         escolhida={escolhida}
         aoEscolher={aoEscolher}
       />
     )
   }
-  return <CartoesEContador opcoes={opcoes} escolhida={escolhida} aoEscolher={aoEscolher} />
+  return <CartoesEContador opcoes={opcoes} escolhida={escolhida} aoEscolher={aoEscolher} unidade={unidade} />
 }
 
-function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) {
+function CartoesEContador({ opcoes, escolhida, aoEscolher, unidade = PESSOAS }: PropsDaQuantidade) {
   const id = useId()
   const primeiras = opcoes.slice(0, CARTOES - 1)
   const minimo = opcoes[CARTOES - 1] as number
@@ -70,7 +99,7 @@ function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) 
     <>
       <EscolhaEmCartoes<number | typeof MAIS>
         opcoes={[
-          ...primeiras.map((valor) => ({ valor, rotulo: pessoas(valor) })),
+          ...primeiras.map((valor) => ({ valor, rotulo: contar(valor, unidade) })),
           { valor: MAIS, rotulo: `${minimo} ou mais` },
         ]}
         escolhida={aberto ? MAIS : escolhida}
@@ -80,12 +109,12 @@ function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) 
       {aberto && (
         <form className="totem-formulario" onSubmit={enviar} noValidate>
           <div className="totem-campo">
-            <label htmlFor={`${id}-pessoas`}>Quantas pessoas</label>
+            <label htmlFor={`${id}-pessoas`}>{unidade.pergunta}</label>
             <div className="totem-contador">
               <button
                 type="button"
                 className="acao acao--secundaria"
-                aria-label="Uma pessoa a menos"
+                aria-label={unidade.menos}
                 aria-controls={`${id}-pessoas`}
                 disabled={numero !== null && numero <= minimo}
                 onClick={() => somar(-1)}
@@ -94,7 +123,7 @@ function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) 
               </button>
               <input
                 id={`${id}-pessoas`}
-                name="quantidadePessoas"
+                name="quantidade"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 autoFocus
@@ -106,7 +135,7 @@ function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) 
               <button
                 type="button"
                 className="acao acao--secundaria"
-                aria-label="Uma pessoa a mais"
+                aria-label={unidade.mais}
                 aria-controls={`${id}-pessoas`}
                 disabled={numero !== null && numero >= maximo}
                 onClick={() => somar(1)}
@@ -116,7 +145,7 @@ function CartoesEContador({ opcoes, escolhida, aoEscolher }: PropsDaQuantidade) 
             </div>
             {tentou && invalido && (
               <p id={`${id}-pessoas-erro`} className="totem-erro">
-                De {minimo} a {maximo} pessoas. Mais do que isso, fale com o atendimento.
+                De {minimo} a {maximo} {unidade.plural}. Mais do que isso, fale com o atendimento.
               </p>
             )}
           </div>

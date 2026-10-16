@@ -1,13 +1,17 @@
 /**
- * **O roteiro da encomenda — a sequência nos dois caminhos de retirada.**
+ * **O roteiro da encomenda — a sequência, com e sem quem retira.**
  *
- * Como os do roteiro da passagem, estes cenários verificam **a sequência**: quais perguntas, em que ordem, o
- * indicador que cresce e nunca encurta, o celular que fica obrigatório quando quem manda retira, e voltar.
+ * Como os do roteiro da passagem, estes cenários verificam **a sequência**: quais perguntas, em que ordem, o celular
+ * que fica obrigatório, o destinatário que só aparece quando outra pessoa retira, e voltar.
+ *
+ * Desde a 2.7 (naveg-front#58), "Quem retira no destino?" não é pergunta: a retirada é derivada do destinatário
+ * informado, e uma retirada explícita — a da página de antes — ainda vale.
  */
 import { describe, expect, it } from 'vitest'
 
 import {
   respondidoNaEncomenda,
+  retiradaEmVigor,
   roteiroDaEncomenda,
   voltarNaEncomenda,
   type NoDaEncomenda,
@@ -26,18 +30,19 @@ function noDe(roteiro: RoteiroDaEncomenda, passo: NoDaEncomenda['passo']): NoDaE
   return achado
 }
 
-const ATE_A_RETIRADA: RespostasDaEncomenda = { tipoVolume: 'CAIXA', quantidadeVolumes: 3, faixaPeso: 'DE_5_A_20' }
+const ATE_O_PESO: RespostasDaEncomenda = { tipoVolume: 'CAIXA', quantidadeVolumes: 3, faixaPeso: 'DE_5_A_20' }
+const JOAO = { nome: 'João Lima', telefone: '(96) 98888-7777' }
 
 describe('o começo', () => {
-  it('sem resposta nenhuma, são cinco passos, e o foco é o volume', () => {
+  it('sem resposta nenhuma, são quatro passos — sem "Quem retira?" —, e o foco é o volume', () => {
     const roteiro = roteiroDaEncomenda({})
-    expect(passos(roteiro)).toEqual(['VOLUMES', 'PESO', 'RETIRADA', 'REMETENTE', 'CONFERENCIA'])
+    expect(passos(roteiro)).toEqual(['VOLUMES', 'PESO', 'REMETENTE', 'CONFERENCIA'])
     expect(roteiro.atual?.passo).toBe('VOLUMES')
     expect(roteiro.posicaoAtual).toBe(1)
     expect(roteiro.prontoParaConferir).toBe(false)
   })
 
-  it('as opções vêm no nó: os cinco tipos, até 20 volumes, as quatro faixas e as duas retiradas', () => {
+  it('as opções vêm no nó: os cinco tipos, até 20 volumes e as quatro faixas', () => {
     const roteiro = roteiroDaEncomenda({})
     expect(noDe(roteiro, 'VOLUMES')).toEqual({
       passo: 'VOLUMES',
@@ -45,7 +50,6 @@ describe('o começo', () => {
       maximo: 20,
     })
     expect(noDe(roteiro, 'PESO')).toEqual({ passo: 'PESO', opcoes: ['ATE_5', 'DE_5_A_20', 'DE_20_A_50', 'ACIMA_DE_50'] })
-    expect(noDe(roteiro, 'RETIRADA')).toEqual({ passo: 'RETIRADA', opcoes: ['REMETENTE', 'OUTRA_PESSOA'] })
   })
 
   it('nenhum caminho pede documento nem valor declarado', () => {
@@ -74,73 +78,55 @@ describe('o volume', () => {
   })
 })
 
-describe('quem retira', () => {
-  it('"Outra pessoa" acrescenta o destinatário — e o indicador cresce de 5 para 6', () => {
-    const antes = roteiroDaEncomenda(ATE_A_RETIRADA)
-    expect(antes.atual?.passo).toBe('RETIRADA')
-    expect(antes.total).toBe(5)
-
-    const depois = roteiroDaEncomenda({ ...ATE_A_RETIRADA, retirada: 'OUTRA_PESSOA' })
-    expect(passos(depois)).toEqual(['VOLUMES', 'PESO', 'RETIRADA', 'DESTINATARIO', 'REMETENTE', 'CONFERENCIA'])
-    expect(depois.atual?.passo).toBe('DESTINATARIO')
-    expect(depois.total).toBe(6)
-  })
-
-  it('"Eu mesmo" vai direto a quem manda, com o celular obrigatório', () => {
-    const roteiro = roteiroDaEncomenda({ ...ATE_A_RETIRADA, retirada: 'REMETENTE' })
-    expect(passos(roteiro)).toEqual(['VOLUMES', 'PESO', 'RETIRADA', 'REMETENTE', 'CONFERENCIA'])
+describe('quem retira, derivado', () => {
+  it('sem destinatário, a retirada fica ausente — o atendimento combina —, e o celular de quem manda é obrigatório', () => {
+    expect(retiradaEmVigor(ATE_O_PESO)).toBeUndefined()
+    const roteiro = roteiroDaEncomenda({ ...ATE_O_PESO, cliente: { nome: 'Maria Souza' } })
     expect(roteiro.atual).toEqual({ passo: 'REMETENTE', telefoneObrigatorio: true })
+    expect(roteiroDaEncomenda({ ...ATE_O_PESO, cliente: CLIENTE }).prontoParaConferir).toBe(true)
   })
 
-  it('com outra pessoa retirando, o celular de quem manda é opcional', () => {
-    const roteiro = roteiroDaEncomenda({ ...ENCOMENDA_PARA_OUTRA, cliente: { nome: 'Maria Souza' } })
-    expect(noDe(roteiro, 'REMETENTE')).toEqual({ passo: 'REMETENTE', telefoneObrigatorio: false })
-    expect(roteiro.prontoParaConferir).toBe(true)
+  it('com o destinatário informado, é "outra pessoa", e ele entra no caminho depois de quem manda', () => {
+    const respostas = { ...ATE_O_PESO, cliente: CLIENTE, destinatario: JOAO }
+    expect(retiradaEmVigor(respostas)).toBe('OUTRA_PESSOA')
+    expect(passos(roteiroDaEncomenda(respostas))).toEqual(['VOLUMES', 'PESO', 'REMETENTE', 'DESTINATARIO', 'CONFERENCIA'])
+    expect(roteiroDaEncomenda(respostas).prontoParaConferir).toBe(true)
   })
 
-  it('quem manda e retira, sem celular, não chega à conferência', () => {
-    const roteiro = roteiroDaEncomenda({ ...ENCOMENDA_DO_PROPRIO, cliente: { nome: 'Carlos Melo' } })
-    expect(roteiro.atual?.passo).toBe('REMETENTE')
-    expect(roteiro.prontoParaConferir).toBe(false)
+  it('o destinatário pela metade não é destinatário', () => {
+    expect(retiradaEmVigor({ ...ATE_O_PESO, destinatario: { nome: 'João Lima' } })).toBeUndefined()
   })
 
-  it('o destinatário pede nome e celular, os dois', () => {
-    const base = { ...ATE_A_RETIRADA, retirada: 'OUTRA_PESSOA' as const }
+  it('a retirada explícita da página de antes ainda vale: "eu mesmo" e "outra pessoa"', () => {
+    expect(roteiroDaEncomenda(ENCOMENDA_DO_PROPRIO).prontoParaConferir).toBe(true)
+    expect(roteiroDaEncomenda(ENCOMENDA_PARA_OUTRA).prontoParaConferir).toBe(true)
+    /* Com "outra pessoa", o celular de quem manda é opcional, como o KMP confere. */
+    const semCelular = roteiroDaEncomenda({ ...ENCOMENDA_PARA_OUTRA, cliente: { nome: 'Maria Souza' } })
+    expect(noDe(semCelular, 'REMETENTE')).toEqual({ passo: 'REMETENTE', telefoneObrigatorio: false })
+    expect(semCelular.prontoParaConferir).toBe(true)
+  })
+
+  it('"outra pessoa" explícita pede o destinatário, com nome e celular', () => {
+    const base = { ...ATE_O_PESO, retirada: 'OUTRA_PESSOA' as const, cliente: CLIENTE }
+    expect(roteiroDaEncomenda(base).atual?.passo).toBe('DESTINATARIO')
     const no = noDe(roteiroDaEncomenda(base), 'DESTINATARIO')
     expect(respondidoNaEncomenda(no, { ...base, destinatario: { nome: 'João Lima' } })).toBe(false)
-    expect(respondidoNaEncomenda(no, { ...base, destinatario: { telefone: '(96) 98888-7777' } })).toBe(false)
-    expect(respondidoNaEncomenda(no, { ...base, destinatario: { nome: 'João Lima', telefone: '(96) 98888-7777' } })).toBe(true)
+    expect(respondidoNaEncomenda(no, { ...base, destinatario: JOAO })).toBe(true)
   })
 
-  it('trocar "Outra pessoa" por "Eu mesmo" tira o destinatário do caminho, ainda que preenchido', () => {
+  it('"eu mesmo" explícito tira o destinatário do caminho, ainda que preenchido', () => {
     const roteiro = roteiroDaEncomenda({ ...ENCOMENDA_PARA_OUTRA, retirada: 'REMETENTE', cliente: CLIENTE })
     expect(passos(roteiro)).not.toContain('DESTINATARIO')
     expect(roteiro.prontoParaConferir).toBe(true)
   })
 })
 
-describe('os caminhos completos', () => {
-  it('para outra pessoa: seis passos, em foco a conferência', () => {
-    const roteiro = roteiroDaEncomenda(ENCOMENDA_PARA_OUTRA)
-    expect(roteiro.atual?.passo).toBe('CONFERENCIA')
-    expect(roteiro.posicaoAtual).toBe(6)
-    expect(roteiro.total).toBe(6)
-    expect(roteiro.prontoParaConferir).toBe(true)
-  })
-
-  it('do próprio remetente: cinco passos', () => {
-    const roteiro = roteiroDaEncomenda(ENCOMENDA_DO_PROPRIO)
-    expect(roteiro.atual?.passo).toBe('CONFERENCIA')
-    expect(roteiro.total).toBe(5)
-  })
-})
-
 describe('voltar', () => {
-  it('da conferência, apaga quem manda', () => {
+  it('da conferência com destinatário, apaga o destinatário — e a retirada que vinha com ele', () => {
     const voltou = voltarNaEncomenda(ENCOMENDA_PARA_OUTRA)
-    expect(voltou.cliente).toBeUndefined()
-    expect(voltou.destinatario).toEqual(ENCOMENDA_PARA_OUTRA.destinatario)
-    expect(roteiroDaEncomenda(voltou).atual?.passo).toBe('REMETENTE')
+    expect(voltou.destinatario).toBeUndefined()
+    expect(voltou.retirada).toBeUndefined()
+    expect(voltou.cliente).toEqual(ENCOMENDA_PARA_OUTRA.cliente)
   })
 
   it('do peso, apaga o volume inteiro — tipo, quantidade e complemento', () => {
@@ -153,8 +139,8 @@ describe('voltar', () => {
     expect(voltarNaEncomenda(respostas)).toBe(respostas)
   })
 
-  it('voltar até o começo, de qualquer caminho, esvazia as respostas uma a uma', () => {
-    for (const inicio of [ENCOMENDA_PARA_OUTRA, ENCOMENDA_DO_PROPRIO]) {
+  it('voltar até o começo, de qualquer caminho, esvazia as respostas', () => {
+    for (const inicio of [{ ...ATE_O_PESO, cliente: CLIENTE, destinatario: JOAO }, ATE_O_PESO]) {
       let respostas: RespostasDaEncomenda = inicio
       for (let i = 0; i < 10; i += 1) respostas = voltarNaEncomenda(respostas)
       expect(respostas).toEqual({})
