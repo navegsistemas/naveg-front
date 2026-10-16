@@ -1,0 +1,182 @@
+---
+/**
+ * **Os Termos de Uso** — o que a reserva pelo site é, e o que ela não é (PO, 2026-10-16).
+ *
+ * Descrevem o site **de hoje**: a reserva de passagem, de veículo e de encomenda, confirmada pelo atendimento no
+ * WhatsApp. Os números (o alcance da encomenda, o limite de volumes, o prazo de guarda) vêm do domínio e do conteúdo,
+ * e não são escritos aqui: se a regra muda, o texto muda junto. A conta e a compra entram com a 7.4 e a 7.6
+ * (`conteudo/termos.ts`).
+ *
+ * Sem ilha e sem script: é um documento, e se lê inteiro com o JavaScript desligado (`e2e/rotas.ts`).
+ */
+import { alcanceEmDias, LIMITE_DE_VOLUMES } from '@navegsistemas/domain'
+
+import Pagina from '../layouts/Pagina.astro'
+import Topo from '../componentes/Topo.astro'
+import Rodape from '../componentes/Rodape.astro'
+
+import { SITE } from '../conteudo/site'
+import { CONTATO, ENDERECOS, IDENTIFICACAO } from '../conteudo/rodape'
+import { WHATSAPP_DAS_RESERVAS } from '../conteudo/atendimento'
+import { dataPorExtenso } from '../conteudo/privacidade'
+import { DATA_DOS_TERMOS, PENDENCIAS_DOS_TERMOS, VERSAO_DOS_TERMOS } from '../conteudo/termos'
+
+const pendencias = Object.values(PENDENCIAS_DOS_TERMOS)
+const diasDaEncomenda = alcanceEmDias('ENCOMENDA')
+const sede = ENDERECOS[0]
+---
+
+<Pagina
+  titulo={`Termos de Uso — ${SITE.nome}`}
+  descricao="O que é a reserva pelo site da NAVEG, o que ela não é, e as regras da passagem, do veículo e da encomenda."
+>
+  <Topo />
+
+  <main id="conteudo-principal" class="conteudo politica">
+    <h1>Termos de Uso</h1>
+    <p class="politica__versao">
+      Versão {VERSAO_DOS_TERMOS} · <time datetime={DATA_DOS_TERMOS}>{dataPorExtenso(DATA_DOS_TERMOS)}</time>
+    </p>
+
+    {
+      pendencias.length > 0 && (
+        <div class="politica__rascunho" role="note">
+          <p><strong>Rascunho em revisão.</strong> Esta versão ainda espera:</p>
+          <ul>
+            {pendencias.map((pendencia) => <li>{pendencia}</li>)}
+          </ul>
+        </div>
+      )
+    }
+
+    <p>
+      Estes termos valem para quem usa este site para reservar uma passagem, mandar um veículo ou uma encomenda com a
+      {' '}{SITE.nome}. Ao confirmar uma reserva, você concorda com eles.
+    </p>
+
+    <h2>1. Quem somos</h2>
+    <p>
+      A {IDENTIFICACAO.nomeFantasia} é uma agência de viagens fluviais. O site é mantido por
+      {' '}<strong>{IDENTIFICACAO.razaoSocial}</strong>, CNPJ {IDENTIFICACAO.cnpj}.
+      {
+        sede !== undefined && sede.logradouro !== null && (
+          <>
+            {' '}Endereço: {sede.logradouro}
+            {sede.complemento !== null && <>, {sede.complemento}</>}, {sede.municipio}/{sede.uf}
+            {sede.cep !== null && <>, CEP {sede.cep}</>}.
+          </>
+        )
+      }
+    </p>
+    <p>
+      A viagem é feita pela empresa de navegação dona da embarcação. A {SITE.nome} é a agência que recebe a sua reserva
+      e emite a passagem.
+    </p>
+
+    <h2>2. O que o site faz, e o que ele não faz</h2>
+    <ul>
+      <li>
+        <strong>O site gera reservas, não vende passagens.</strong> Nada é pago aqui, e nenhum dado de pagamento é
+        pedido.
+      </li>
+      <li>
+        <strong>A reserva é um pedido, confirmado pelo atendimento no WhatsApp.</strong> Depois de confirmar no site,
+        você recebe um código e envia a reserva ao atendimento. É lá que a passagem é confirmada, com o valor e a forma
+        de pagamento.
+      </li>
+      <li>
+        <strong>A reserva vale até a saída escolhida.</strong> Depois dela, perde a validade.
+      </li>
+      <li>
+        <strong>Uma reserva não garante a vaga</strong> até o atendimento confirmar: a ocupação da embarcação é
+        conferida por ele.
+      </li>
+    </ul>
+
+    <h2>3. A reserva de passagem e de veículo</h2>
+    <ul>
+      <li>Você informa o que vai embarcar, o dia e a saída, o seu nome e o seu celular com WhatsApp.</li>
+      <li>
+        <strong>Inteira, meia ou gratuidade</strong> são definidas no atendimento, com o documento de quem viaja. Os
+        nomes e os documentos de quem viaja também são pedidos lá, na emissão da passagem.
+      </li>
+      <li>
+        Se não couberem todos na acomodação escolhida, o atendimento divide o grupo.
+      </li>
+      <li>O valor é o da tabela da empresa de navegação, informado pelo atendimento.</li>
+    </ul>
+
+    <h2>4. A reserva de encomenda</h2>
+    <ul>
+      <li>A encomenda se reserva para os próximos {diasDaEncomenda} dias, com até {LIMITE_DE_VOLUMES} volumes.</li>
+      <li>
+        <strong>Entregue a encomenda no porto antes da saída.</strong> Lá ela é pesada, e vale o peso da balança; o
+        frete é pago no porto.
+      </li>
+      <li>No destino, ela é retirada no porto com documento. Quem vai buscar, você combina com o atendimento.</li>
+    </ul>
+
+    <h2>5. As saídas e os horários</h2>
+    <p>
+      As saídas vêm da programação da empresa de navegação. Quando o cais ou a hora de uma data mudam, o site mostra o
+      aviso na escolha da saída, na conferência e na mensagem do WhatsApp.
+    </p>
+
+    <h2>6. O uso do site</h2>
+    <ul>
+      <li>Informe dados verdadeiros. Reserve em nome de outra pessoa só com a autorização dela.</li>
+      <li>
+        O site tem uma proteção contra robôs. Não use programas para fazer reservas em quantidade, nem tente contornar a
+        proteção.
+      </li>
+    </ul>
+
+    <h2>7. Os seus dados</h2>
+    <p>
+      O que fazemos com o seu nome e o seu celular está na <a href="/privacidade/">Política de Privacidade</a>.
+    </p>
+
+    <h2>8. Mudanças nestes termos</h2>
+    <p>
+      Quando estes termos mudam, a versão e a data no topo mudam junto.
+    </p>
+
+    <h2>9. Fale com a gente</h2>
+    <p>
+      {WHATSAPP_DAS_RESERVAS !== null && <>WhatsApp do atendimento: {WHATSAPP_DAS_RESERVAS}. </>}
+      {CONTATO.email !== null && <>E-mail: <a href={`mailto:${CONTATO.email}`}>{CONTATO.email}</a>.</>}
+    </p>
+  </main>
+
+  <Rodape />
+</Pagina>
+
+<style>
+  .politica {
+    max-width: 72ch;
+    padding-block: var(--espaco-6) calc(var(--espaco-6) * 2);
+  }
+
+  .politica h2 {
+    margin-top: var(--espaco-6);
+  }
+
+  .politica__versao {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .politica__rascunho {
+    margin-block: var(--espaco-6);
+    padding: var(--espaco-4);
+    border: 1px dashed var(--border-forte);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+
+  .politica__rascunho p,
+  .politica__rascunho ul {
+    margin: 0;
+  }
+</style>
