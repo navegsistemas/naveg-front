@@ -98,8 +98,7 @@ o domínio da homologação (U8).
 | **3.2** | **Confirmar o e-mail** | "abra seu e-mail"; o link confirmado; o link vencido, com reenviar |
 | **3.3** | **Entrar e sair** | senha errada; e-mail ainda não confirmado; muitas tentativas; voltar ao lugar de onde veio |
 | **3.4** | **Esqueci a senha** | pedir o link; o link; a senha nova; o link vencido |
-| **3.5** | **Onde se entra** | o item no topo (1.1) e o convite na hora de pagar (U3) |
-| **3.6** | **Resgatar a reserva** (pedido do PO, 2026-10-16) | o convite na conclusão da reserva feita sem conta; criar a conta ou entrar e levar a reserva para ela; a reserva que pode virar compra e a que não pode |
+| **3.5** | **Onde se entra** | o item no topo (1.1), o convite na hora de pagar (U3) e **o convite na conclusão da reserva feita sem conta** (pedido do PO, 2026-10-16; ver a nota da 3.6 nas fichas) |
 
 ## 6. Etapa 4 — As páginas do cliente
 
@@ -973,10 +972,21 @@ a conta desativada, o menu com "Minha conta" e o sair.
 **A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 30 dias (A) são da API (naveg-api-vercel#30,
 ADR-0003).
 
-### 3.6 — Resgatar a reserva
+### 3.6 — Resgatar a reserva (retirada: vira um convite na 3.5)
 
-**Situação:** pedido do PO (2026-10-16), em análise. O wireframe vem na vez dela, depois da 3.5 (onde se entra), porque
-usa as telas da 3.1 a 3.3. **O pedido:** "acrescentar ao final da reserva deslogada a possibilidade de resgatar a reserva
+**Situação:** **retirada pelo PO no mesmo dia (2026-10-16)**: "esquece, não resgata reserva, só indica que pode emitir e
+embarcar direto com o cadastro". A reserva feita sem conta continua sem dono, e nada muda no KMP nem na API. O que fica
+é **um convite na conclusão da reserva da página**, desenhado na **3.5** (onde se entra), com duas perguntas que vão
+para lá:
+
+- **quando entra:** a recomendação é **junto com a compra online (7.6)**. Antes dela, o convite prometeria uma emissão
+  que o site ainda não faz;
+- **o texto:** algo como "Com uma conta, você compra a passagem aqui no site e embarca direto, sem passar no balcão.",
+  com "Criar conta". Ele não aparece no quiosque (U5).
+
+O registro abaixo é o da análise do pedido de antes, mantido para o histórico.
+
+**O pedido de antes:** "acrescentar ao final da reserva deslogada a possibilidade de resgatar a reserva
 e emitir a passagem se cadastrando".
 
 **O que existe hoje:** a conclusão da reserva da página (2.5, no ar) mostra o código, "Copiar" e o WhatsApp como o passo
