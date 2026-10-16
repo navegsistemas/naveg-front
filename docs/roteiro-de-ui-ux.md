@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 em análise, esperando o PO** (a conferência); depois a 2.5 e a 2.6 |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 decidida, implementada no #77** (a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; depois a 2.6 |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -630,8 +630,8 @@ continua opcional.
 
 ### 2.4 — A conferência
 
-**Situação:** em análise, esperando o PO (2026-10-16). É a última tela antes de confirmar a reserva de passagem ou de
-veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
+**Situação:** decidida (2026-10-16) e implementada no #77, com a melhoria da conclusão (a 2.5) junto, a pedido do PO.
+É a última tela antes de confirmar a reserva de passagem ou de veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
 **Wireframe** (privado do PO): [2.4](https://claude.ai/artifact/Vq8MEfYSrWSRopTmXzzpZK).
 
 **Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; passageiros, veículo, e passageiros e veículo):
@@ -665,3 +665,23 @@ colunas.
 | **D** | O que acontece ao confirmar | **sai "Vale até"**, e entra embaixo do botão: "Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp. A reserva vale até a saída." Com a compra (etapa 5), a linha muda para o caminho de quem reserva |
 
 **A ordem:** só a página. O domain e a API não mudam.
+
+**Decisões do PO (2026-10-16):** **A a D pela recomendação** ("gostei dos blocos"). E: **incluir na 2.4 uma melhoria no
+pós-confirmação**, que era a 2.5. O levantamento da conclusão, no modo que envia: "Reserva feita", "Reserva registrada.
+Guarde este código:", o código, "Copiar código" e só depois "Enviar ao atendimento", e a lista de nove linhas de novo.
+O achado: **a reserva só é confirmada pelo atendimento, no WhatsApp, mas a tela parece de algo terminado**. A pergunta E
+teve a recomendação aceita:
+
+| # | pergunta | decisão |
+|---|---|---|
+| **E** | A conclusão | **o WhatsApp como o passo que falta**: o código com "Copiar" ao lado; logo abaixo, num quadro, "Falta um passo: envie a reserva ao atendimento. É pelo WhatsApp que ela é confirmada.", o botão "Enviar pelo WhatsApp" e "Se não abrir, fale com o atendimento pelo (número), com o código."; depois os três blocos, sem o "Mudar". Contra: abrir o WhatsApp sozinho (o navegador pode bloquear) e só reordenar |
+
+**A implementação (#77):**
+
+- **a conferência em blocos**, lado a lado no computador, na largura do cartão; o texto corrido (a nota, o passo que
+  falta) segue na largura de leitura. Na encomenda, os blocos são "O que vai", "A viagem", "Quem manda" e "Quem recebe";
+- **"Mudar" e "Trocar"** levam ao passo e mantêm o resto. O que vai embarcar volta à primeira pergunta e à escolha da
+  saída, como o quadro "Mudar" já fazia. **O formulário de quem reserva volta preenchido**, também no "Voltar", que antes
+  o devolvia vazio. O que foi digitado se apaga ao recomeçar, inclusive na inatividade do quiosque;
+- **a nota da conferência** na encomenda troca "A reserva vale até a saída" pela entrega no porto;
+- **o quiosque não muda**: a conferência em linhas e a conclusão de antes.
