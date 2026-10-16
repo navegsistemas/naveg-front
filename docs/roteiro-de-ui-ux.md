@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 em análise, esperando o PO** (pedido de 2026-10-09: as fases depois da escolha da saída; com o cais e o aviso de alteração da #56); as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 em análise, esperando o PO** (a encomenda no mesmo caminho, com a #58); as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -351,8 +351,8 @@ mostrar além do que se reserva. A **lotação (C)** segue esperando a API.
 
 ### 2.2 — O que vai embarcar
 
-**Situação:** em análise, esperando o PO (2026-10-14). É a primeira das fases depois da escolha da saída, o pedido do
-PO de 2026-10-09. Entra junto a parte visual da #56: o cais do dia e o aviso de alteração, no resumo da saída escolhida
+**Situação:** no ar (#62, #68 e #69), com o aceite do PO no painel do KMP em 2026-10-15 ("tipo a definir"
+apareceu); a #65 e a #66 fecharam. Foi a primeira das fases depois da escolha da saída, o pedido do PO de 2026-10-09. Entra junto a parte visual da #56: o cais do dia e o aviso de alteração, no resumo da saída escolhida
 que acompanha todas as fases. **Wireframe** (privado do PO): [2.2](https://claude.ai/artifact/RYxFSUYBb5Fj8GctwXKZYQ).
 
 **Levantamento** (2026-10-14, build de demonstração, o fluxo inteiro depois da escolha, 360px e 1280px): uma
@@ -469,3 +469,50 @@ a API nova continua aceitando a página de antes (a `categoria` vale como o que 
 - a parte visual da primeira proposta (A, B, C, E e F) e o título da apresentação;
 - o quadro da saída com o cais e o aviso de alteração vale também no quiosque, porque é informação e não muda o fluxo;
 - as etapas pelo nome, o "Recomeçar" discreto e as colunas valem **só na página**, porque o quiosque não muda.
+
+### 2.7 — A reserva de encomenda
+
+**Situação:** em análise, esperando o PO (2026-10-15). O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
+com a parte de encomenda". Entra junto a #58 (a encomenda só com quem manda, decisão de LGPD de 2026-10-07).
+**Wireframe** (privado do PO): [2.7](https://claude.ai/artifact/V7vUdrj1vNqNyhY7ftWCNc).
+
+**Levantamento** (2026-10-15, build de demonstração, 360px e 1280px): a seção "Envie sua encomenda" tem um totem
+próprio. Começa por uma lista de todas as saídas da semana (20 cartões, cerca de 5.000px no computador); depois "Passo
+n de m", com "O que vai mandar?" (o tipo em cartões, a quantidade num campo de texto e o complemento numa tela só),
+"Quanto pesa?", "Quem retira no destino?", "Para quem vai?" (com outra pessoa), quem manda e a conferência. O card fica
+na largura de texto (680px), com duas caixas de aviso antes da pergunta.
+
+**Achados:**
+
+1. **A lista longa** antes de qualquer pergunta, quando a reserva já usa o calendário;
+2. **o card estreito**, com o espaço vazio à direita que a reserva acabou de corrigir;
+3. **o indicador e a navegação de antes**: "Passo n de m" que cresce, e "Recomeçar" do mesmo peso de "Voltar";
+4. **"Quem retira?" e "Para quem vai?"** ainda no site, contra a decisão de 2026-10-07 (#58);
+5. **duas caixas de aviso** antes da pergunta;
+6. **três perguntas numa tela** na primeira (o tipo, a quantidade e o complemento);
+7. **duas portas para reservar**, cada uma com outro jeito de andar: quem entra por "Reservar agora" só vê a encomenda
+   num link.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Um caminho só | **Encomenda como quarta resposta de "O que vai embarcar?"**, na seção da reserva; o formulário à parte sai |
+| **B** | A seção "Envie sua encomenda" | **fica, curta**: como funciona em quatro linhas e o botão "Mandar uma encomenda", que abre a reserva já em "Encomenda"; o menu e a capa continuam apontando para ela |
+| **C** | O cartão Encomenda | **o mesmo peso de Passageiros**, com "Caixas, sacos, eletrodomésticos, móveis"; a foto quando chegar (decisão M) |
+| **D** | As perguntas | **três telas**: o tipo em cartões, com "O que é" opcional; quantos volumes, com 1 a 4 e "5 ou mais" (até 20); o peso em quatro faixas |
+| **E** | O calendário | **só os próximos 7 dias acendem** (a regra do KMP), com a linha "A encomenda se reserva para os próximos 7 dias. Para mais adiante, fale com o atendimento" |
+| **F** | Seus dados | **nome e celular obrigatório** (#58), com "É por ele que o atendimento fala com você e avisa quando a encomenda chegar" |
+| **G** | A retirada | **uma linha na conferência e na conclusão**: "No destino, a encomenda é retirada no porto com documento. Quem vai buscar, você combina com o atendimento." O texto é fato da operação: **o PO confirma** |
+| **H** | Encomenda com passageiros | **não, por enquanto**: uma reserva por vez, e a conclusão oferece "Reservar mais alguma coisa" |
+
+**A ordem, depois da decisão:** tirar quem retira e o destinatário muda o domain e a API. Vai como a #66: um PR com o
+domain e a página, a tag no commit do PR, a API sobe e é promovida, e só então o PR entra. O KMP não muda (fluviapp-kmp#43).
+O quiosque não muda: ele não tem encomenda.
+
+**Decisões do PO (2026-10-15):** **A a H pela recomendação**, com o texto da G. E uma mudança na #58: **o destinatário
+volta, opcional, depois de quem manda** — "o KMP nunca deixou de receber, então não tem tanto problema; foi um requisito
+que o negócio gostou que tenha". "Quem retira no destino?" continua fora: com o destinatário informado, a reserva vai
+como "outra pessoa retira"; sem ele, sem a retirada, e o atendimento combina (é o que o KMP já lê, fluviapp-kmp#43). O
+celular de quem manda é obrigatório nos dois casos (F). A política de privacidade passa a dizer que o destinatário é
+opcional.
