@@ -65,24 +65,18 @@ export const CONTATO: Contato = {
   horario: '24 horas, todos os dias',
 }
 
+/**
+ * **Só Belém** (PO, 2026-10-16): a NAVEG não tem endereço em Macapá. O endereço e o CEP são os que o PO informou.
+ */
 export const ENDERECOS: readonly Endereco[] = [
   {
     id: 'belem',
     rotulo: 'Belém',
-    logradouro: null,
-    complemento: null,
+    logradouro: 'Terminal Hidroviário de Belém',
+    complemento: 'Av. Marechal Hermes, 901',
     municipio: 'Belém',
     uf: 'PA',
-    cep: null,
-  },
-  {
-    id: 'macapa',
-    rotulo: 'Macapá',
-    logradouro: null,
-    complemento: null,
-    municipio: 'Macapá',
-    uf: 'AP',
-    cep: null,
+    cep: '66010-000',
   },
 ]
 
