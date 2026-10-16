@@ -147,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 em análise**, esperando o PO; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 em análise**, esperando o PO; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -896,7 +896,8 @@ embaixo de campo:
 
 ### 3.2 — Confirmar o e-mail
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). A F virou a
+naveg-api-vercel#43. A implementação espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
 [3.2](https://claude.ai/artifact/D7H3ptFWbr2dDrGAUDqgGq): a tela "Confira seu e-mail", o reenvio, a correção do e-mail,
 o próprio e-mail, o link confirmado e o link que não vale mais.
 
@@ -930,3 +931,43 @@ o próprio e-mail, o link confirmado e o link que não vale mais.
 
 **A ordem:** como a 3.1, a implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). O
 PO cria o apelido `naoresponda@` e a senha de app quando a API for mandar o primeiro e-mail.
+
+### 3.3 — Entrar e sair
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+[3.3](https://claude.ai/artifact/LNG8wmYhfbS7RTtzRyLesb): entrar, entrar vindo da compra, o erro, as tentativas demais,
+a conta desativada, o menu com "Minha conta" e o sair.
+
+**Levantamento** (2026-10-16): a tela não existe. O que já está decidido:
+- **e-mail e senha**, sem o Google (D da área do cliente);
+- **"Minha conta" é um item fixo do menu** (1.1, D): ele não troca para "Entrar", para não pedir JavaScript em toda
+  página;
+- **a API recusa a conta desativada** pelo Supervisor (naveg-api-vercel#30) e tem Turnstile e limite por endereço de
+  rede no entrar (plano da venda online);
+- **as respostas não revelam se um e-mail tem conta**;
+- **entrar antes de confirmar o e-mail** é permitido (3.2, D);
+- **a sessão é um cookie do próprio site**, com a API em `/api` (A da área do cliente). A forma vai na ADR-0003.
+
+**Achados:**
+
+1. **o celular é o aparelho de quem compra**, e digitar a senha a cada visita afasta. Mas o celular também é emprestado:
+   o sair precisa ser fácil de achar e de conferir;
+2. **o limite por endereço de rede não basta** contra quem tenta senhas de uma conta só, de vários endereços. O freio
+   precisa ser também por e-mail;
+3. **a conta desativada** precisa de uma frase própria e da saída para o WhatsApp; antes da senha certa, ela não pode se
+   distinguir de um e-mail sem conta;
+4. **quem chega da compra** (U3) precisa saber por que está entrando, e voltar para ela.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quanto tempo fica dentro | **30 dias no mesmo aparelho**, renovados a cada uso, sem a caixa "lembrar de mim". Trocar a senha (3.4) tira a conta de todos os aparelhos |
+| **B** | A frase do erro | **"E-mail ou senha não conferem"**, a mesma nos dois casos |
+| **C** | Muitas tentativas | **5 erros seguidos no mesmo e-mail → 15 minutos de espera**, com o "Esqueci a senha" liberado; e o limite por endereço de rede, que já existe |
+| **D** | Onde fica o "Sair" | **no fim de Minha conta**; o menu não muda. "Sair de todos os aparelhos" fica para depois do MVP |
+| **E** | Depois de entrar | **volta para onde a pessoa ia**: a compra (U3), a opinião (1.6), ou Minha conta |
+| **F** | A conta desativada | **"Esta conta está desativada"**, com o WhatsApp e a reserva sem conta, **só depois da senha certa** |
+
+**A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 30 dias (A) são da API (naveg-api-vercel#30,
+ADR-0003).
