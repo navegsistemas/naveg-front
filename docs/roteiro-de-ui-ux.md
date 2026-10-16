@@ -883,6 +883,12 @@ pode vir antes; a implementação espera.
 - **na área do cliente, ele também reserva veículo e encomenda**, que seguem para o atendimento, como a reserva da
   página. Isso entra na 4.1 (Minha conta) e na etapa 5.
 
-**Wireframe, versão 2:** sem o texto de apoio. Fica só o que é rótulo, o exemplo dentro do campo e a frase dos termos
-(F), que a lei pede.
+**Wireframe, versão 2:** sem o texto de apoio. **Versão 3**, a pedido do PO no mesmo dia ("achei melhor com o texto,
+porém pode ter a informação extra que eu dei, e resumida"): uma linha de abertura e uma de apoio por grupo, nenhuma
+embaixo de campo:
+
+- **abertura:** "Com a conta, você compra passagens para você ou para outra pessoa, e reserva veículos e encomendas com o
+  atendimento.";
+- **Seus dados:** "Para comprar para outra pessoa, basta ter o documento e a data de nascimento dela.";
+- **Contato e acesso:** "O e-mail confirma a conta. Por ele e pelo celular, falamos com você sobre seus pedidos."
 
