@@ -147,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 em análise**, esperando o PO; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 em análise**, esperando o PO; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -934,7 +934,8 @@ PO cria o apelido `naoresponda@` e a senha de app quando a API for mandar o prim
 
 ### 3.3 — Entrar e sair
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("as recomendações foram aceitas"). A implementação
+espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
 [3.3](https://claude.ai/artifact/LNG8wmYhfbS7RTtzRyLesb): entrar, entrar vindo da compra, o erro, as tentativas demais,
 a conta desativada, o menu com "Minha conta" e o sair.
 
@@ -1013,3 +1014,36 @@ que falta. A reserva não tem dono: ela guarda o nome e o celular de quem reserv
 | **B** | A prova de que é dela | **só no mesmo aparelho**, logo depois de reservar: a API entrega, junto com o código, um comprovante que fica guardado no navegador até a saída do barco. Sem ele, não há resgate, nem pelo código digitado |
 | **C** | Antes da compra online | **resgatar entra com a área do cliente**: a reserva aparece em Minha conta, com o código e o WhatsApp. **Emitir entra com a 7.6**, a partir dessa mesma reserva, sem escolher a saída de novo |
 | **D** | No painel | **a reserva ganha o vínculo com a conta**, e o atendente vê "reserva de cliente com conta". Se ela já foi convertida no balcão, o site mostra a passagem como emitida e não oferece pagar. Pede o KMP e a API (issues depois da decisão) |
+
+### 3.4 — Esqueci a senha
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+[3.4](https://claude.ai/artifact/WdKaLFHigKz3vY4Tffbst6): pedir o link, "Confira seu e-mail", o e-mail, a senha nova, a
+senha trocada e o link que não vale mais.
+
+**Levantamento** (2026-10-16): a tela não existe. O que já está decidido: o e-mail pelo Google Workspace (B da área do
+cliente); respostas que não revelam se um e-mail tem conta; a senha de pelo menos 8 caracteres, com "Mostrar" (3.1, C);
+trocar a senha tira a conta de todos os aparelhos (3.3, A); o "Esqueci a senha" liberado mesmo depois de tentativas
+demais (3.3, C). O formato do e-mail é o da 3.2.
+
+**Achados:**
+
+1. **o link de troca dá acesso à conta**: precisa valer menos tempo que o da confirmação, e uma vez só;
+2. **quem não lembra o e-mail da conta** não tem como recuperar pelo site; a saída é o atendimento, que vê as contas no
+   painel;
+3. **a troca feita por outra pessoa** (alguém com acesso ao e-mail) só é percebida se a conta avisar;
+4. **a conta sem e-mail confirmado** pede o link de troca: abrir o link prova que a pessoa recebe naquele e-mail;
+5. **a conta desativada** não pode trocar a senha e entrar, mas a tela de pedir não pode revelar que ela existe.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quanto tempo o link vale | **1 hora, e uma vez só**; o link novo invalida o anterior |
+| **B** | A resposta ao pedido | **"Se houver uma conta com este e-mail, o link chega em instantes"**, sempre a mesma |
+| **C** | Depois de trocar | **a pessoa já fica dentro da conta neste aparelho**, e sai dos outros |
+| **D** | O aviso da troca | **um e-mail "Sua senha foi trocada"**, com a hora e o WhatsApp para quem não reconhece a troca |
+| **E** | A conta sem e-mail confirmado | **o link também confirma o e-mail** |
+| **F** | A conta desativada | **a tela responde igual** (B), e o e-mail que chega diz que a conta está desativada, com o WhatsApp, sem link de troca |
+
+**A ordem:** como a 3.1 a 3.3. O link, o aviso e o freio são da API (naveg-api-vercel#30).
