@@ -147,8 +147,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 decidida** (2026-10-16); a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
-| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 decidida** (2026-10-16); **4.2 em análise**, esperando o PO; 4.3 e 4.4 vêm com a compra |
+| **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
+| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
@@ -162,7 +162,7 @@ ter a área do cliente, e o topo passa a dizer se a pessoa está logada ou não.
 1. **2.4, a conferência**; depois **2.5, a conclusão**, e **2.6, os erros**: duas seções curtas, porque os erros já
    acontecem no ar e a reserva continua sendo o caminho livre depois da compra;
 2. **a área do cliente**: as etapas 3 (o cadastro, com o "Entrar" e o "Minha conta" no topo, a 3.5 com a 1.1) e 4.1 e
-   4.2 (Minha conta e Meus dados). **A implementação trava na U8 e na D4**, que o PO decide antes de a 2.4 terminar;
+   4.2 (Minha conta e Meus dados). **A implementação travava na U8 e na D4**; com a API atrás do site (2026-10-16, ficha "A área do cliente"), nenhuma das duas trava a homologação;
 3. **1.6, as opiniões** (abaixo);
 4. **a emissão e o pagamento online**: a etapa 5, com a 4.3 (Meus pedidos) e a 4.4 (as páginas legais de cancelamento
    e reembolso, O5), que só fazem sentido com a compra.
@@ -1049,7 +1049,7 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 
 **A ordem:** como a 3.1 a 3.3. O link, o aviso e o freio são da API (naveg-api-vercel#30).
 
-### As regras da conta (3.1 a 3.4, decididas em 2026-10-16)
+### As regras da conta (3.1 a 4.2, decididas em 2026-10-16)
 
 **Para que serve:** a especificação, num lugar só, do que o PO decidiu para a conta do cliente, para a API
 (naveg-api-vercel#30, #43) e o painel (fluviapp-kmp#70, #71) implementarem igual. O PO pediu "tudo isso documentado"
@@ -1099,6 +1099,25 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 | trocou a senha | fica dentro neste aparelho, sai dos outros, e recebe o e-mail "Sua senha foi trocada" | 3.4, C e D |
 | pediu troca sem ter confirmado | o link de troca também confirma o e-mail | 3.4, E |
 | pediu troca com a conta desativada | a mesma resposta na tela; o e-mail diz que a conta está desativada, sem link | 3.4, F |
+
+**Onde se entra, Minha conta e Meus dados**
+
+| regra | decisão | de onde |
+|---|---|---|
+| "Minha conta" no topo | item fixo do menu, igual para todos; no celular, o último item, separado; no computador, no fim do menu, com o desenho de uma pessoa. Se não couber no tablet em pé, o menu recolhe até 50rem | 1.1, D; 3.5, B e C |
+| quem não entrou e toca em "Minha conta" | a página da conta mostra o entrar (3.3), com "Criar conta" | 3.5, A |
+| o nome de quem entrou | em Minha conta, não no topo | 3.5, F |
+| o convite na hora de pagar | "Para comprar, entre na sua conta": "Entrar" primeiro, "Criar conta", e "Prefere não criar conta? Reservar"; a escolha fica guardada | 3.5, D; U3 |
+| Minha conta, primeiro | "Olá, (nome)" e as ações: reservar passagem, reservar veículo, enviar encomenda. Com a compra, "Comprar passagem" vira a primeira ação | 4.1, A e E |
+| a reserva feita com a conta | o nome e o celular já vão preenchidos, e podem ser mudados naquela reserva | 4.1, B |
+| as reservas da conta | não são listadas antes da compra; Meus pedidos (4.3) chega com ela | 4.1, C |
+| os dados em Minha conta | um resumo (e-mail, celular, documento mascarado), com "Ver e corrigir" | 4.1, D |
+| a opinião (1.6) | um atalho em Minha conta, quando a 1.6 existir | 4.1, F |
+| o que a pessoa corrige | o nome e o celular, com "Salvar alterações". O nascimento e o documento, só pelo atendimento (painel) | 4.2, A e F |
+| trocar o e-mail | com a senha atual; o novo só vale depois de confirmado pelo link (24 horas), e o antigo recebe um aviso. Se o novo já for de outra conta, a resposta é a mesma | 4.2, B |
+| trocar a senha | com a senha atual; a conta sai dos outros aparelhos, e chega o aviso da troca | 4.2, C |
+| o documento na tela | sempre mascarado, inclusive para o dono | 4.2, D; O12 |
+| apagar a conta | num passo próprio, com o que sai e o que fica escrito antes e a senha para confirmar; vale na hora, a conta sai de todos os aparelhos e o documento fica livre. As passagens ficam | 4.2, E; O7 |
 
 **As anormalidades que o painel sana** (PO, 2026-10-16: "anormalidades devem ser capazes de serem sanadas pelo
 backend"). Detalhe e forma em navegsistemas/fluviapp-kmp#71:
@@ -1195,7 +1214,9 @@ existirem.
 
 ### 4.2 — Meus dados
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO): [4.2](https://claude.ai/artifact/8GtC5KXTQpFxiDjsRwXSn8): os dados,
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas, pode
+documentar"). Com ela, **a área do cliente está toda desenhada e decidida**; as regras estão juntas em "As regras da
+conta". **Wireframe** (privado do PO): [4.2](https://claude.ai/artifact/8GtC5KXTQpFxiDjsRwXSn8): os dados,
 trocar o e-mail, trocar a senha, apagar a conta e a conta apagada.
 
 **Levantamento** (2026-10-16): a página não existe. O que já está decidido:
@@ -1229,3 +1250,18 @@ trocar o e-mail, trocar a senha, apagar a conta e a conta apagada.
 
 **A ordem:** como o cadastro, depois do KMP, do domain e da API. Trocar o e-mail e apagar a conta são da API
 (naveg-api-vercel#30).
+
+**A ordem de implementação da área do cliente** (a regra de sempre: KMP, domain, API e site):
+
+1. **KMP:** as chaves novas da conta e o índice do documento (fluviapp-kmp#70); os remédios do painel, ao menos os
+   itens 1 a 5 (fluviapp-kmp#71);
+2. **`@navegsistemas/domain`** (naveg-front): a conta, as validações dos campos (nascimento, documento, idade mínima,
+   senha) e as frases, com versão e tag;
+3. **API:** a conta (naveg-api-vercel#30), com a ADR-0003 (a sessão, e a API atrás do site, em `/api`, conferindo que
+   o limite por endereço de rede e o Turnstile continuam vendo quem acessa); o envio pelo Google Workspace; a conta que
+   nunca confirma (#43). **O PO cria o apelido `naoresponda@` e a senha de app** quando o primeiro e-mail for sair;
+4. **site:** a política de privacidade com a seção da conta (U7, versão nova); as telas da 3.1 à 4.2, com o E2E e o axe
+   de cada estado desenhado; o "Minha conta" no topo; a reserva preenchida para quem entrou;
+5. **o aceite do PO na homologação**, no celular, com os remédios do painel testados de verdade.
+
+Os convites da compra (3.5, D e E), "Comprar passagem" (4.1, E) e Meus pedidos (4.3) entram com a compra (7.6).
