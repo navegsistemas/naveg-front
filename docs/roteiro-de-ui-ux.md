@@ -147,8 +147,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 decidida** (2026-10-16); a seguir, a 4.1 e a 4.2; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
-| **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 decidida** (2026-10-16); a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
+| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 em análise**, esperando o PO (2026-10-16); a 4.2 a seguir; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
@@ -1155,3 +1155,40 @@ na hora de pagar, com a escolha guardada. O PO trocou o resgate da reserva por *
 
 **A ordem:** o item do topo e a página da conta entram com a conta (depois do KMP, do domain e da API). Os convites D
 e E entram com a compra (7.6).
+
+### 4.1 — Minha conta
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes
+da compra, no celular e no computador; o e-mail sem confirmar; e o lugar da compra e de Meus pedidos, quando
+existirem.
+
+**Levantamento** (2026-10-16): a página não existe. O que já está decidido:
+- **é o lugar para onde "Minha conta" leva** (3.5, A); para quem não entrou, a mesma página mostra o entrar;
+- **com a conta, o cliente compra passagens** para si ou para outra pessoa, e **reserva veículos e encomendas** com o
+  atendimento (3.1);
+- **o aviso "Confirme seu e-mail para comprar"** fica aqui (3.2, D), e o **"Sair" no fim** (3.3, D);
+- **o nome de quem entrou** aparece aqui, e não no topo (3.5, F);
+- **o documento aparece mascarado** (O12), como no painel.
+
+**Achados:**
+
+1. **antes da compra pelo site, a conta serve para reservar**: o que a pessoa veio fazer é reservar, e é isso que
+   deve vir primeiro;
+2. **a reserva com conta pode vir preenchida** com o nome e o celular: é o primeiro ganho visível da conta (achado 1 da
+   área do cliente);
+3. **listar as reservas feitas com a conta** pede que a reserva guarde a conta, uma mudança no KMP e na API que o PO
+   recusou para a reserva sem conta (3.6). Sem a lista, a conta não tem histórico até a compra;
+4. **a compra (7.6) e Meus pedidos (4.3) precisam de lugar** na página desde já, para a página não ser refeita.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O que aparece primeiro | **"Olá, Maria" e as ações**: reservar passagem, reservar veículo, enviar encomenda; os dados depois, num resumo |
+| **B** | A reserva feita com a conta | **o nome e o celular já vão preenchidos**, e podem ser mudados naquela reserva; o resto do caminho é o da página |
+| **C** | As reservas feitas com a conta aparecem aqui? | **não antes da compra**: a reserva segue com o código e o WhatsApp; Meus pedidos (4.3) chega com a compra |
+| **D** | Os dados na Minha conta | **um resumo** (e-mail, celular, documento mascarado), com "Ver e corrigir" para Meus dados (4.2) |
+| **E** | Comprar, quando existir | **vira a primeira ação**, com "pague pelo site, confirme no balcão em segundos e embarque"; antes da 7.6, não aparece |
+| **F** | Deixe sua opinião (1.6) | **um atalho aqui também**, quando a 1.6 existir |
+
+**A ordem:** como o cadastro, depois do KMP, do domain e da API. A reserva preenchida (B) é só da página.
