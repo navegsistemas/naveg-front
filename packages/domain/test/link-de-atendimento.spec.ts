@@ -48,18 +48,28 @@ describe('o link do WhatsApp', () => {
   })
 })
 
+/* 2.6, E (PO, 2026-10-16): a saudação, um campo por linha com o nome em negrito, e o pedido de confirmação. */
 describe('a mensagem da reserva', () => {
-  it('o código na primeira linha — é por ele que o atendente acha a reserva', () => {
-    expect(mensagemDaReserva(REDE, ROTULOS).split('\n')[0]).toBe('Reserva NVG-7K3QP2')
+  it('o código é o primeiro campo, logo depois da saudação — é por ele que o atendente acha a reserva', () => {
+    expect(mensagemDaReserva(REDE, ROTULOS).split('\n').slice(0, 3)).toEqual([
+      'Olá! Gostaria de confirmar a reserva que fiz pelo site.',
+      '',
+      '*Reserva:* NVG-7K3QP2',
+    ])
   })
 
-  it('passageiro: travessia, acomodação, pessoas e nome', () => {
+  it('passageiro: o trecho, a saída, a passagem e o nome, e o pedido de confirmação', () => {
     expect(mensagemDaReserva(REDE, ROTULOS)).toBe(
       [
-        'Reserva NVG-7K3QP2',
-        'Porto do Sal · Belém/PA → Porto de Camará · Salvaterra/PA · Qua, 14/10 · 18:00',
-        'Rede · 1 pessoa · Maria Souza',
-        'Vale até a partida.',
+        'Olá! Gostaria de confirmar a reserva que fiz pelo site.',
+        '',
+        '*Reserva:* NVG-7K3QP2',
+        '*Trecho:* Porto do Sal · Belém/PA → Porto de Camará · Salvaterra/PA',
+        '*Saída:* Qua, 14/10 · 18:00',
+        '*Passagem:* Rede · 1 pessoa',
+        '*Nome:* Maria Souza',
+        '',
+        'Aguardo a confirmação.',
       ].join('\n'),
     )
   })
@@ -75,8 +85,9 @@ describe('a mensagem da reserva', () => {
     const carro = reservaDe(
       montarReserva({ categoria: 'VEICULO', naturezaVeiculo: 'AUTOMOTOR', cliente: CLIENTE }, contexto('NAVIO'), IDENTIDADE),
     )
-    expect(mensagemDaReserva(moto, ROTULOS).split('\n')[2]).toBe('Moto · 160 cc · Maria Souza')
-    expect(mensagemDaReserva(carro, ROTULOS).split('\n')[2]).toBe('Carro · Maria Souza')
+    expect(mensagemDaReserva(moto, ROTULOS).split('\n')).toContain('*Veículo:* Moto · 160 cc')
+    expect(mensagemDaReserva(carro, ROTULOS).split('\n')).toContain('*Veículo:* Carro')
+    expect(mensagemDaReserva(carro, ROTULOS)).not.toMatch(/Acompanhantes|Passagem/)
   })
 
   it('passageiros e veículo: as pessoas vão junto, como o painel do KMP escreve (naveg-front#66)', () => {
@@ -95,10 +106,12 @@ describe('a mensagem da reserva', () => {
         IDENTIDADE,
       ),
     )
-    expect(mensagemDaReserva(juntos, ROTULOS).split('\n')).toContain('Caminhão + 3 pessoas em rede · Maria Souza')
+    const linhas = mensagemDaReserva(juntos, ROTULOS).split('\n')
+    expect(linhas).toContain('*Veículo:* Caminhão')
+    expect(linhas).toContain('*Acompanhantes:* 3 pessoas em rede')
   })
 
-  it('o cais do dia e o aviso da data alterada vão logo abaixo da travessia (UI 2.2)', () => {
+  it('o cais do dia e o aviso da data alterada vão logo abaixo da saída (UI 2.2)', () => {
     const rotulos = {
       origem: 'Belém/PA',
       destino: 'Macapá/AP',
@@ -106,12 +119,13 @@ describe('a mensagem da reserva', () => {
       embarque: 'Porto Brilhante · Belém/PA',
       alteracao: 'Embarque alterado nesta data: Cais em obra',
     }
-    expect(mensagemDaReserva(REDE, rotulos).split('\n').slice(1, 4)).toEqual([
-      'Belém/PA → Macapá/AP · Qua, 14/10 · 19:00',
-      'Embarque: Porto Brilhante · Belém/PA',
-      'Embarque alterado nesta data: Cais em obra',
+    expect(mensagemDaReserva(REDE, rotulos).split('\n').slice(3, 7)).toEqual([
+      '*Trecho:* Belém/PA → Macapá/AP',
+      '*Saída:* Qua, 14/10 · 19:00',
+      '*Embarque:* Porto Brilhante · Belém/PA',
+      '*Atenção:* Embarque alterado nesta data: Cais em obra',
     ])
-    expect(mensagemDaReserva(REDE, { ...rotulos, alteracao: null }).split('\n')[3]).toBe('Rede · 1 pessoa · Maria Souza')
+    expect(mensagemDaReserva(REDE, { ...rotulos, alteracao: null }).split('\n')[6]).toBe('*Passagem:* Rede · 1 pessoa')
   })
 
   it('nem telefone nem documento vão na mensagem', () => {
@@ -129,10 +143,11 @@ describe('a mensagem da reserva', () => {
 
 /* 2.6, B (PO, 2026-10-16): a reserva que o site não conseguiu enviar vai pelo WhatsApp, sem código — nada foi gravado. */
 describe('a mensagem sem código', () => {
-  it('a primeira linha diz o que aconteceu, e o resto é a mesma reserva', () => {
+  it('a abertura diz o que aconteceu, e o resto é a mesma reserva, sem a linha do código', () => {
     const linhas = mensagemSemCodigo(REDE, ROTULOS).split('\n')
-    expect(linhas[0]).toBe('Quero fazer esta reserva. O site não conseguiu enviar.')
-    expect(linhas.slice(1)).toEqual(mensagemDaReserva(REDE, ROTULOS).split('\n').slice(1))
+    expect(linhas[0]).toBe('Olá! Tentei fazer esta reserva pelo site, mas ela não foi enviada. Podem registrá-la para mim?')
+    const comCodigo = mensagemDaReserva(REDE, ROTULOS).split('\n')
+    expect(linhas.slice(1)).toEqual(comCodigo.slice(1).filter((linha) => !linha.startsWith('*Reserva:*')))
     expect(textoDo(linkSemCodigo('(91) 99203-5322', REDE, ROTULOS))).not.toMatch(/NVG-/)
   })
 })

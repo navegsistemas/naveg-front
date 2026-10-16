@@ -930,8 +930,9 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     expect(botao.getAttribute('target')).toBe('_blank')
 
     const mensagem = new URL(href).searchParams.get('text') ?? ''
-    expect(mensagem.split('\n')[0]).toBe(`Reserva ${codigo}`)
-    expect(mensagem).toContain('Rede · 1 pessoa · Maria Souza')
+    expect(mensagem.split('\n')).toContain(`*Reserva:* ${codigo}`)
+    expect(mensagem.split('\n')).toContain('*Passagem:* Rede · 1 pessoa')
+    expect(mensagem.split('\n')).toContain('*Nome:* Maria Souza')
     /* O código continua na tela, em texto: o redirecionamento pode falhar. */
     expect(screen.getByText(codigo)).toBeTruthy()
   })
@@ -1001,7 +1002,7 @@ describe('os erros, na página', () => {
     expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeTruthy()
     const link = screen.getByRole('link', { name: 'Enviar pelo WhatsApp' })
     const mensagem = new URL(link.getAttribute('href') ?? '').searchParams.get('text') ?? ''
-    expect(mensagem.split('\n')[0]).toBe('Quero fazer esta reserva. O site não conseguiu enviar.')
+    expect(mensagem.split('\n')[0]).toBe('Olá! Tentei fazer esta reserva pelo site, mas ela não foi enviada. Podem registrá-la para mim?')
     expect(mensagem).not.toMatch(/NVG-/)
     expect(mensagem).toContain('Maria Souza')
   })

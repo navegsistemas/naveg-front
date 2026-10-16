@@ -96,11 +96,12 @@ test.describe('a encomenda na página', () => {
     const link = new URL((await atendimento.getAttribute('href')) ?? '')
     expect(`${link.origin}${link.pathname}`).toBe(`https://wa.me/${WHATSAPP_DA_NAVEG}`)
     const mensagem = (link.searchParams.get('text') ?? '').split('\n')
-    expect(mensagem[0]).toBe(`Encomenda ${CODIGO_DO_SERVIDOR}`)
-    expect(mensagem).toContain('3 volumes · Caixa (mantimentos) · 5 a 20 kg')
-    expect(mensagem.some((linha) => linha.startsWith('De Maria Souza, ') && linha.endsWith('quem retira, a combinar'))).toBe(
-      true,
-    )
+    /* 2.6, E: a saudação, um campo por linha, e o pedido de confirmação. */
+    expect(mensagem[0]).toBe('Olá! Gostaria de confirmar a encomenda que registrei pelo site.')
+    expect(mensagem[2]).toBe(`*Encomenda:* ${CODIGO_DO_SERVIDOR}`)
+    expect(mensagem).toContain('*Volumes:* 3 · Caixa (mantimentos) · 5 a 20 kg')
+    expect(mensagem.some((linha) => linha.startsWith('*Remetente:* Maria Souza, '))).toBe(true)
+    expect(mensagem).toContain('*Destinatário:* a combinar com o atendimento')
   })
 
   test('pelo botão "Enviar encomenda" da capa, do mesmo jeito', async ({ page }) => {
