@@ -17,10 +17,12 @@ import {
   TipoPassagem,
   casoImpossivel,
   embarqueEmVigor,
+  encomendaPeloSite,
   porteEmVigor,
   type NoDoRoteiro,
   type RespostasDaReserva,
 } from '@navegsistemas/domain'
+import type { ReactNode } from 'react'
 
 import { EscolhaEmCartoes } from './EscolhaEmCartoes.js'
 import { CampoDeCilindrada, FormularioDoCliente, FormularioDoTipoDoVolume } from './Formularios.js'
@@ -38,9 +40,11 @@ export interface PropsDoPasso {
   readonly no: Exclude<NoDoRoteiro, { passo: 'CONFERENCIA' }>
   readonly respostas: RespostasDaReserva
   readonly aoResponder: (respostas: RespostasDaReserva) => void
+  /** No passo de quem reserva, a linha antes do "Continuar" (2.3, C). Quem decide se ela aparece é a tela. */
+  readonly avisoDoCliente?: ReactNode
 }
 
-export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
+export function PassoDaReserva({ no, respostas, aoResponder, avisoDoCliente }: PropsDoPasso) {
   const com = (parcial: RespostasDaReserva) => aoResponder({ ...respostas, ...parcial })
 
   switch (no.passo) {
@@ -131,7 +135,10 @@ export function PassoDaReserva({ no, respostas, aoResponder }: PropsDoPasso) {
         <FormularioDoCliente
           inicial={respostas.cliente}
           telefoneObrigatorio={no.telefoneObrigatorio === true}
-          {...(no.telefoneObrigatorio === true ? { erroDoNome: 'Informe o nome de quem manda.' } : {})}
+          {...(encomendaPeloSite(respostas) ? { erroDoNome: 'Informe o nome de quem manda.' } : {})}
+          /* O celular obrigatório é o do site, e lá ele é o do WhatsApp (2.3, B); o quiosque segue com "com DDD". */
+          {...(no.telefoneObrigatorio === true ? { rotuloDoTelefone: 'Celular com WhatsApp' } : {})}
+          {...(avisoDoCliente !== undefined ? { aviso: avisoDoCliente } : {})}
           aoConfirmar={(cliente) => com({ cliente })}
         />
       )

@@ -62,6 +62,7 @@ import {
   saidasDoDia,
 } from '@navegsistemas/ui'
 
+import { DIAS_DE_GUARDA_DA_RESERVA } from '../conteudo/privacidade'
 import { ANCORA_DA_RESERVA_DE_ENCOMENDA } from '../conteudo/secoes'
 import { useAncoraNoCarregamento } from './ancora'
 import { useOferta } from './oferta'
@@ -121,6 +122,19 @@ const OCIOSO: Envio = { estado: 'OCIOSO' }
 const CODIGO_DA_PREVIA = 'NVG-000000'
 
 /** A encomenda sem o destinatário: quem retira fica para o atendimento (naveg-front#58, 2.7). */
+/**
+ * **Para que servem os dados** (2.3, C, PO, 2026-10-16): a linha no passo de quem reserva, na hora em que o dado é
+ * pedido. O prazo é o da política, e não um número escrito aqui.
+ */
+function AvisoDePrivacidade() {
+  return (
+    <p className="totem-ajuda totem-privacidade">
+      Usamos o nome e o celular só para esta reserva, e apagamos {DIAS_DE_GUARDA_DA_RESERVA} dias depois da viagem.{' '}
+      <a href="/privacidade/">Política de privacidade</a>
+    </p>
+  )
+}
+
 function retiradaACombinar(reserva: Reserva): boolean {
   return reserva.categoria === 'ENCOMENDA' && reserva.retirada === undefined
 }
@@ -494,14 +508,23 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   } else {
     /* Na encomenda, o passo do cliente é "Quem está mandando?", com o celular obrigatório (2.7, F). */
     const texto =
-      atual.passo === 'CLIENTE' && atual.telefoneObrigatorio === true
+      atual.passo === 'CLIENTE' && ehEncomenda
         ? TEXTO_DE_QUEM_MANDA
         : ((quiosque ? undefined : TEXTO_DO_PASSO_NO_SITE[atual.passo]) ?? TEXTO_DO_PASSO[atual.passo])
     pergunta = texto.pergunta
     ajuda = texto.ajuda
     /* A chave é o passo: sem ela, o React reaproveita o formulário de quem manda em "Quem recebe?", com o que já
        estava digitado, e o remetente iria como destinatário (2.7). */
-    corpo = <PassoDaReserva key={atual.passo} no={atual} respostas={respostas} aoResponder={responder} />
+    corpo = (
+      <PassoDaReserva
+        key={atual.passo}
+        no={atual}
+        respostas={respostas}
+        aoResponder={responder}
+        /* No site, o passo de quem reserva diz para que servem os dados, com a política (2.3, C). */
+        {...(site ? { avisoDoCliente: <AvisoDePrivacidade /> } : {})}
+      />
+    )
   }
 
   /* Na página, as etapas pelo nome (UI 2.2, decisão C), do que vai embarcar à conferência, e desde a primeira pergunta;

@@ -313,6 +313,7 @@ describe('o que vai embarcar, na página', () => {
 
     await escolherSaida('Ferry de demonstração')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     expect(pergunta()).toBe('Confira a reserva')
     expect(
@@ -378,13 +379,13 @@ describe('a encomenda, na página', () => {
     tocar('Continuar')
     /* Sem o celular, não segue: é por ele que o atendimento fala com quem manda. */
     expect(pergunta()).toBe('Quem está mandando?')
-    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '91988887777' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
 
     expect(pergunta()).toBe('Quem recebe no destino?')
     /* Os campos de quem recebe começam vazios: não herdam o que se digitou para quem manda. */
     expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('')
-    expect((screen.getByLabelText(/Celular com DDD/) as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/^Celular com/) as HTMLInputElement).value).toBe('')
     tocar(/^Pular/)
     expect(pergunta()).toBe('Confira a reserva')
     expect(screen.getByText('A combinar com o atendimento')).toBeTruthy()
@@ -410,10 +411,10 @@ describe('a encomenda, na página', () => {
     embarcarEncomenda()
     await escolherSaida('Ferry de demonstração')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
-    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '91988887777' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'João Lima' } })
-    fireEvent.change(screen.getByLabelText(/Celular com DDD/), { target: { value: '96988887777' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '96988887777' } })
     tocar('Continuar')
     expect(screen.getByText('João Lima, (96) 98888-7777')).toBeTruthy()
     tocar('Confirmar reserva')
@@ -471,7 +472,7 @@ describe('o roteiro, na tela', () => {
 
     const usuario = userEvent.setup()
     await usuario.type(screen.getByLabelText('Nome'), 'Maria Souza')
-    await usuario.type(screen.getByLabelText(/Celular com DDD/), '(91) 98888-7777')
+    await usuario.type(screen.getByLabelText(/^Celular com/), '(91) 98888-7777')
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     expect(pergunta()).toBe('Confira a reserva')
@@ -521,6 +522,7 @@ describe('o roteiro, na tela', () => {
     tocar(/^Suíte/)
     await escolherSaida('Ferry de demonstração')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     expect(screen.getByText('Suíte · 7 pessoas · inteira, meia ou gratuidade no atendimento')).toBeTruthy()
     tocar('Confirmar reserva')
@@ -558,6 +560,7 @@ describe('o roteiro, na tela', () => {
     tocar(/^Rede/)
     tocar('Inteira')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     expect(screen.getByText('Rede · Inteira · 1 pessoa')).toBeTruthy()
     tocar('Confirmar reserva')
@@ -583,16 +586,46 @@ describe('o roteiro, na tela', () => {
     expect(pergunta()).toBe('Qual a cilindrada da moto?')
   })
 
-  it('o telefone é opcional — e o inválido é apontado na hora, sem avançar', async () => {
+  /* 2.3 (PO, 2026-10-16): na página, o celular é obrigatório (A), com o WhatsApp no nome (B) e a linha de privacidade (C). */
+  it('na página, o celular é obrigatório: sem ele, ou com um fixo, não avança', async () => {
     montar()
     embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
+    expect(screen.getByText(/É pelo WhatsApp deste celular/)).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Política de privacidade' }).getAttribute('href')).toBe('/privacidade/')
+    expect(screen.getByText(/apagamos 14 dias depois da viagem/)).toBeTruthy()
+
+    const usuario = userEvent.setup()
+    await usuario.type(screen.getByLabelText('Nome'), 'Maria')
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
+    expect(screen.getByText('Informe um celular com DDD, como (91) 98888-7777.')).toBeTruthy()
+
+    await usuario.type(screen.getByLabelText('Celular com WhatsApp'), '3222-1111')
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
+
+    await usuario.clear(screen.getByLabelText('Celular com WhatsApp'))
+    await usuario.type(screen.getByLabelText('Celular com WhatsApp'), '91988887777')
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(pergunta()).toBe('Confira a reserva')
+    expect(screen.getByText('Celular')).toBeTruthy()
+    expect(screen.getByText('(91) 98888-7777')).toBeTruthy()
+  })
+
+  it('no quiosque, o celular continua opcional, e sem a linha de privacidade', async () => {
+    montar({ quiosque: true })
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    expect(screen.getByText(/O telefone é opcional/)).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Política de privacidade' })).toBeNull()
 
     const usuario = userEvent.setup()
     await usuario.type(screen.getByLabelText('Nome'), 'Maria')
     await usuario.type(screen.getByLabelText(/Celular com DDD/), '3222-1111')
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
-    expect(pergunta()).toBe('Em nome de quem fica a reserva?')
     expect(screen.getByText(/Precisa ser um celular com DDD/)).toBeTruthy()
 
     await usuario.clear(screen.getByLabelText(/Celular com DDD/))
@@ -606,7 +639,7 @@ describe('o roteiro, na tela', () => {
     embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
     const usuario = userEvent.setup()
-    const campo = screen.getByLabelText(/Celular com DDD/) as HTMLInputElement
+    const campo = screen.getByLabelText(/^Celular com/) as HTMLInputElement
     await usuario.type(campo, '9198888')
     expect(campo.value).toBe('(91) 9888-8')
     await usuario.type(campo, '7777')
@@ -718,6 +751,7 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
     fireEvent.click(within(quarta).getByRole('button', { name: 'Reservar esta saída' }))
     expect(screen.getByText('Embarque alterado nesta data: Cais em obra')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     expect(pergunta()).toBe('Confira a reserva')
     expect(atual()).toBe('Conferir')
@@ -736,6 +770,7 @@ describe('o tempo', () => {
     embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
     tocar('Continuar')
     expect(screen.getByRole('button', { name: 'Confirmar reserva' })).toBeTruthy()
 
@@ -803,6 +838,7 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     embarcarPassageiros()
     await escolherSaida('Ferry de demonstração')
     await usuario.type(screen.getByLabelText('Nome'), 'Maria Souza')
+    await usuario.type(screen.getByLabelText(/^Celular com/), '91988887777')
     await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
     return (await screen.findByText(/^NVG-[0-9A-Z]{6}$/)).textContent as string

@@ -144,7 +144,8 @@ export function resumoDaReserva(reserva: Reserva, travessia: TravessiaOfertada):
     { rotulo: 'Passagem', valor: aPassagem(reserva) },
     { rotulo: 'Em nome de', valor: reserva.cliente.nome },
     {
-      rotulo: 'Telefone',
+      /* Um nome só para o celular, do campo à conferência (2.3, B). */
+      rotulo: 'Celular',
       valor: telefoneOuNao(reserva.cliente.telefone),
     },
     { rotulo: 'Vale até', valor: `a saída — ${travessia.rotulos.partida}` },

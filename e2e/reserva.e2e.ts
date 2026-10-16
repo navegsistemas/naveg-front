@@ -30,7 +30,7 @@ const pergunta = (page: Page): Locator => totem(page).locator('.totem-pergunta')
 async function preencherOsDados(page: Page) {
   await expect(pergunta(page)).toHaveText('Em nome de quem fica a reserva?')
   await page.getByLabel('Nome').fill('Maria Souza')
-  await page.getByLabel(/Celular com DDD/).fill('(91) 98888-7777')
+  await page.getByLabel(/^Celular com/).fill('(91) 98888-7777')
   await page.getByRole('button', { name: 'Continuar' }).click()
   await expect(pergunta(page)).toHaveText('Confira a reserva')
 }
@@ -149,7 +149,7 @@ test.describe('a reserva no quiosque', () => {
 
     await tabAte(page.getByLabel('Nome'))
     await page.keyboard.type('Maria Souza')
-    await tabAte(page.getByLabel(/Celular com DDD/))
+    await tabAte(page.getByLabel(/^Celular com/))
     await page.keyboard.type('91988887777')
     await escolher(page.getByRole('button', { name: 'Continuar' }), 'Confira a reserva')
 
@@ -203,6 +203,14 @@ test.describe('a reserva na página', () => {
     /* O caminhão só vai no ferry: as saídas do dia são só dele. */
     const saida = totem(page).locator('.totem-travessias').getByRole('listitem').filter({ hasText: 'Ferry de demonstração' }).first()
     await saida.getByRole('button', { name: 'Reservar esta saída' }).click()
+
+    /* Na página, sem o celular não segue (2.3, A), e o passo diz para que servem os dados, com a política (C). */
+    await expect(pergunta(page)).toHaveText('Em nome de quem fica a reserva?')
+    await expect(totem(page).getByRole('link', { name: 'Política de privacidade' })).toHaveAttribute('href', '/privacidade/')
+    await page.getByLabel('Nome').fill('Maria Souza')
+    await page.getByRole('button', { name: 'Continuar' }).click()
+    await expect(totem(page).getByText('Informe um celular com DDD, como (91) 98888-7777.')).toBeVisible()
+    await expect(pergunta(page)).toHaveText('Em nome de quem fica a reserva?')
     await preencherOsDados(page)
     await expect(
       page.getByText('Veículo: Caminhão · + 3 pessoas em rede · inteira, meia ou gratuidade no atendimento'),
@@ -223,5 +231,7 @@ test.describe('a reserva na página', () => {
       quantidadePessoas: 3,
     })
     expect(respostas).not.toHaveProperty('tipo')
+    /* O celular é obrigatório na página (2.3, A): ele vai, sempre. */
+    expect(respostas?.cliente?.telefone).toMatch(/98888-?7777$/)
   })
 })
