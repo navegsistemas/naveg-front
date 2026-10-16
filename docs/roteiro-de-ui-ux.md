@@ -793,5 +793,38 @@ entra), 4.1 (Minha conta) e 4.2 (Meus dados).
 | **C** | O celular na conta | **obrigatório**, como na reserva da página: um campo a mais no cadastro, e quem entra reserva sem digitar nada. Contra: opcional, com a reserva perguntando de novo |
 | **D** | Entrar com o Google | **não no MVP**: e-mail e senha, como o KMP já preparou. O Google tira a senha e a confirmação, mas pede outro contrato com o KMP e outra configuração; o bilhete da 7.6 vai por e-mail do mesmo jeito. Volta à mesa se o uso pedir |
 
-**Depois das respostas:** o wireframe da 3.1 (criar a conta), e as seções seguintes uma de cada vez.
+**Respostas do PO (2026-10-16):**
+
+| # | resposta | o que fica |
+|---|---|---|
+| **A** | "foi combinado que haveriam dois domínios inicialmente: endereço de produção e API de homologação, faltando apenas configurar na Vercel"; o endereço `*.vercel.app` serve hoje aos dois, em desenvolvimento. A configuração pode ter ficado em outra máquina | **em aberto, com uma recomendação nova** (abaixo) |
+| **B** | "o e-mail com o domínio já está completamente configurado" | **decidida.** O domínio usa o **Google Workspace**, com SPF, DKIM e DMARC no ar (conferido no DNS em 2026-10-16). O site manda e-mail pelo próprio Workspace, de um apelido `naoresponda@`, sem provedor novo e sem custo de licença. Na implementação da 3.2, o PO cria o apelido e a senha de app |
+| **C** | obrigatórios, "assim como na passagem": **nome completo, data de nascimento, tipo e número do documento, e-mail** (para a confirmação) e **celular** (para mandar as passagens) | **decidida.** Muda o contrato do KMP: a ADR-0022 dizia que a conta não era o passageiro e só tinha nome, e-mail e telefone (navegsistemas/fluviapp-kmp#70; a ordem é KMP, domain, API e site). O documento segue a O12: mascarado na tela, depois de gravado |
+| **D** | aceita | **decidida:** e-mail e senha, sem o Google no MVP |
+
+**E o bilhete, para a etapa 5** (PO, 2026-10-16): o celular serve, numa fase futura, para mandar a passagem pelo
+WhatsApp, com automação. Como a automação custa tempo, **no MVP a passagem vai por e-mail, ou é baixada no site em PDF**.
+Vale para a 5.6.
+
+**O que se achou da A** (2026-10-16): `gruponaveg.com.br` e `www` estão no projeto do site na Vercel, mas **o DNS, no
+Registro.br, ainda não aponta para a Vercel**: o endereço não abre. Não há `api.` nem `homologacao.`. O que falta é um
+registro no Registro.br, e não na Vercel.
+
+**A recomendação nova para a A:** **a API atrás do próprio site, em `/api`** (a Vercel repassa o pedido). Para o
+navegador, o site e a API passam a ser o mesmo endereço, qualquer que seja ele, e o login funciona inclusive em
+`*.vercel.app`. Com isso:
+
+- **a U8 deixa de travar**: a homologação continua onde está, sem subdomínio;
+- **a D4 encolhe**: a produção precisa só de `gruponaveg.com.br` apontado para a Vercel, e a API não ganha endereço
+  público próprio;
+- **o que conferir antes** (é de engenharia, na ADR-0003): que a API continue vendo o endereço de quem acessa, porque
+  o limite de envios e o Turnstile dependem dele.
+
+**Uma pergunta nova, que a C trouxe:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **E** | Uma conta por documento? | **sim, uma por documento**, como o passageiro (ADR-0023). Quem tenta outra conta com o mesmo documento lê a mesma frase que não revela nada: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." Contra: deixar repetir, e a análise de clientes contaria a mesma pessoa duas vezes |
+
+**Depois da A e da E:** o wireframe da 3.1 (criar a conta), e as seções seguintes uma de cada vez.
 
