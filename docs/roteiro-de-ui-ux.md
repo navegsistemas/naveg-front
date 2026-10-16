@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 decidida, implementada no #72** (a encomenda no mesmo caminho, com a #58), esperando a API com o domain 0.11.0; as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 decidida, implementada no #72** (a encomenda no mesmo caminho, com a #58); a API com o domain 0.11.0 promovida em 2026-10-16; as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -472,8 +472,8 @@ a API nova continua aceitando a página de antes (a `categoria` vale como o que 
 
 ### 2.7 — A reserva de encomenda
 
-**Situação:** decidida (2026-10-15) e implementada no #72 (2026-10-16), que entra depois da API com o domain 0.11.0
-promovida. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
+**Situação:** decidida (2026-10-15) e implementada no #72 (2026-10-16). A API com o domain 0.11.0 foi promovida em
+2026-10-16 (naveg-api-vercel#40); falta o PO conferir a prévia e juntar o #72. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
 com a parte de encomenda". Entra junto a #58 (a encomenda só com quem manda, decisão de LGPD de 2026-10-07).
 **Wireframe** (privado do PO): [2.7](https://claude.ai/artifact/V7vUdrj1vNqNyhY7ftWCNc).
 
@@ -531,6 +531,9 @@ opcional.
 - **a seção "Envie sua encomenda"** tem os quatro passos e o botão "Mandar uma encomenda", que abre a reserva já em
   "Encomenda". O menu e o botão da capa continuam levando à seção;
 - **o quiosque** não muda: ele não tem encomenda.
+
+**As fotos (PO, 2026-10-16): não haverá fotos de carga.** O cartão Encomenda fica sem foto (C), e os carrosséis da
+decisão M ficam sem carga e encomenda. A foto do Maria Eduarda para a vitrine continua pendente.
 
 O que as capturas mostraram, e foi corrigido no mesmo PR:
 
