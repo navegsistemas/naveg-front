@@ -62,7 +62,7 @@ O que está no ar hoje, na ordem da página. **É por aqui que o roteiro começa
 | **1.3** | **Reserve sua passagem** (o totem na página) | o roteiro da reserva, do jeito de hoje — **o fluxo em si é a etapa 2**; aqui, a seção como parte da página | o título e o subtítulo ("não pede cadastro nem documento"), que mudam de sentido quando houver compra |
 | **1.4** | **Envie sua encomenda** | a seção própria da encomenda | o mesmo: a seção na página; o fluxo é a etapa 2 |
 | **1.5** | **Quem atende você** | o cartão do atendente (nome, foto e WhatsApp pendentes) | o que falta de conteúdo e como o atendimento aparece para quem compra |
-| **1.6** | **O que dizem os passageiros** | as avaliações (lista vazia de propósito) e as redes | se a seção fica no ar vazia até haver depoimentos reais |
+| **1.6** | **O que dizem os passageiros** | as avaliações (lista vazia de propósito) e as redes | **decidido em 2026-10-16** (§9, "A ordem até o MVP"): vira "Deixe sua opinião", para quem tem conta, com o carrossel das aprovadas; as redes saem |
 | **1.7** | **Rodapé** | identificação da empresa (pendente), contatos, links legais, o aviso "reserva, não venda" | o aviso, que deixa de valer para o site inteiro (U2); onde ficam as páginas legais novas |
 | **1.8** | **O quiosque** (`/totem`) | o totem em página cheia, para o terminal físico | confirmar que continua só com reserva (U5) |
 | **1.9** | **Sem JavaScript e acessibilidade da página** | o que se lê com o JavaScript desligado | casa com o passo 13.2 do endurecimento: o que a análise achar, o 13.2 testa |
@@ -146,13 +146,41 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 em análise, esperando o PO** (quem reserva); as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 a próxima**, depois a 2.5 e a 2.6 |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
 entregas do KMP (7.2, 7.3, 7.5). O roteiro anda no ritmo das decisões do PO, não no do código.
+
+### A ordem até o MVP (PO, 2026-10-16)
+
+O PO conferiu a ordem contra o caminho do MVP: **a partir do cadastro, o site deixa de ser uma página só**. Ele passa a
+ter a área do cliente, e o topo passa a dizer se a pessoa está logada ou não. A ordem:
+
+1. **2.4, a conferência**; depois **2.5, a conclusão**, e **2.6, os erros**: duas seções curtas, porque os erros já
+   acontecem no ar e a reserva continua sendo o caminho livre depois da compra;
+2. **a área do cliente**: as etapas 3 (o cadastro, com o "Entrar" e o "Minha conta" no topo, a 3.5 com a 1.1) e 4.1 e
+   4.2 (Minha conta e Meus dados). **A implementação trava na U8 e na D4**, que o PO decide antes de a 2.4 terminar;
+3. **1.6, as opiniões** (abaixo);
+4. **a emissão e o pagamento online**: a etapa 5, com a 4.3 (Meus pedidos) e a 4.4 (as páginas legais de cancelamento
+   e reembolso, O5), que só fazem sentido com a compra.
+
+**As redes sociais saem do roteiro**: a NAVEG não as tem. O item "Social" do topo muda de nome com a 1.6. **O rodapé
+está bem estruturado**: falta só o que é do negócio (a identificação da empresa). A 1.5 (o atendente) espera o mesmo:
+conteúdo do negócio.
+
+**A 1.6 vira "Deixe sua opinião"** (PO, 2026-10-16): uma caixa de texto na própria seção, e ao lado um carrossel com as
+opiniões, **só quando houver**. Decisões:
+
+- **depois da área do cliente**: só quem tem conta deixa opinião, com o nome da conta. É menos spam, e casa com "cliente
+  é quem tem conta" (#57);
+- **a opinião só aparece depois de aprovada** por alguém da NAVEG, no painel do KMP. Protege a marca de ofensa, de spam
+  e de dado pessoal escrito na caixa.
+
+O trabalho fora daqui está em issues: a regra da coleção e a tela de aprovação no KMP
+(navegsistemas/fluviapp-kmp#69), e as rotas na API (navegsistemas/naveg-api-vercel#42).
 
 ## 10. As fichas
 
@@ -546,8 +574,8 @@ O que as capturas mostraram, e foi corrigido no mesmo PR:
 
 ### 2.3 — Quem reserva
 
-**Situação:** em análise, esperando o PO (2026-10-16). É o passo "Seus dados" da reserva de passagem e de veículo na
-página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
+**Situação:** no ar (#75, juntado em 2026-10-16), com a API do domain 0.12.0 promovida depois dele (naveg-api-vercel#41).
+É o passo "Seus dados" da reserva de passagem e de veículo na página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
 **Wireframe** (privado do PO): [2.3](https://claude.ai/artifact/U1rdUt7V5BZdR1VqF4E3GF).
 
 **Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; dois passageiros em rede): depois do quadro do que
