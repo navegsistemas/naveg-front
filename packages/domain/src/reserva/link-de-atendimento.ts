@@ -3,8 +3,8 @@
  *
  * O totem grava a reserva; quem a transforma em passagem é uma pessoa, no centralizador. Este arquivo é a ponte:
  * o link `https://wa.me/<número>?text=<mensagem>` que abre a conversa com a mensagem escrita. O atendente acha a
- * reserva pelo **código**, que por isso vai na primeira linha — o resto da mensagem é para ele conferir de
- * relance, sem abrir nada.
+ * reserva pelo **código**, que por isso é o primeiro campo, logo depois da saudação — o resto da mensagem é para
+ * ele conferir de relance, sem abrir nada.
  *
  * ### O que não vai na mensagem
  *
@@ -21,36 +21,23 @@
  * `(91) 98888-7777` — e passa por [normalizarWhatsapp]. Um número que não é celular **lança**: ele é conteúdo
  * do site, escrito uma vez, e deve quebrar o build de quem o digitou, não virar um link que não abre.
  */
-import { mensagemDaEncomenda } from '../encomenda/mensagem-da-encomenda.js'
+import { mensagemDaEncomenda, mensagemDaEncomendaSemCodigo } from '../encomenda/mensagem-da-encomenda.js'
+import {
+  aberturaSemCodigo,
+  camposDaTravessia,
+  montarMensagem,
+  PEDE_A_CONFIRMACAO,
+  type CampoDaMensagem,
+  type RotulosDaMensagem,
+} from './formato-da-mensagem.js'
 import { casoImpossivel } from '../primitivos/fronteira.js'
 import { Acomodacao } from '../passagem/acomodacao.js'
 import { ClasseVeiculo } from '../passagem/classe-veiculo.js'
 import { normalizarWhatsapp } from './contato.js'
 import type { Reserva, ReservaDeEncomenda, ReservaDePassageiro, ReservaDeVeiculo } from './reserva.js'
 
-/** O que a mensagem precisa da travessia — os rótulos que o catálogo já escreveu (`TravessiaOfertada.rotulos`). */
-export interface RotulosDaMensagem {
-  /** As cidades da rota: "Belém/PA". */
-  readonly origem: string
-  readonly destino: string
-  readonly partida: string
-  /** O cais do dia, "Porto do Grego · Santana/AP" — o atendimento confirma por ele onde a pessoa embarca. */
-  readonly embarque?: string
-  /** O aviso da data alterada, "Embarque alterado nesta data: …" (UI 2.2, decisão B), quando há. */
-  readonly alteracao?: string | null
-}
+export type { RotulosDaMensagem } from './formato-da-mensagem.js'
 
-/**
- * "Belém/PA → Macapá/AP · Qua, 14/10 · 18:00"; na linha de baixo, o cais de embarque, quando se sabe; e o aviso da
- * data alterada, quando há — o atendente vê na conversa que a saída não é a de sempre.
- */
-export function linhasDaTravessia(rotulos: RotulosDaMensagem): string[] {
-  return [
-    `${rotulos.origem} → ${rotulos.destino} · ${rotulos.partida}`,
-    ...(rotulos.embarque === undefined ? [] : [`Embarque: ${rotulos.embarque}`]),
-    ...(rotulos.alteracao === undefined || rotulos.alteracao === null ? [] : [rotulos.alteracao]),
-  ]
-}
 
 /**
  * O link para abrir a conversa, opcionalmente já com a mensagem escrita.
@@ -86,50 +73,76 @@ export function pessoasComOVeiculo(reserva: ReservaDeVeiculo): string | undefine
   return `${pessoas(quantidadePessoas)} em ${Acomodacao.rotulo(acomodacao).toLowerCase()}`
 }
 
-/** "Rede · 1 pessoa", "Moto · 160 cc" ou "Caminhão + 3 pessoas em rede". */
-function aPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): string {
+/** "*Passagem:* Rede · 1 pessoa", ou "*Veículo:* Moto · 160 cc" e, quando vai gente junto, "*Acompanhantes:* 3 pessoas em rede". */
+function camposDaPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): CampoDaMensagem[] {
   switch (reserva.categoria) {
     case 'PASSAGEIRO':
-      return `${Acomodacao.rotulo(reserva.acomodacao)} · ${pessoas(reserva.quantidadePessoas)}`
+      return [{ rotulo: 'Passagem', valor: `${Acomodacao.rotulo(reserva.acomodacao)} · ${pessoas(reserva.quantidadePessoas)}` }]
     case 'VEICULO': {
       const veiculo =
         reserva.cilindrada === undefined
           ? ClasseVeiculo.rotulo(reserva.classe)
           : `${ClasseVeiculo.rotulo(reserva.classe)} · ${reserva.cilindrada} cc`
       const junto = pessoasComOVeiculo(reserva)
-      return junto === undefined ? veiculo : `${veiculo} + ${junto}`
+      return [
+        { rotulo: 'Veículo', valor: veiculo },
+        ...(junto === undefined ? [] : [{ rotulo: 'Acompanhantes', valor: junto }]),
+      ]
     }
     default:
-      return casoImpossivel(reserva, 'aPassagem')
+      return casoImpossivel(reserva, 'camposDaPassagem')
   }
 }
 
+/** Os campos da passagem, sem o código: a mensagem com código e a sem código (2.6, B) diferem só na abertura. */
+function camposDaReserva(reserva: ReservaDePassageiro | ReservaDeVeiculo, rotulos: RotulosDaMensagem): CampoDaMensagem[] {
+  return [...camposDaTravessia(rotulos), ...camposDaPassagem(reserva), { rotulo: 'Nome', valor: reserva.cliente.nome }]
+}
+
 /**
- * A mensagem que o cliente manda ao atendimento:
+ * A mensagem que o cliente manda ao atendimento (2.6, E, PO, 2026-10-16):
  *
  * ```
- * Reserva NVG-7K3QP2
- * Belém/PA → Salvaterra/PA · Qua, 14/10 · 18:00
- * Embarque: Porto do Sal · Belém/PA
- * Rede · 1 pessoa · Maria Souza
- * Vale até a partida.
+ * Olá! Gostaria de confirmar a reserva que fiz pelo site.
+ *
+ * *Reserva:* NVG-7K3QP2
+ * *Trecho:* Belém/PA → Salvaterra/PA
+ * *Saída:* Qua, 14/10 · 18:00
+ * *Embarque:* Porto do Sal · Belém/PA
+ * *Passagem:* Rede · 1 pessoa
+ * *Nome:* Maria Souza
+ *
+ * Aguardo a confirmação.
  * ```
  *
- * A de encomenda tem a mensagem dela (`mensagemDaEncomenda`), com o que vai e quem retira.
+ * O "Vale até a partida." de antes saiu: o site já o diz ao cliente, e na conversa soava como aviso ao atendente. A
+ * de encomenda tem a mensagem dela (`mensagemDaEncomenda`), com o que vai e quem retira.
  */
 export function mensagemDaReserva(reserva: Reserva, rotulos: RotulosDaMensagem): string {
   if (reserva.categoria === 'ENCOMENDA') return mensagemDaEncomenda(reserva, rotulos)
-  return [
-    `Reserva ${reserva.codigo}`,
-    ...linhasDaTravessia(rotulos),
-    `${aPassagem(reserva)} · ${reserva.cliente.nome}`,
-    'Vale até a partida.',
-  ].join('\n')
+  return montarMensagem(
+    'Olá! Gostaria de confirmar a reserva que fiz pelo site.',
+    [{ rotulo: 'Reserva', valor: reserva.codigo }, ...camposDaReserva(reserva, rotulos)],
+    PEDE_A_CONFIRMACAO,
+  )
 }
 
 /** O link de atendimento **desta** reserva: a conversa com o atendimento, com a mensagem pronta. */
 export function linkDaReserva(telefoneDoAtendimento: string, reserva: Reserva, rotulos: RotulosDaMensagem): string {
   return linkDeWhatsApp(telefoneDoAtendimento, mensagemDaReserva(reserva, rotulos))
+}
+
+/**
+ * **A reserva que o site não conseguiu enviar** (2.6, B, PO, 2026-10-16): a mesma mensagem, sem o código — ele não existe,
+ * porque nada foi gravado —, e a abertura diz o que aconteceu. O atendimento registra no painel.
+ */
+export function mensagemSemCodigo(reserva: Reserva, rotulos: RotulosDaMensagem): string {
+  if (reserva.categoria === 'ENCOMENDA') return mensagemDaEncomendaSemCodigo(reserva, rotulos)
+  return montarMensagem(aberturaSemCodigo(reserva), camposDaReserva(reserva, rotulos), PEDE_A_CONFIRMACAO)
+}
+
+export function linkSemCodigo(telefoneDoAtendimento: string, reserva: Reserva, rotulos: RotulosDaMensagem): string {
+  return linkDeWhatsApp(telefoneDoAtendimento, mensagemSemCodigo(reserva, rotulos))
 }
 
 /** O link de atendimento **desta** encomenda: a conversa com o atendimento, com o pedido escrito. */

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { mensagemDaEncomenda } from '../src/encomenda/mensagem-da-encomenda.js'
-import { linkDaEncomenda, mensagemDaReserva } from '../src/reserva/link-de-atendimento.js'
+import { linkDaEncomenda, mensagemDaReserva, mensagemSemCodigo } from '../src/reserva/link-de-atendimento.js'
 import { montarEncomenda, type ResultadoDaMontagemDaEncomenda } from '../src/encomenda/montagem-da-encomenda.js'
 import { pendenciasDaReserva, type ReservaDeEncomenda } from '../src/reserva/reserva.js'
 import { contexto, ENCOMENDA_DO_PROPRIO, ENCOMENDA_PARA_OUTRA, IDENTIDADE, instante } from './exemplos.js'
@@ -113,24 +113,48 @@ describe('a coerência', () => {
 })
 
 describe('a mensagem para o atendente', () => {
+  /* 2.6, E (PO, 2026-10-16): a saudação, um campo por linha, e o pedido de confirmação. */
   it('para outra pessoa: o código, a saída, o que vai e quem retira, com o celular dele', () => {
     const reserva = reservaDe(montarEncomenda({ ...ENCOMENDA_PARA_OUTRA, complemento: 'mantimentos' }, contexto(), IDENTIDADE))
     expect(mensagemDaEncomenda(reserva, ROTULOS)).toBe(
       [
-        'Encomenda NVG-7K3QP2',
-        'Porto do Sal · Belém/PA → Porto de Santana · Santana/AP · Qua, 14/10 · 18:00',
-        '3 volumes · Caixa (mantimentos) · 5 a 20 kg',
-        'De Maria Souza para João Lima, (96) 98888-7777',
-        'Entregue no porto antes da partida.',
+        'Olá! Gostaria de confirmar a encomenda que registrei pelo site.',
+        '',
+        '*Encomenda:* NVG-7K3QP2',
+        '*Trecho:* Porto do Sal · Belém/PA → Porto de Santana · Santana/AP',
+        '*Saída:* Qua, 14/10 · 18:00',
+        '*Volumes:* 3 · Caixa (mantimentos) · 5 a 20 kg',
+        '*Remetente:* Maria Souza',
+        '*Destinatário:* João Lima, (96) 98888-7777',
+        '',
+        'Entrego no porto antes da saída. Aguardo a confirmação.',
       ].join('\n'),
     )
   })
 
-  it('do próprio remetente: quem envia e retira, com o celular dele', () => {
+  it('do próprio remetente: o celular vai com ele, e o destinatário é ele mesmo', () => {
     const reserva = reservaDe(montarEncomenda(ENCOMENDA_DO_PROPRIO, contexto(), IDENTIDADE))
     const linhas = mensagemDaEncomenda(reserva, ROTULOS).split('\n')
-    expect(linhas[2]).toBe('1 volume · Saco ou fardo · Até 5 kg')
-    expect(linhas[3]).toBe('Carlos Melo envia e retira no destino, (91) 98888-1234')
+    expect(linhas).toContain('*Volumes:* 1 · Saco ou fardo · Até 5 kg')
+    expect(linhas).toContain('*Remetente:* Carlos Melo, (91) 98888-1234')
+    expect(linhas).toContain('*Destinatário:* o próprio remetente')
+  })
+
+  it('sem quem retira: o destinatário fica a combinar com o atendimento (naveg-front#58)', () => {
+    const base = reservaDe(montarEncomenda(ENCOMENDA_DO_PROPRIO, contexto(), IDENTIDADE))
+    const { retirada: _, ...semRetirada } = base
+    const linhas = mensagemDaEncomenda(semRetirada, ROTULOS).split('\n')
+    expect(linhas).toContain('*Remetente:* Carlos Melo, (91) 98888-1234')
+    expect(linhas).toContain('*Destinatário:* a combinar com o atendimento')
+  })
+
+  it('a que o site não conseguiu enviar: a abertura diz o que aconteceu, e não há código', () => {
+    const reserva = reservaDe(montarEncomenda(ENCOMENDA_PARA_OUTRA, contexto(), IDENTIDADE))
+    const mensagem = mensagemSemCodigo(reserva, ROTULOS)
+    expect(mensagem.split('\n')[0]).toBe(
+      'Olá! Tentei registrar esta encomenda pelo site, mas ela não foi enviada. Podem registrá-la para mim?',
+    )
+    expect(mensagem).not.toMatch(/NVG-|\*Encomenda:\*/)
   })
 
   it('o link leva à conversa da NAVEG, com a mensagem inteira', () => {

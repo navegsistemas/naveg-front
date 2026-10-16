@@ -24,6 +24,8 @@ export interface Oferta {
   readonly catalogo: CatalogoDoFluviapp | null
   readonly catalogoFalhou: boolean
   readonly oferta: readonly TravessiaOfertada[]
+  /** Carrega o catálogo de novo, depois de uma falha (2.6, C). O que foi escolhido fica: é estado de quem chama. */
+  readonly recarregar: () => void
 }
 
 /** `dias`: o alcance do que se reserva — `alcanceEmDias(categoria)`, ou a semana. */
@@ -33,6 +35,11 @@ export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => D
   const [catalogo, setCatalogo] = useState<CatalogoDoFluviapp | null>(null)
   const [catalogoFalhou, setCatalogoFalhou] = useState(false)
   const [agora, setAgora] = useState(lerAgora)
+  const [tentativa, setTentativa] = useState(0)
+  const recarregar = useCallback(() => {
+    setCatalogoFalhou(false)
+    setTentativa((n) => n + 1)
+  }, [])
 
   // --- o catálogo, uma vez ---
   useEffect(() => {
@@ -44,7 +51,7 @@ export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => D
     return () => {
       vivo = false
     }
-  }, [fonte])
+  }, [fonte, tentativa])
 
   // --- o relógio, a cada minuto: uma saída pode partir com a tela aberta ---
   useEffect(() => {
@@ -57,5 +64,5 @@ export function useOferta(fonte: FonteDoCatalogo, fuso: string, relogio: () => D
     [catalogo, agora, dias],
   )
 
-  return { lerAgora, agora, catalogo, catalogoFalhou, oferta }
+  return { lerAgora, agora, catalogo, catalogoFalhou, oferta, recarregar }
 }

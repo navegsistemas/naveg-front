@@ -164,6 +164,17 @@
   font-weight: 700;
 }
 
+/* Os erros (2.6): o aviso acima do botão, e as saídas que não carregam com "Tentar de novo". */
+.totem-erro-do-envio {
+  margin: 0;
+}
+
+.totem-falha-do-catalogo {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-3);
+}
+
 /* O que acontece ao confirmar (2.4, D): embaixo do botão. */
 .totem-nota {
   font-size: 0.9375rem;

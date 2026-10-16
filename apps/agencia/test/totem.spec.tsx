@@ -15,7 +15,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { CatalogoDoFluviapp, DataCalendario } from '@navegsistemas/domain'
-import { catalogoFixo, envioLocal, ReservaEmMemoria } from '@navegsistemas/dados'
+import { catalogoFixo, envioLocal, ReservaEmMemoria, type EnvioDaReserva, type FonteDoCatalogo } from '@navegsistemas/dados'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO } from '../src/conteudo/operacao'
@@ -37,13 +37,15 @@ function montar(
     atendimento?: string | null
     quiosque?: boolean
     catalogo?: CatalogoDoFluviapp
+    envio?: EnvioDaReserva
+    fonte?: FonteDoCatalogo
   } = {},
 ) {
   const repositorio = new ReservaEmMemoria()
   render(
     <Totem
-      fonte={catalogoFixo(opcoes.catalogo ?? CATALOGO_DE_DEMONSTRACAO)}
-      envio={envioLocal(repositorio)}
+      fonte={opcoes.fonte ?? catalogoFixo(opcoes.catalogo ?? CATALOGO_DE_DEMONSTRACAO)}
+      envio={opcoes.envio ?? envioLocal(repositorio)}
       fuso={FUSO_DA_OPERACAO}
       inatividadeMs={opcoes.inatividadeMs ?? null}
       demonstracao={opcoes.demonstracao === undefined ? 'SAIDAS_E_ENVIO' : opcoes.demonstracao}
@@ -850,7 +852,7 @@ describe('o tempo', () => {
     await act(async () => {
       vi.advanceTimersByTime(60_000)
     })
-    expect(screen.getByText('Esta saída já partiu. Escolha outra travessia.')).toBeTruthy()
+    expect(screen.getByText(/^Esta saída não está mais aberta para reserva. Ela partiu, ou foi suspensa./)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Confirmar reserva' })).toBeNull()
 
     tocar('Escolher outra saída')
@@ -928,8 +930,9 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     expect(botao.getAttribute('target')).toBe('_blank')
 
     const mensagem = new URL(href).searchParams.get('text') ?? ''
-    expect(mensagem.split('\n')[0]).toBe(`Reserva ${codigo}`)
-    expect(mensagem).toContain('Rede · 1 pessoa · Maria Souza')
+    expect(mensagem.split('\n')).toContain(`*Reserva:* ${codigo}`)
+    expect(mensagem.split('\n')).toContain('*Passagem:* Rede · 1 pessoa')
+    expect(mensagem.split('\n')).toContain('*Nome:* Maria Souza')
     /* O código continua na tela, em texto: o redirecionamento pode falhar. */
     expect(screen.getByText(codigo)).toBeTruthy()
   })
@@ -973,5 +976,77 @@ describe('o handoff para o WhatsApp (passo 11)', () => {
     expect(screen.getByRole('link', { name: 'Enviar ao atendimento' })).toBeTruthy()
     expect(screen.getByText('Reserva registrada. Guarde este código:')).toBeTruthy()
     expect(screen.queryAllByRole('region')).toHaveLength(0)
+  })
+})
+
+/* 2.6 (PO, 2026-10-16): cada erro com a sua frase (A), o WhatsApp como saída na página (B), as saídas que não carregam
+   (C) e a saída que fechou (D). */
+describe('os erros, na página', () => {
+  const falhando = (porque: 'CONEXAO' | 'LIMITE' | 'DESAFIO'): EnvioDaReserva => ({
+    enviar: async () => ({ caso: 'FALHA', motivo: 'teste', porque }),
+  })
+
+  async function ateConfirmar(opcoes: Parameters<typeof montar>[0]) {
+    montar(opcoes)
+    embarcarPassageiros('2 pessoas')
+    await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+    tocar('Confirmar reserva')
+  }
+
+  it('sem conexão: a frase acima do botão, "Tentar de novo", e o WhatsApp com a reserva escrita, sem código', async () => {
+    await ateConfirmar({ demonstracao: null, atendimento: '(91) 98888-7777', envio: falhando('CONEXAO') })
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^A reserva não foi enviada\. A internet pode ter caído/)
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeTruthy()
+    const link = screen.getByRole('link', { name: 'Enviar pelo WhatsApp' })
+    const mensagem = new URL(link.getAttribute('href') ?? '').searchParams.get('text') ?? ''
+    expect(mensagem.split('\n')[0]).toBe('Olá! Tentei fazer esta reserva pelo site, mas ela não foi enviada. Podem registrá-la para mim?')
+    expect(mensagem).not.toMatch(/NVG-/)
+    expect(mensagem).toContain('Maria Souza')
+  })
+
+  it('envios demais e a verificação contra robô têm a frase deles', async () => {
+    await ateConfirmar({ demonstracao: null, atendimento: '(91) 98888-7777', envio: falhando('LIMITE') })
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Muitas reservas deste aparelho em pouco tempo. Tente de novo daqui a alguns minutos.',
+    )
+    cleanup()
+    await ateConfirmar({ demonstracao: null, atendimento: '(91) 98888-7777', envio: falhando('DESAFIO') })
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'A verificação contra robô não passou. Atualize a página e tente de novo.',
+    )
+  })
+
+  it('no quiosque, a frase muda, e o WhatsApp não aparece', async () => {
+    montar({ quiosque: true, demonstracao: null, atendimento: '(91) 98888-7777', envio: falhando('CONEXAO') })
+    await escolherSaida('Ferry de demonstração')
+    tocar('Passageiro')
+    tocar(/^Rede/)
+    tocar('Inteira')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria' } })
+    tocar('Continuar')
+    tocar('Confirmar reserva')
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^A reserva não foi enviada/)
+    expect(screen.queryByRole('link', { name: 'Enviar pelo WhatsApp' })).toBeNull()
+  })
+
+  it('as saídas que não carregam: "Tentar de novo" carrega de novo, e o que foi escolhido fica', async () => {
+    let tentativas = 0
+    const fonte: FonteDoCatalogo = {
+      carregar: async () => {
+        tentativas++
+        if (tentativas === 1) throw new Error('fora do ar')
+        return CATALOGO_DE_DEMONSTRACAO
+      },
+    }
+    montar({ fonte, atendimento: '(91) 98888-7777' })
+    embarcarPassageiros('2 pessoas')
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^As saídas não carregaram/)
+    expect(screen.getByRole('link', { name: 'WhatsApp' })).toBeTruthy()
+    tocar('Tentar de novo')
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    expect(screen.getByText('2 pessoas em rede')).toBeTruthy()
   })
 })

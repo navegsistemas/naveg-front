@@ -109,7 +109,9 @@ export {
   linkDaEncomenda,
   linkDaReserva,
   linkDeWhatsApp,
+  linkSemCodigo,
   mensagemDaReserva,
+  mensagemSemCodigo,
   pessoasComOVeiculo,
 } from './reserva/link-de-atendimento.js'
 export type { RotulosDaMensagem } from './reserva/link-de-atendimento.js'
@@ -178,6 +180,7 @@ export { CAMPOS_DO_DOCUMENTO, paraDocumento, paraDominio } from './reserva/docum
 export type { ClienteDocumento, DestinatarioDocumento, ReservaDocumento, TratamentoDocumento } from './reserva/documento.js'
 export { enviarEncomenda, enviarReserva, TENTATIVAS_DE_CODIGO } from './reserva/envio-da-reserva.js'
 export type {
+  MotivoDaFalha,
   PedidoDeEnvio,
   PedidoDeEnvioDaEncomenda,
   ReservaRepositorio,

@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 decidida, implementada no #77** (a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; depois a 2.6 |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -630,7 +630,7 @@ continua opcional.
 
 ### 2.4 — A conferência
 
-**Situação:** decidida (2026-10-16) e implementada no #77, com a melhoria da conclusão (a 2.5) junto, a pedido do PO.
+**Situação:** no ar (#77, juntado em 2026-10-16), com a melhoria da conclusão (a 2.5) junto, a pedido do PO.
 É a última tela antes de confirmar a reserva de passagem ou de veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
 **Wireframe** (privado do PO): [2.4](https://claude.ai/artifact/Vq8MEfYSrWSRopTmXzzpZK).
 
@@ -685,3 +685,61 @@ teve a recomendação aceita:
   o devolvia vazio. O que foi digitado se apaga ao recomeçar, inclusive na inatividade do quiosque;
 - **a nota da conferência** na encomenda troca "A reserva vale até a saída" pela entrega no porto;
 - **o quiosque não muda**: a conferência em linhas e a conclusão de antes.
+
+### 2.6 — Os erros
+
+**Situação:** decidida e implementada, em PR (2026-10-16). O que a pessoa vê quando algo dá errado na reserva da página: ao
+confirmar, e quando as saídas não carregam. **Wireframe** (privado do PO): [2.6](https://claude.ai/artifact/3WKUvz1NP45qtgZZ3tCMqF).
+
+**Levantamento** (2026-10-16, o build do E2E com a API falsa, 360px; a conferência da 2.4): a API já responde cada caso
+com um código próprio — 429 (`LIMITE_EXCEDIDO`, 20 envios em 10 minutos), 403 (`DESAFIO_INVALIDO`), 409 (a saída saiu
+da oferta), 422 (as pendências) e 500 —, mas o site junta quase tudo:
+
+| o que aconteceu | o site mostra hoje |
+|---|---|
+| sem internet, a API fora do ar, envios demais, a verificação contra robô | "Não foi possível enviar a reserva agora. Confira a conexão e tente de novo.", em texto simples, embaixo da nota |
+| a saída saiu da oferta (partiu, foi suspensa, ou a encomenda passou da semana) | "Esta saída já partiu. Escolha outra travessia.", num quadro, e "Escolher outra saída" |
+| as saídas não carregam | "Não foi possível carregar as saídas. Tente de novo em instantes.", sem botão |
+
+**Achados:**
+
+1. **três erros diferentes viram a mesma frase**, que manda conferir a conexão mesmo quando a internet está boa;
+2. **no limite de envios, "tente de novo" falha de novo** por até 10 minutos, sem a pessoa saber por quê;
+3. **nenhum erro leva ao WhatsApp**, contra a régua da §2 ("erros que dizem o que fazer, sempre com a saída para o
+   atendimento");
+4. **a frase do envio aparece embaixo da nota, longe do botão**, em texto simples; só a da saída que partiu tem quadro;
+5. **"Esta saída já partiu"** aparece também quando ela foi suspensa, ou quando a encomenda passou da semana;
+6. **as saídas que não carregam** não têm botão para tentar de novo: só recarregando a página;
+7. **o quiosque** mostra as mesmas frases. Lá o WhatsApp não serve (é um terminal da agência): ele ganha só os textos.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Cada erro com a sua frase | **quatro frases** — sem internet ou API fora do ar; envios demais; a verificação contra robô; as pendências, que já têm texto — **num quadro de aviso logo acima do botão**, que vira "Tentar de novo" |
+| **B** | O WhatsApp como saída | **"Enviar pelo WhatsApp" em todo erro do envio, só na página**: a conversa abre com a reserva escrita, sem código, e o atendimento registra no painel. Custo: essa reserva não entra sozinha no painel |
+| **C** | As saídas que não carregam | **o quadro de aviso, "Tentar de novo"** (carrega de novo sem perder o que foi escolhido) **e o WhatsApp do atendimento** embaixo |
+| **D** | A saída que não está mais aberta | **"Esta saída não está mais aberta para reserva. Ela partiu, ou foi suspensa. O resto da reserva continua aqui."**; para a encomenda fora da semana, a frase da semana |
+
+**A ordem:** só a página e o pacote de dados (que passa a devolver o motivo da falha). A API já manda o código de cada
+erro; o domain e o KMP não mudam.
+
+**Decisões do PO (2026-10-16):** **A a D pela recomendação.** Sobre a B, o PO perguntou se as reservas deixariam de
+entrar sozinhas: não. O envio que dá certo segue gravado no painel; só a reserva **que falhou** (nada foi gravado) vai
+pelo WhatsApp e é lançada à mão. E: **"uma melhor formatação no texto enviado pelo WhatsApp, um tom mais
+profissional"**, a última mudança na reserva. A pergunta E teve a recomendação aceita:
+
+| # | pergunta | decisão |
+|---|---|---|
+| **E** | O texto do WhatsApp | **a saudação, um campo por linha com o nome em negrito, e o pedido de confirmação**, na voz do cliente, que é quem envia: "Olá! Gostaria de confirmar a reserva que fiz pelo site." · `*Reserva:*` · `*Trecho:*` · `*Saída:*` · `*Embarque:*` · `*Passagem:*` (ou `*Veículo:*` e `*Acompanhantes:*`) · `*Nome:*` · "Aguardo a confirmação." Na encomenda, `*Volumes:*`, `*Remetente:*`, `*Destinatário:*` e "Entrego no porto antes da saída. Aguardo a confirmação." **Sai o "Vale até a partida."**: o site já o diz ao cliente. Na reserva que falhou (B), a abertura é "Olá! Tentei fazer esta reserva pelo site, mas ela não foi enviada. Podem registrá-la para mim?", sem a linha do código |
+
+**A implementação:**
+
+- **o envio que falha** diz por quê (a conexão, os envios demais, a verificação contra robô) num quadro acima do botão,
+  que vira "Tentar de novo"; na página, "Enviar pelo WhatsApp" embaixo, com a reserva escrita e sem código;
+- **as saídas que não carregam**: o quadro, "Tentar de novo" (carrega de novo e mantém o que foi escolhido) e, na
+  página, o WhatsApp do atendimento;
+- **a saída fechada**: a frase da D; na encomenda, a da semana;
+- **a mensagem do WhatsApp** (E) muda no domain, que só a página usa: a API e o KMP não leem o texto, e o domain
+  não precisa de versão nova. O atendente acha a reserva pelo código, agora o primeiro campo;
+- **o quiosque** ganha só as frases: lá não há WhatsApp.

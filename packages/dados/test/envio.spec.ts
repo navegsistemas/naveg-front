@@ -139,6 +139,26 @@ describe('o envio pela API', () => {
     expect((await envioHttp('https://api', desafio, semRede).enviar(PEDIDO)).caso).toBe('FALHA')
   })
 
+  /* 2.6, A (PO, 2026-10-16): o porquê da falha, para a tela dizer o que fazer. */
+  it('o porquê da falha: o limite, o desafio, e o resto é a conexão', async () => {
+    const porque = async (status: number, erro: string) => {
+      const { buscar } = respondendo(status, { erro, mensagem: '' })
+      const resultado = await envioHttp('https://api', desafio, buscar).enviar(PEDIDO)
+      return resultado.caso === 'FALHA' ? resultado.porque : resultado.caso
+    }
+    expect(await porque(429, 'LIMITE_EXCEDIDO')).toBe('LIMITE')
+    expect(await porque(403, 'DESAFIO_INVALIDO')).toBe('DESAFIO')
+    expect(await porque(403, 'ORIGEM_NAO_PERMITIDA')).toBe('CONEXAO')
+    expect(await porque(500, 'FALHA_INTERNA')).toBe('CONEXAO')
+    const semRede: Buscar = async () => {
+      throw new TypeError('Failed to fetch')
+    }
+    const caida = await envioHttp('https://api', desafio, semRede).enviar(PEDIDO)
+    expect(caida.caso === 'FALHA' && caida.porque).toBe('CONEXAO')
+    const semDesafio = await envioHttp('https://api', () => Promise.reject(new Error('fechou')), semRede).enviar(PEDIDO)
+    expect(semDesafio.caso === 'FALHA' && semDesafio.porque).toBe('DESAFIO')
+  })
+
   it('o desafio que não resolve é falha, e nada é enviado', async () => {
     const { buscar, pedidos } = respondendo(201, {})
     const resultado = await envioHttp('https://api', () => Promise.reject(new Error('fechou')), buscar).enviar(PEDIDO)

@@ -49,7 +49,10 @@ export type { EtapaDaReserva } from './Telas.js'
 export { blocosDaReserva, resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
 export type { AlvoDoBloco, BlocoDoResumo, LinhaDoBloco, LinhaDoResumo } from './resumo.js'
 export {
+  CATALOGO_NAO_CARREGOU,
+  FALHA_DO_ENVIO,
   TRACEJADOS_DA_ENCOMENDA,
+  VALIDADE_DA_ENCOMENDA,
   TRACEJADOS_DA_RESERVA,
   type TextoDosTracejados,
   AVISO_RESERVA_NAO_VENDA,
