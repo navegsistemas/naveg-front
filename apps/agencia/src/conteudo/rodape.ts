@@ -59,9 +59,13 @@ export const IDENTIFICACAO: Identificacao = {
   cnpj: '64.104.039/0001-31',
 }
 
+/**
+ * O telefone é o WhatsApp do atendimento (PO, 2026-10-16). O e-mail é um alias no Workspace, como o do encarregado: só
+ * vai ao ar depois de conferido com uma mensagem vinda de fora.
+ */
 export const CONTATO: Contato = {
-  telefone: null,
-  email: null,
+  telefone: '(91) 99203-5322',
+  email: 'contato@gruponaveg.com.br',
   horario: '24 horas, todos os dias',
 }
 
@@ -90,7 +94,7 @@ export const LINKS_LEGAIS: readonly LinkLegal[] = [
   {
     id: 'termos',
     rotulo: 'Termos de Uso',
-    href: null,
+    href: '/termos/',
     motivo: 'Define o que a reserva é — e o que ela não é.',
   },
 ]
