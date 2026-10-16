@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 decidida, implementada no #72** (a encomenda no mesmo caminho, com a #58); a API com o domain 0.11.0 promovida em 2026-10-16; as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 em análise, esperando o PO** (quem reserva); as outras, a começar |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -472,8 +472,8 @@ a API nova continua aceitando a página de antes (a `categoria` vale como o que 
 
 ### 2.7 — A reserva de encomenda
 
-**Situação:** decidida (2026-10-15) e implementada no #72 (2026-10-16). A API com o domain 0.11.0 foi promovida em
-2026-10-16 (naveg-api-vercel#40); falta o PO conferir a prévia e juntar o #72. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
+**Situação:** no ar (#72, juntado em 2026-10-16, depois de o PO conferir a prévia), com a API do domain 0.11.0
+promovida no mesmo dia (naveg-api-vercel#40). A #58 fechou. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
 com a parte de encomenda". Entra junto a #58 (a encomenda só com quem manda, decisão de LGPD de 2026-10-07).
 **Wireframe** (privado do PO): [2.7](https://claude.ai/artifact/V7vUdrj1vNqNyhY7ftWCNc).
 
@@ -543,3 +543,43 @@ O que as capturas mostraram, e foi corrigido no mesmo PR:
   passou a ser a nota dos tracejados, que antes repetia o mesmo assunto logo acima;
 - **na conferência, os valores saíam desalinhados** quando um rótulo era longo ("Celular de quem manda"). Os rótulos
   agora dividem uma coluna só, também na reserva de passagem.
+
+### 2.3 — Quem reserva
+
+**Situação:** em análise, esperando o PO (2026-10-16). É o passo "Seus dados" da reserva de passagem e de veículo na
+página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
+**Wireframe** (privado do PO): [2.3](https://claude.ai/artifact/U1rdUt7V5BZdR1VqF4E3GF).
+
+**Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; dois passageiros em rede): depois do quadro do que
+vai embarcar e do da saída, a pergunta "Em nome de quem fica a reserva?", com a ajuda "O telefone é opcional: ao final,
+você fala com o atendimento pelo WhatsApp". Dois campos: "Nome" e "Celular com DDD (opcional)", com a máscara
+(91) 98888-7777. Sem o nome, "Informe o nome de quem faz a reserva."; com o celular pela metade, "Precisa ser um celular
+com DDD — ou deixe em branco.". A conferência e a conclusão dizem "Em nome de" e "Telefone: Não informado". No
+computador, os campos ficam na largura de leitura (680px). O quiosque mostra o mesmo passo, com "Passo 4 de 5".
+
+**Achados:**
+
+1. **O celular é opcional na passagem e obrigatório na encomenda.** Quem não informa o celular e não toca em "Enviar ao
+   atendimento" deixa uma reserva que o atendimento não tem como confirmar. E o plano diz que este passo existe para
+   formar clientela ([plano](plano-de-implementacao.md), o passo `CONTATO`);
+2. **a ajuda começa pelo que não precisa** ("o telefone é opcional"), e não pelo que o celular serve;
+3. **três nomes para a mesma coisa:** "Celular com DDD" no campo, "telefone" na ajuda, "Telefone" na conferência;
+4. **nada no passo diz para que servem os dados**, nem leva à política de privacidade, no momento em que o dado é
+   pedido;
+5. **só o nome de quem reserva**, mesmo com 2 ou mais pessoas: os nomes de quem viaja ficam para o atendimento;
+6. **para outras partes:** no quadro da saída, a embarcação aparece colada à linha do desembarque (2.2); com a conta
+   (7.4), o nome e o celular podem vir dela; o vocabulário de passageiro e cliente (#57) não toca este passo, porque
+   quem reserva não é chamado de cliente na tela.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O celular na página | **obrigatório, na passagem e no veículo**, como já é na encomenda; o quiosque continua opcional. A política de privacidade muda junto ("se você quiser informar" sai). O dado que decidiria: quantas reservas do site chegam ao painel sem telefone e sem conversa no WhatsApp |
+| **B** | Um nome só | **"Celular com WhatsApp"** no campo, **"Celular"** na conferência e na conclusão, e a ajuda diz para que serve: "É pelo WhatsApp deste celular que o atendimento confirma a reserva com você" |
+| **C** | A privacidade no passo | **uma linha com o link para a política**: "Usamos o nome e o celular só para esta reserva, e apagamos 14 dias depois da viagem" |
+| **D** | Os nomes de quem viaja | **continuar sem pedir**: só o nome de quem reserva; os de quem viaja ficam para o atendimento, na emissão |
+
+**A ordem, se A for "obrigatório":** o domain já sabe pedir o celular (é o `telefoneObrigatorio` da encomenda). Se a
+regra entrar no domain para o canal do site, a API sobe o domain e é promovida antes da página, como na 2.7; se ficar só
+na tela, vai num PR só da página. O KMP não muda: ele já lê a reserva com ou sem telefone.
