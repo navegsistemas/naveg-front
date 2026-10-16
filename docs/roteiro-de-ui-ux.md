@@ -147,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 em análise**, esperando o PO; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 decidida** (2026-10-16); a seguir, a 4.1 e a 4.2; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -982,7 +982,7 @@ para lá:
 
 - **quando entra:** a recomendação é **junto com a compra online (7.6)**. Antes dela, o convite prometeria uma emissão
   que o site ainda não faz;
-- **o texto:** algo como "Com uma conta, você compra a passagem aqui no site e embarca direto, sem passar no balcão.",
+- **o texto:** algo como "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca.",
   com "Criar conta". Ele não aparece no quiosque (U5).
 
 O registro abaixo é o da análise do pedido de antes, mantido para o histórico.
@@ -1070,7 +1070,7 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 | o endereço | a API atrás do site, em `/api`; a sessão é um cookie do próprio site | A da área do cliente |
 | o e-mail que o site manda | pelo Google Workspace, de `naoresponda@gruponaveg.com.br`; as respostas vão ao `contato@` | B da área do cliente |
 | a passagem, no MVP | por e-mail, ou em PDF baixado no site; pelo WhatsApp, numa fase futura | C da área do cliente |
-| a reserva feita sem conta | não é resgatada; a conclusão ganha um convite para comprar com conta, no ar junto com a compra (desenho na 3.5) | 3.6, retirada |
+| a reserva feita sem conta | não é resgatada; a conclusão ganha o convite "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca.", no ar junto com a compra | 3.6, retirada; 3.5, E |
 
 **Os prazos e os limites**
 
@@ -1117,7 +1117,11 @@ Cada ação do painel fica registrada: quem fez, quando e o quê. **A conta não
 
 ### 3.5 — Onde se entra
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). Na E, o PO corrigiu o
+texto: "nesse embarca direto, me expressei mal, melhor um 'confirma no balcão em segundos e embarca'". O convite fica
+"Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca." **Para a etapa 5:** a
+passagem comprada pelo site ainda passa pelo balcão, numa conferência rápida (o bilhete e o QR, 5.6), e não vai direto
+ao barco. **Wireframe** (privado do PO):
 [3.5](https://claude.ai/artifact/GYSnUUPhVRWTavWb8Mu1dK): o "Minha conta" no menu do celular e do computador, a página
 da conta para quem não entrou, o convite na hora de pagar e o convite na conclusão da reserva.
 
@@ -1146,7 +1150,7 @@ na hora de pagar, com a escolha guardada. O PO trocou o resgate da reserva por *
 | **B** | No celular | **o último item do menu, separado**, com o desenho de uma pessoa; a barra presa não muda |
 | **C** | No computador e no tablet | **no fim do menu, com o desenho de uma pessoa**, antes de "Reservar agora"; se não couber no tablet em pé, o menu recolhe até 50rem |
 | **D** | O convite na hora de pagar | **"Para comprar, entre na sua conta"**, com "Entrar" primeiro, "Criar conta", e "Prefere não criar conta? Reservar"; a escolha fica guardada |
-| **E** | O convite na conclusão da reserva | **uma linha e um link embaixo do passo do WhatsApp**: "Com uma conta, você compra a passagem aqui no site e embarca direto, sem passar no balcão." Só na página, e **só quando a compra existir** |
+| **E** | O convite na conclusão da reserva | **uma linha e um link embaixo do passo do WhatsApp**: "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca." Só na página, e **só quando a compra existir** |
 | **F** | O nome de quem entrou no topo | **não**: o topo é igual para todos (1.1, D); o nome aparece em Minha conta |
 
 **A ordem:** o item do topo e a página da conta entram com a conta (depois do KMP, do domain e da API). Os convites D
