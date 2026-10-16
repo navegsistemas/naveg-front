@@ -148,7 +148,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
 | **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; **3.5 decidida** (2026-10-16); a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
-| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 em análise**, esperando o PO (2026-10-16); a 4.2 a seguir; 4.3 e 4.4 vêm com a compra |
+| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 decidida** (2026-10-16); **4.2 em análise**, esperando o PO; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
@@ -1158,7 +1158,7 @@ e E entram com a compra (7.6).
 
 ### 4.1 — Minha conta
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas"). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes
 da compra, no celular e no computador; o e-mail sem confirmar; e o lugar da compra e de Meus pedidos, quando
 existirem.
 
@@ -1192,3 +1192,40 @@ existirem.
 | **F** | Deixe sua opinião (1.6) | **um atalho aqui também**, quando a 1.6 existir |
 
 **A ordem:** como o cadastro, depois do KMP, do domain e da API. A reserva preenchida (B) é só da página.
+
+### 4.2 — Meus dados
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO): [4.2](https://claude.ai/artifact/8GtC5KXTQpFxiDjsRwXSn8): os dados,
+trocar o e-mail, trocar a senha, apagar a conta e a conta apagada.
+
+**Levantamento** (2026-10-16): a página não existe. O que já está decidido:
+- **chega-se por "Ver e corrigir"** em Minha conta (4.1, D);
+- **o documento inteiro não volta à tela** depois de gravado (O12);
+- **apagar a conta tira os dados, e as passagens ficam** (O7);
+- **o KMP previa que o Meus dados corrigisse o nome e o telefone** (ADR-0022; naveg-api-vercel#30). A conta ganhou
+  nascimento e documento depois (fluviapp-kmp#70);
+- **o que a pessoa não corrige, o atendimento corrige pelo painel** (fluviapp-kmp#71, item 7);
+- **a troca de senha** segue a 3.4: tira a conta dos outros aparelhos e manda o aviso.
+
+**Achados:**
+
+1. **o documento faz a conta ser uma por pessoa** (E da área do cliente): se a pessoa pudesse trocá-lo, uma conta
+   tomaria o documento de outra;
+2. **trocar o e-mail muda o acesso à conta**: precisa da senha atual, da confirmação do e-mail novo e de um aviso ao
+   antigo, ou quem pegar o celular desbloqueado leva a conta;
+3. **apagar é para sempre**: a página precisa dizer o que sai e o que fica antes de pedir a confirmação;
+4. **o botão de apagar não pode ter a cor da ação principal** (o laranja).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O que a pessoa corrige sozinha | **o nome e o celular**; o nascimento e o documento, só pelo atendimento |
+| **B** | Trocar o e-mail | **com a senha atual e o link ao e-mail novo**; o novo só vale depois de confirmado, e o antigo recebe um aviso |
+| **C** | Trocar a senha | **com a senha atual**; a conta sai dos outros aparelhos, e chega o aviso da troca |
+| **D** | O documento na tela | **sempre mascarado, inclusive para o dono** (O12) |
+| **E** | Apagar a conta | **num passo próprio**, com o que sai e o que fica escrito antes e a senha para confirmar; vale na hora, e o documento fica livre |
+| **F** | Como salvar | **um "Salvar alterações" para o nome e o celular**; o e-mail, a senha e o apagar, cada um no seu passo |
+
+**A ordem:** como o cadastro, depois do KMP, do domain e da API. Trocar o e-mail e apagar a conta são da API
+(naveg-api-vercel#30).
