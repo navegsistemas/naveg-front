@@ -9,7 +9,7 @@
  * `normalizarWhatsapp` que a montagem usa. É o que evita a pessoa só descobrir o telefone errado na
  * conferência, depois de ter voltado e redigitado tudo.
  */
-import { useId, useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent, type ReactNode } from 'react'
 
 import {
   LIMITE_DO_COMPLEMENTO,
@@ -33,6 +33,10 @@ export interface PropsDoFormularioDoCliente {
   readonly telefoneObrigatorio?: boolean
   /** O que dizer quando falta o nome — de quem reserva, por padrão. */
   readonly erroDoNome?: string
+  /** O rótulo do celular. No site, o de quem reserva é "Celular com WhatsApp" (2.3, B). */
+  readonly rotuloDoTelefone?: string
+  /** Uma linha antes do "Continuar": no site, para que servem os dados, com a política (2.3, C). */
+  readonly aviso?: ReactNode
 }
 
 export function FormularioDoCliente({
@@ -40,6 +44,8 @@ export function FormularioDoCliente({
   aoConfirmar,
   telefoneObrigatorio = false,
   erroDoNome = 'Informe o nome de quem faz a reserva.',
+  rotuloDoTelefone = 'Celular com DDD',
+  aviso,
 }: PropsDoFormularioDoCliente) {
   const id = useId()
   const [nome, setNome] = useState(inicial?.nome ?? '')
@@ -83,7 +89,8 @@ export function FormularioDoCliente({
 
       <div className="totem-campo">
         <label htmlFor={`${id}-telefone`}>
-          Celular com DDD{!telefoneObrigatorio && <> <span className="totem-opcional">(opcional)</span></>}
+          {rotuloDoTelefone}
+          {!telefoneObrigatorio && <> <span className="totem-opcional">(opcional)</span></>}
         </label>
         <input
           id={`${id}-telefone`}
@@ -104,6 +111,8 @@ export function FormularioDoCliente({
           </p>
         )}
       </div>
+
+      {aviso}
 
       <button type="submit" className="acao totem-continuar">
         Continuar

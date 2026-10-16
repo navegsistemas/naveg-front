@@ -583,3 +583,18 @@ computador, os campos ficam na largura de leitura (680px). O quiosque mostra o m
 **A ordem, se A for "obrigatório":** o domain já sabe pedir o celular (é o `telefoneObrigatorio` da encomenda). Se a
 regra entrar no domain para o canal do site, a API sobe o domain e é promovida antes da página, como na 2.7; se ficar só
 na tela, vai num PR só da página. O KMP não muda: ele já lê a reserva com ou sem telefone.
+
+**Decisões do PO (2026-10-16):** **A a D pela recomendação**, com o celular obrigatório na reserva da página. O quiosque
+continua opcional.
+
+**A implementação (#75):**
+
+- **o domain 0.12.0:** o passo de quem reserva pede o celular quando o canal é o site, na passagem e no veículo. A regra
+  fica no roteiro, e não no agregado: a montagem recusa a reserva do site sem celular (a API responde 422), e o KMP
+  segue lendo a reserva com ou sem telefone. O quiosque não manda o canal, e segue opcional;
+- **na tela:** "Celular com WhatsApp" no campo, a ajuda "É pelo WhatsApp deste celular que o atendimento confirma a
+  reserva com você", a linha de privacidade com o link, antes do "Continuar", e "Celular" na conferência e na conclusão;
+  na encomenda, quem manda ganha o mesmo rótulo e a mesma linha;
+- **a política de privacidade 1.2:** o nome e o celular, e o celular opcional só no terminal da agência;
+- **a ordem**, a mesma da 2.7: a tag `domain-v0.12.0` no commit do PR, a API sobe o domain e é promovida, e só então o
+  PR entra.

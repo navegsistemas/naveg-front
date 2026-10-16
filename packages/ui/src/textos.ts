@@ -84,6 +84,11 @@ export const RETIRADA_A_COMBINAR =
  * todo (UI 2.2, decisões I e J). O quiosque segue com `TEXTO_DO_PASSO`.
  */
 export const TEXTO_DO_PASSO_NO_SITE: Readonly<Partial<Record<PassoDaReserva, TextoDoPasso>>> = {
+  /* O celular é obrigatório no site (2.3, A), e a ajuda diz para que serve (B). */
+  CLIENTE: {
+    pergunta: 'Em nome de quem fica a reserva?',
+    ajuda: 'É pelo WhatsApp deste celular que o atendimento confirma a reserva com você.',
+  },
   QUANTIDADE_PESSOAS: { pergunta: 'Quantos viajam?' },
   CLASSE_VEICULO: { pergunta: 'Qual?' },
   ACOMODACAO: {

@@ -247,6 +247,29 @@ describe('pelo site', () => {
     expect(paraDominio(reserva.codigo, JSON.parse(JSON.stringify(documento)))).toEqual(reserva)
   })
 
+  /* 2.3, A (PO, 2026-10-16): pelo site, o celular de quem reserva é obrigatório; no quiosque, continua opcional. */
+  it('sem o celular, pelo site, não fecha: falta o passo de quem reserva', () => {
+    const semCelular = { ...SITE, cliente: { nome: 'Maria Souza' } }
+    expect(montarReserva(semCelular, contexto(), IDENTIDADE)).toMatchObject({
+      caso: 'INCOMPLETA',
+      faltando: { passo: 'CLIENTE', telefoneObrigatorio: true },
+    })
+    const veiculo: RespostasDaReserva = {
+      canal: 'SITE',
+      embarque: 'VEICULO',
+      porteVeiculo: 'LEVE',
+      classeVeiculo: 'CARRO',
+      cliente: { nome: 'Maria Souza' },
+    }
+    expect(montarReserva(veiculo, contexto(), IDENTIDADE)).toMatchObject({ caso: 'INCOMPLETA', faltando: { passo: 'CLIENTE' } })
+  })
+
+  it('sem o celular, no quiosque, fecha como antes', () => {
+    const { canal: _, ...quiosque } = { ...REDE_COMPLETA, cliente: { nome: 'Maria Souza' } }
+    const reserva = reservaDe(montarReserva(quiosque, contexto(), IDENTIDADE))
+    expect(reserva.cliente).toEqual({ nome: 'Maria Souza' })
+  })
+
   it('sem o canal, é o quiosque: a rede sem o tipo não fecha', () => {
     const { canal: _, ...quiosque } = { ...SITE, acomodacao: 'REDE' as const, quantidadePessoas: 1 }
     expect(montarReserva(quiosque, contexto(), IDENTIDADE)).toMatchObject({ caso: 'INCOMPLETA', faltando: { passo: 'TIPO_TARIFARIO' } })

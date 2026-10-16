@@ -13,9 +13,9 @@
  */
 
 /** Sobe a cada mudança de conteúdo; a data acompanha. A versão antiga não se reescreve, se substitui. */
-export const VERSAO_DA_POLITICA = '1.1'
+export const VERSAO_DA_POLITICA = '1.2'
 /** ISO `yyyy-MM-dd`. */
-export const DATA_DA_POLITICA = '2026-10-15'
+export const DATA_DA_POLITICA = '2026-10-16'
 
 /** Por quanto tempo o dado pessoal de uma reserva fica guardado depois da data da viagem (PO, 2026-10-07). */
 export const DIAS_DE_GUARDA_DA_RESERVA = 14

@@ -13,7 +13,7 @@
  * | `DadosDoVeiculo` | placa, modelo, cor, cilindrada | **só a cilindrada, e só na moto** | é a única informação do veículo que muda a passagem (a faixa de tarifa); o resto é identificação |
  * | responsável pela retirada | opcional | **não existe** | é pessoa, com documento — atendimento |
  * | `Pagamento` | último passo | **não existe** | não se vende aqui |
- * | `CLIENTE` | — | **antes da conferência** | nome, e um telefone opcional: quem pediu |
+ * | `CLIENTE` | — | **antes da conferência** | nome e celular: quem pediu. O celular é opcional só no quiosque (2.3) |
  * | `CONFERENCIA` | tela fora do roteiro | **último nó** | num terminal público, revisar antes de enviar é um passo |
  *
  * O que fica é **o que define a passagem**: a categoria, a acomodação, o tipo tarifário e o subtipo de
@@ -400,6 +400,10 @@ export function roteiroDaReserva(respostas: RespostasDaReserva, contexto: Contex
   /* Na encomenda do site, o celular de quem manda é obrigatório (2.7, F), e o destinatário vem depois, opcional. */
   if (encomendaPeloSite(respostas)) {
     nos.push({ passo: 'CLIENTE', telefoneObrigatorio: true }, { passo: 'DESTINATARIO' }, { passo: 'CONFERENCIA' })
+  } else if (peloSite(respostas)) {
+    /* Na passagem e no veículo do site também (2.3, A, PO, 2026-10-16): é pelo WhatsApp desse celular que o atendimento
+       confirma a reserva. O quiosque segue opcional. */
+    nos.push({ passo: 'CLIENTE', telefoneObrigatorio: true }, { passo: 'CONFERENCIA' })
   } else {
     nos.push({ passo: 'CLIENTE' }, { passo: 'CONFERENCIA' })
   }

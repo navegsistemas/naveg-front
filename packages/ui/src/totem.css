@@ -86,6 +86,11 @@
   color: var(--text-secondary);
 }
 
+/* A linha de privacidade no passo de quem reserva (2.3, C): menor que a ajuda, porque é nota e não pergunta. */
+.totem-privacidade {
+  font-size: 0.9375rem;
+}
+
 /* ── As etapas, pelo nome (UI 2.2, decisão C) ───────────────────────────────────────────────── */
 
 .totem-etapas {

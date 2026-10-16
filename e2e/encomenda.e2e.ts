@@ -48,7 +48,7 @@ async function mandarTresCaixas(page: Page) {
   /* Quem manda, com o celular obrigatório (F); quem recebe, opcional, e aqui pulado. */
   await expect(pergunta(page)).toHaveText('Quem está mandando?')
   await totem(page).getByLabel('Nome').fill('Maria Souza')
-  await totem(page).getByLabel(/Celular com DDD/).fill('(91) 98888-7777')
+  await totem(page).getByLabel(/^Celular com/).fill('(91) 98888-7777')
   await totem(page).getByRole('button', { name: 'Continuar' }).click()
 
   await expect(pergunta(page)).toHaveText('Quem recebe no destino?')
