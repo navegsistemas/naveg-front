@@ -851,8 +851,8 @@ passaporte).
 
 **Achados:**
 
-1. **A conta pede mais que a reserva**, que não pede documento. A tela precisa dizer **por que** pede: a passagem sai
-   no nome da pessoa, como no balcão;
+1. **A conta pede mais que a reserva**, que não pede documento. *Corrigido pelo PO (2026-10-16, abaixo): a passagem
+   não sai necessariamente no nome de quem tem a conta, e a tela não explica o porquê;*
 2. **o CNPJ está no `TipoDocumento`**, mas a conta é de pessoa;
 3. **menores de idade:** com o nascimento obrigatório, a tela sabe a idade. Dado de criança e adolescente pede o
    consentimento de um responsável (LGPD, art. 14);
@@ -873,4 +873,16 @@ passaporte).
 
 **A ordem:** a tela só vai ao ar depois do KMP (fluviapp-kmp#70), do domain e da API (naveg-api-vercel#30). A decisão
 pode vir antes; a implementação espera.
+
+**O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
+
+- **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para
+  outra pessoa, desde que tenha em mãos o documento e a data de nascimento dela. Os dados de quem viaja são pedidos na
+  compra (5.3, com a O14);
+- **o e-mail e o celular são dados de contato**;
+- **na área do cliente, ele também reserva veículo e encomenda**, que seguem para o atendimento, como a reserva da
+  página. Isso entra na 4.1 (Minha conta) e na etapa 5.
+
+**Wireframe, versão 2:** sem o texto de apoio. Fica só o que é rótulo, o exemplo dentro do campo e a frase dos termos
+(F), que a lei pede.
 
