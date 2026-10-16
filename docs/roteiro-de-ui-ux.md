@@ -99,6 +99,7 @@ o domínio da homologação (U8).
 | **3.3** | **Entrar e sair** | senha errada; e-mail ainda não confirmado; muitas tentativas; voltar ao lugar de onde veio |
 | **3.4** | **Esqueci a senha** | pedir o link; o link; a senha nova; o link vencido |
 | **3.5** | **Onde se entra** | o item no topo (1.1) e o convite na hora de pagar (U3) |
+| **3.6** | **Resgatar a reserva** (pedido do PO, 2026-10-16) | o convite na conclusão da reserva feita sem conta; criar a conta ou entrar e levar a reserva para ela; a reserva que pode virar compra e a que não pode |
 
 ## 6. Etapa 4 — As páginas do cliente
 
@@ -971,3 +972,34 @@ a conta desativada, o menu com "Minha conta" e o sair.
 
 **A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 30 dias (A) são da API (naveg-api-vercel#30,
 ADR-0003).
+
+### 3.6 — Resgatar a reserva
+
+**Situação:** pedido do PO (2026-10-16), em análise. O wireframe vem na vez dela, depois da 3.5 (onde se entra), porque
+usa as telas da 3.1 a 3.3. **O pedido:** "acrescentar ao final da reserva deslogada a possibilidade de resgatar a reserva
+e emitir a passagem se cadastrando".
+
+**O que existe hoje:** a conclusão da reserva da página (2.5, no ar) mostra o código, "Copiar" e o WhatsApp como o passo
+que falta. A reserva não tem dono: ela guarda o nome e o celular de quem reservou, e o código. O quiosque não tem conta
+(U5).
+
+**Achados:**
+
+1. **"Emitir" pela internet é a compra (7.6)**, que ainda não existe, e que no MVP cobre só **passageiro, em rede, com
+   preço na tabela**. Veículo, encomenda, as outras acomodações e a saída sem preço seguem com o atendimento. Antes da
+   7.6, resgatar só pode **guardar a reserva na conta**;
+2. **a prova de que a reserva é da pessoa:** o código sozinho não serve, porque ele vai no WhatsApp e pode ser visto
+   por outros. Quem tiver o código tomaria a reserva, e os dados de quem reservou;
+3. **a reserva no painel muda de figura:** o atendente precisa ver que ela está numa conta. Se ele já converteu a
+   reserva em passagem no balcão, o site não pode deixar pagar de novo;
+4. **o nome de quem reservou pode não ser o da conta**, e quem viaja pode ser outra pessoa (3.1). Na compra, os dados
+   de quem viaja são pedidos como em qualquer compra (5.3, com a O14).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quando o convite aparece | **na conclusão de toda reserva da página**: "Guarde esta reserva na sua conta", com "Criar conta" e "Entrar". **"Emitir a passagem"** só onde a compra cobre (passageiro em rede com preço); nas outras, a reserva fica na conta e segue com o atendimento. O quiosque não mostra (U5) |
+| **B** | A prova de que é dela | **só no mesmo aparelho**, logo depois de reservar: a API entrega, junto com o código, um comprovante que fica guardado no navegador até a saída do barco. Sem ele, não há resgate, nem pelo código digitado |
+| **C** | Antes da compra online | **resgatar entra com a área do cliente**: a reserva aparece em Minha conta, com o código e o WhatsApp. **Emitir entra com a 7.6**, a partir dessa mesma reserva, sem escolher a saída de novo |
+| **D** | No painel | **a reserva ganha o vínculo com a conta**, e o atendente vê "reserva de cliente com conta". Se ela já foi convertida no balcão, o site mostra a passagem como emitida e não oferece pagar. Pede o KMP e a API (issues depois da decisão) |
