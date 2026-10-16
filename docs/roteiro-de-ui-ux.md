@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 a próxima**, depois a 2.5 e a 2.6 |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 em análise, esperando o PO** (a conferência); depois a 2.5 e a 2.6 |
 | **3 — O cadastro** | 3.1 a 3.5 | a começar |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -627,3 +627,41 @@ continua opcional.
 - **a ordem é a inversa da 2.7: a página antes, a API depois.** A página nova sempre manda o celular, e a API que está no
   ar aceita. Depois, a tag `domain-v0.12.0` no commit do PR, e a API sobe o domain e é promovida. Na ordem da 2.7, a
   API nova recusaria, até o merge, quem reservasse sem celular pela página de antes.
+
+### 2.4 — A conferência
+
+**Situação:** em análise, esperando o PO (2026-10-16). É a última tela antes de confirmar a reserva de passagem ou de
+veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
+**Wireframe** (privado do PO): [2.4](https://claude.ai/artifact/Vq8MEfYSrWSRopTmXzzpZK).
+
+**Levantamento** (2026-10-16, build de demonstração, 360px e 1280px; passageiros, veículo, e passageiros e veículo):
+as etapas, a pergunta "Confira a reserva" e uma lista de nove linhas: Travessia, Saída, Embarque, Desembarque,
+Embarcação, Passagem, Em nome de, Celular e Vale até. Depois, "Confirmar reserva", e "Voltar" com "Recomeçar a reserva".
+Os quadros "Mudar" e "Trocar a saída" das telas anteriores não aparecem aqui. No celular, ao chegar, a tela mostra a
+pergunta e as três primeiras linhas; o botão fica a quase duas telas. No computador, a lista cabe numa tela, em duas
+colunas.
+
+**Achados:**
+
+1. **no celular, o botão fica a quase duas telas da chegada**: nove linhas, boa parte endereço completo;
+2. **o que a pessoa escolheu aparece na sexta linha**, depois de cinco sobre a viagem;
+3. **o veículo aparece como "Passagem: Veículo: Carro · + 3 pessoas em suíte · inteira, meia ou gratuidade no
+   atendimento"**: um rótulo errado e quatro informações numa linha;
+4. **para corrigir uma coisa, só "Voltar", um passo de cada vez, ou "Recomeçar"**: os quadros com "Mudar" somem
+   justo aqui;
+5. **"Vale até: a saída — Sexta-feira, 16/10 · 18:00"** repete a saída e não diz o que acontece ao confirmar;
+6. **nada perto do botão diz que nada é pago** e que o próximo passo é o WhatsApp; só o subtítulo da seção, lá em cima;
+7. **para outras partes:** o desembarque e o tipo da embarcação ficam para o WhatsApp e para a conclusão (2.5); os erros
+   na conferência são da 2.6; o preço, da etapa 5. O achado da 2.2 ("a conferência repete a travessia no cabeçalho e na
+   primeira linha") não vale mais: o cabeçalho saiu com a 2.2.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | A ordem e o agrupamento | **três blocos: "O que vai", "A viagem" e "Em nome de"**, nessa ordem; no computador, lado a lado. A viagem com o dia e a hora, as cidades, o cais de embarque e a embarcação. O desembarque e o tipo da embarcação saem da conferência (ficam no WhatsApp e na conclusão) |
+| **B** | Corrigir sem recomeçar | **"Mudar" ou "Trocar" em cada bloco**, que leva ao passo e mantém o resto, como os quadros das telas anteriores |
+| **C** | O veículo escrito como se fala | **"Carro, com 3 pessoas em suíte"**, e numa linha à parte "Inteira, meia ou gratuidade: no atendimento"; para passageiros, "2 pessoas em rede". O KMP e o WhatsApp não mudam |
+| **D** | O que acontece ao confirmar | **sai "Vale até"**, e entra embaixo do botão: "Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp. A reserva vale até a saída." Com a compra (etapa 5), a linha muda para o caminho de quem reserva |
+
+**A ordem:** só a página. O domain e a API não mudam.
