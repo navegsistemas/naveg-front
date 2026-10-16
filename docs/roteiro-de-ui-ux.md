@@ -596,5 +596,6 @@ continua opcional.
   reserva com você", a linha de privacidade com o link, antes do "Continuar", e "Celular" na conferência e na conclusão;
   na encomenda, quem manda ganha o mesmo rótulo e a mesma linha;
 - **a política de privacidade 1.2:** o nome e o celular, e o celular opcional só no terminal da agência;
-- **a ordem**, a mesma da 2.7: a tag `domain-v0.12.0` no commit do PR, a API sobe o domain e é promovida, e só então o
-  PR entra.
+- **a ordem é a inversa da 2.7: a página antes, a API depois.** A página nova sempre manda o celular, e a API que está no
+  ar aceita. Depois, a tag `domain-v0.12.0` no commit do PR, e a API sobe o domain e é promovida. Na ordem da 2.7, a
+  API nova recusaria, até o merge, quem reservasse sem celular pela página de antes.
