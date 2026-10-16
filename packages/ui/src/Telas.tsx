@@ -196,6 +196,14 @@ export interface PropsDaConferencia {
   readonly aoMudar?: (alvo: AlvoDoBloco) => void
   /** O que acontece ao confirmar, embaixo do botão (2.4, D). */
   readonly nota?: ReactNode
+  /**
+   * O envio que falhou (2.6, A): a frase num quadro de aviso, logo acima do botão — que então diz "Tentar de novo". O
+   * que vem depois dele (a saída pelo WhatsApp, na página) é da tela.
+   */
+  readonly erro?: string
+  readonly depoisDoBotao?: ReactNode
+  /** Uma pendência com texto próprio desta reserva: a saída fechada da encomenda (2.6, D). */
+  readonly textoDaPendencia?: Partial<Record<PendenciaDaReserva, string>>
 }
 
 /** O rótulo do "Mudar" de cada bloco: a saída se troca; o resto se muda. */
@@ -255,6 +263,9 @@ export function Conferencia({
   blocos,
   aoMudar,
   nota,
+  erro,
+  depoisDoBotao,
+  textoDaPendencia,
 }: PropsDaConferencia) {
   return (
     <div className="totem-conferencia">
@@ -273,15 +284,21 @@ export function Conferencia({
       {pendencias.length > 0 ? (
         <ul className="totem-pendencias" role="alert">
           {pendencias.map((pendencia) => (
-            <li key={pendencia}>{TEXTO_DA_PENDENCIA[pendencia]}</li>
+            <li key={pendencia}>{textoDaPendencia?.[pendencia] ?? TEXTO_DA_PENDENCIA[pendencia]}</li>
           ))}
         </ul>
       ) : (
         <>
+          {erro !== undefined && (
+            <p className="totem-aviso totem-erro-do-envio" role="alert">
+              {erro}
+            </p>
+          )}
           <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando}>
-            {enviando ? 'Enviando…' : rotuloDoConfirmar}
+            {enviando ? 'Enviando…' : erro !== undefined ? 'Tentar de novo' : rotuloDoConfirmar}
           </button>
-          {nota !== undefined && <p className="totem-ajuda totem-nota">{nota}</p>}
+          {depoisDoBotao}
+          {nota !== undefined && erro === undefined && <p className="totem-ajuda totem-nota">{nota}</p>}
         </>
       )}
     </div>

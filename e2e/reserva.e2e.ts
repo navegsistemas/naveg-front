@@ -110,11 +110,13 @@ test.describe('a reserva no quiosque', () => {
     await preencherAteAConferencia(page)
     await page.getByRole('button', { name: 'Confirmar reserva' }).click()
 
-    await expect(page.getByRole('alert')).toHaveText(/Não foi possível enviar a reserva agora/, PRAZO_DO_ENVIO)
+    /* 2.6, A: a frase do motivo, e o botão vira "Tentar de novo". No quiosque, sem o WhatsApp. */
+    await expect(page.getByRole('alert')).toHaveText(/^A reserva não foi enviada./, PRAZO_DO_ENVIO)
     await expect(page.getByText('Rede · Inteira · 1 pessoa')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Enviar pelo WhatsApp' })).toHaveCount(0)
 
     /* Tentar de novo pede um token novo: eles não se reaproveitam. */
-    await page.getByRole('button', { name: 'Confirmar reserva' }).click()
+    await page.getByRole('button', { name: 'Tentar de novo' }).click()
     await expect.poll(() => api.pedidos.length, PRAZO_DO_ENVIO).toBe(2)
     expect(api.pedidos.every((p) => p.desafio === TOKEN_DE_TESTE_DO_TURNSTILE)).toBe(true)
   })
@@ -162,7 +164,9 @@ test.describe('a reserva no quiosque', () => {
   test('sem catálogo, o totem diz que não carregou — e não um dia sem saídas', async ({ page }) => {
     await servirApiFalsa(page, { catalogo: 'FORA_DO_AR' })
     await page.goto('/totem')
-    await expect(page.getByText('Não foi possível carregar as saídas. Tente de novo em instantes.')).toBeVisible()
+    /* 2.6, C: o aviso e "Tentar de novo". */
+    await expect(page.getByRole('alert')).toHaveText(/^As saídas não carregaram./)
+    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible()
     await expect(totem(page).getByRole('listitem')).toHaveCount(0)
   })
 })

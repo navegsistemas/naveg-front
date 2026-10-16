@@ -7,7 +7,7 @@
  *
  * O texto é de tela, e a tela é de quem **não** trabalha no rio: nenhuma sigla interna, nenhum nome de enum.
  */
-import type { PassoDaReserva, PendenciaDaReserva } from '@navegsistemas/domain'
+import type { MotivoDaFalha, PassoDaReserva, PendenciaDaReserva } from '@navegsistemas/domain'
 
 export interface TextoDoPasso {
   readonly pergunta: string
@@ -106,7 +106,8 @@ export const TEXTO_DA_PENDENCIA: Readonly<Record<PendenciaDaReserva, string>> = 
   GRATUIDADE_INDEVIDA: 'A gratuidade escolhida não vale para este tipo de passagem.',
   QUANTIDADE: 'Uma reserva vai de 1 a 50 pessoas. Mais do que isso, fale com o atendimento.',
   CILINDRADA: 'Informe a cilindrada da moto.',
-  VALIDADE: 'Esta saída já partiu. Escolha outra travessia.',
+  /* 2.6, D (PO, 2026-10-16): o 409 é a saída que partiu ou foi suspensa — a frase diz só o que vale nos dois. */
+  VALIDADE: 'Esta saída não está mais aberta para reserva. Ela partiu, ou foi suspensa. O resto da reserva continua aqui.',
   CONVERSAO: 'Esta reserva não pode ser enviada.',
   CLIENTE_TELEFONE_AUSENTE: 'Deixe o celular com DDD: é por ele que o atendimento fala com você e avisa quando a encomenda chegar.',
   DESTINATARIO_AUSENTE: 'Informe quem retira a encomenda no destino.',
@@ -121,3 +122,21 @@ export const TEXTO_DA_PENDENCIA: Readonly<Record<PendenciaDaReserva, string>> = 
 export const AVISO_RESERVA_NAO_VENDA =
   'Isto é uma reserva, não uma venda: nada é pago aqui. O atendimento confirma a passagem com você pelo ' +
   'WhatsApp, e a reserva vale até a saída do barco.'
+
+/**
+ * **Quando o envio falha** (2.6, A, PO, 2026-10-16): uma frase por motivo, num quadro acima do botão, que vira "Tentar de
+ * novo". A saída pelo WhatsApp, quando há, vem da tela: no quiosque ela não serve.
+ */
+export const FALHA_DO_ENVIO: Readonly<Record<MotivoDaFalha, string>> = {
+  CONEXAO:
+    'A reserva não foi enviada. A internet pode ter caído, ou o sistema está fora do ar por um instante. O que você escolheu continua aqui.',
+  LIMITE: 'Muitas reservas deste aparelho em pouco tempo. Tente de novo daqui a alguns minutos.',
+  DESAFIO: 'A verificação contra robô não passou. Atualize a página e tente de novo.',
+}
+
+/** Na encomenda, a saída fechada pode ser também a semana que passou (2.6, D). */
+export const VALIDADE_DA_ENCOMENDA =
+  'Esta saída não está mais aberta para encomenda: ela partiu, foi suspensa, ou passou dos próximos 7 dias.'
+
+/** As saídas que não carregam (2.6, C). */
+export const CATALOGO_NAO_CARREGOU = 'As saídas não carregaram. Pode ser a internet. O que você escolheu continua aqui.'

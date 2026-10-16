@@ -22,9 +22,12 @@
  * | `201` | `ENVIADA`, com a reserva do servidor |
  * | `409` (a travessia saiu da oferta: partiu, foi inativada, saiu da concessão) | `INCOERENTE`, com `VALIDADE` — o totem já sabe dizer "escolha outra saída" |
  * | `422` com pendências | `INCOERENTE`, com elas |
- * | qualquer outra, ou a rede | `FALHA` — "não foi possível enviar agora" |
+ * | `429` (`LIMITE_EXCEDIDO`) | `FALHA` por `LIMITE` — envios demais deste aparelho (2.6) |
+ * | `403` com `DESAFIO_INVALIDO`, ou o desafio que não se resolve | `FALHA` por `DESAFIO` |
+ * | qualquer outra, ou a rede | `FALHA` por `CONEXAO` — "não foi possível enviar agora" |
  */
 import {
+  type MotivoDaFalha,
   enviarEncomenda,
   enviarReserva,
   encomendaPeloSite,
@@ -91,9 +94,10 @@ export type ObterDesafio = () => Promise<string>
 type RespostaDaApi =
   | { readonly caso: 'ENVIADA'; readonly reserva: Reserva }
   | { readonly caso: 'INCOERENTE'; readonly pendencias: ReadonlySet<PendenciaDaReserva> }
-  | { readonly caso: 'FALHA'; readonly motivo: string }
+  | { readonly caso: 'FALHA'; readonly motivo: string; readonly porque: MotivoDaFalha }
 
-const falha = (motivo: string) => ({ caso: 'FALHA', motivo }) as const
+/** A falha, com o porquê que a tela usa (2.6, A). Na dúvida, a conexão: é o que a pessoa pode resolver tentando de novo. */
+const falha = (motivo: string, porque: MotivoDaFalha = 'CONEXAO') => ({ caso: 'FALHA', motivo, porque }) as const
 
 function pendenciasDoCorpo(corpo: unknown): PendenciaDaReserva[] {
   const lista = (corpo as { pendencias?: unknown } | null)?.pendencias
@@ -123,7 +127,7 @@ async function postar(
   try {
     desafio = await obterDesafio()
   } catch {
-    return falha('o desafio não foi resolvido')
+    return falha('o desafio não foi resolvido', 'DESAFIO')
   }
 
   let resposta: Response
@@ -146,6 +150,11 @@ async function postar(
     }
     case 409:
       return { caso: 'INCOERENTE', pendencias: new Set<PendenciaDaReserva>(['VALIDADE']) }
+    /* Envios demais deste endereço (20 em 10 minutos): tentar de novo agora falha de novo. */
+    case 429:
+      return falha('HTTP 429', 'LIMITE')
+    case 403:
+      return falha('HTTP 403', (dado as { erro?: unknown } | null)?.erro === 'DESAFIO_INVALIDO' ? 'DESAFIO' : 'CONEXAO')
     case 422: {
       const pendencias = pendenciasDoCorpo(dado)
       return pendencias.length > 0 ? { caso: 'INCOERENTE', pendencias: new Set(pendencias) } : falha('HTTP 422')

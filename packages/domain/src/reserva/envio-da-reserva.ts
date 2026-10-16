@@ -46,18 +46,24 @@ export interface ReservaRepositorio {
   criar(reserva: Reserva): Promise<ResultadoDaGravacao>
 }
 
+/**
+ * **Por que o envio falhou** (2.6, A, PO, 2026-10-16), para a tela dizer o que fazer: a conexão (a rede, ou o sistema
+ * fora do ar), o limite de envios do aparelho, ou a verificação contra robô. Ausente, vale a conexão.
+ */
+export type MotivoDaFalha = 'CONEXAO' | 'LIMITE' | 'DESAFIO'
+
 export type ResultadoDoEnvio =
   | { readonly caso: 'ENVIADA'; readonly reserva: Reserva }
   | MontagemIncompleta
   | MontagemIncoerente
-  | { readonly caso: 'FALHA'; readonly motivo: string }
+  | { readonly caso: 'FALHA'; readonly motivo: string; readonly porque?: MotivoDaFalha }
 
 /** O mesmo resultado, para a encomenda: o nó que falta é do roteiro dela, e a reserva é de encomenda. */
 export type ResultadoDoEnvioDaEncomenda =
   | { readonly caso: 'ENVIADA'; readonly reserva: ReservaDeEncomenda }
   | { readonly caso: 'INCOMPLETA'; readonly faltando: NoDaEncomenda }
   | MontagemIncoerente
-  | { readonly caso: 'FALHA'; readonly motivo: string }
+  | { readonly caso: 'FALHA'; readonly motivo: string; readonly porque?: MotivoDaFalha }
 
 interface PedidoBase {
   readonly contexto: ContextoDaReserva

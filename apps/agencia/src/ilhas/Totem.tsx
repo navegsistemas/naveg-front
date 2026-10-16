@@ -22,6 +22,8 @@ import {
   encomendaPeloSite,
   InstanteLocal,
   linkDaReserva,
+  linkDeWhatsApp,
+  linkSemCodigo,
   montarReserva,
   nosDoEmbarque,
   respondido,
@@ -29,6 +31,7 @@ import {
   semResposta,
   travessiasOfertadas,
   voltar,
+  type MotivoDaFalha,
   type PendenciaDaReserva,
   type RascunhoDoCliente,
   type Reserva,
@@ -41,6 +44,9 @@ import {
   AVISO_RESERVA_NAO_VENDA,
   blocosDaReserva,
   CalendarioDeSaidas,
+  CATALOGO_NAO_CARREGOU,
+  FALHA_DO_ENVIO,
+  VALIDADE_DA_ENCOMENDA,
   Conferencia,
   EmbarqueEscolhido,
   EtapasDaReserva,
@@ -117,7 +123,7 @@ type Envio =
   | { readonly estado: 'ENVIANDO' }
   | { readonly estado: 'ENVIADA'; readonly reserva: Reserva; readonly travessia: TravessiaOfertada }
   | { readonly estado: 'RECUSADA'; readonly pendencias: readonly PendenciaDaReserva[] }
-  | { readonly estado: 'FALHA' }
+  | { readonly estado: 'FALHA'; readonly porque: MotivoDaFalha }
 
 const OCIOSO: Envio = { estado: 'OCIOSO' }
 
@@ -162,7 +168,7 @@ const relogioDoSistema = () => new Date()
 export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null }: PropsDoTotem) {
   /* Com o calendário (a página), a passagem vai até o alcance da reserva — 90 dias, para passageiro e veículo
      (fluviapp-kmp#44). Sem ele (o quiosque), a lista fica na semana: o quiosque não muda (UI 1.3). */
-  const { lerAgora, agora, catalogo, catalogoFalhou, oferta } = useOferta(
+  const { lerAgora, agora, catalogo, catalogoFalhou, oferta, recarregar } = useOferta(
     fonte,
     fuso,
     relogio,
@@ -407,7 +413,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         setEnvio(OCIOSO)
         break
       case 'FALHA':
-        setEnvio({ estado: 'FALHA' })
+        setEnvio({ estado: 'FALHA', porque: resultado.porque ?? 'CONEXAO' })
         break
     }
   }
@@ -500,8 +506,26 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
       )
   } else if (travessia === null || roteiro === null) {
     pergunta = alcanceDoCalendario === null ? 'Escolha a saída' : 'Escolha o dia'
+    /* As saídas que não carregam (2.6, C): o aviso, "Tentar de novo" sem perder o que foi escolhido, e, na página, o
+       WhatsApp do atendimento. */
     corpo = catalogoFalhou ? (
-      <p className="totem-vazio">Não foi possível carregar as saídas. Tente de novo em instantes.</p>
+      <div className="totem-falha-do-catalogo">
+        <p className="totem-aviso" role="alert">
+          {CATALOGO_NAO_CARREGOU}
+        </p>
+        <button type="button" className="acao" onClick={recarregar}>
+          Tentar de novo
+        </button>
+        {site && atendimento !== null && (
+          <p className="totem-ajuda totem-nota">
+            Ou fale com o atendimento pelo{' '}
+            <a href={linkDeWhatsApp(atendimento)} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+            : {atendimento}.
+          </p>
+        )}
+      </div>
     ) : catalogo === null ? (
       <p className="totem-vazio">Carregando as saídas…</p>
     ) : calendario === null ? (
@@ -561,14 +585,33 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
                 nota: notaDaConferencia(previa.reserva),
               }
             : {})}
+          /* O envio que falhou (2.6, A): a frase do motivo, acima do botão. Na página, o WhatsApp como saída (B), com a
+             reserva escrita e sem código — nada foi gravado. No quiosque, não: é um terminal da agência. */
+          {...(envio.estado === 'FALHA' ? { erro: FALHA_DO_ENVIO[envio.porque] } : {})}
+          {...(envio.estado === 'FALHA' && site && demonstracao === null && atendimento !== null && previa.caso === 'OK'
+            ? {
+                depoisDoBotao: (
+                  <div className="totem-passo-que-falta">
+                    <p>Ou mande a reserva pelo WhatsApp, e o atendimento registra para você.</p>
+                    <a
+                      className="acao acao--secundaria"
+                      href={linkSemCodigo(atendimento, previa.reserva, travessia.rotulos)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Enviar pelo WhatsApp
+                    </a>
+                  </div>
+                ),
+              }
+            : {})}
+          /* A saída fechada da encomenda pode ser também a semana que passou (2.6, D). */
+          {...(previa.caso === 'OK' && previa.reserva.categoria === 'ENCOMENDA'
+            ? { textoDaPendencia: { VALIDADE: VALIDADE_DA_ENCOMENDA } }
+            : {})}
         />
         {/* Sem o destinatário, a retirada fica para o atendimento (2.7, G): a conferência diz como funciona. */}
         {previa.caso === 'OK' && retiradaACombinar(previa.reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
-        {envio.estado === 'FALHA' && (
-          <p className="totem-pendencias" role="alert">
-            Não foi possível enviar a reserva agora. Confira a conexão e tente de novo.
-          </p>
-        )}
         {partiu && (
           <button
             type="button"

@@ -132,6 +132,20 @@ export function linkDaReserva(telefoneDoAtendimento: string, reserva: Reserva, r
   return linkDeWhatsApp(telefoneDoAtendimento, mensagemDaReserva(reserva, rotulos))
 }
 
+/**
+ * **A reserva que o site não conseguiu enviar** (2.6, B, PO, 2026-10-16): a mesma mensagem, sem o código — ele não existe,
+ * porque nada foi gravado —, e a primeira linha diz o que aconteceu. O atendimento registra no painel.
+ */
+export function mensagemSemCodigo(reserva: Reserva, rotulos: RotulosDaMensagem): string {
+  const [, ...resto] = mensagemDaReserva(reserva, rotulos).split('\n')
+  const pedido = reserva.categoria === 'ENCOMENDA' ? 'Quero mandar esta encomenda' : 'Quero fazer esta reserva'
+  return [`${pedido}. O site não conseguiu enviar.`, ...resto].join('\n')
+}
+
+export function linkSemCodigo(telefoneDoAtendimento: string, reserva: Reserva, rotulos: RotulosDaMensagem): string {
+  return linkDeWhatsApp(telefoneDoAtendimento, mensagemSemCodigo(reserva, rotulos))
+}
+
 /** O link de atendimento **desta** encomenda: a conversa com o atendimento, com o pedido escrito. */
 export function linkDaEncomenda(telefoneDoAtendimento: string, reserva: ReservaDeEncomenda, rotulos: RotulosDaMensagem): string {
   return linkDaReserva(telefoneDoAtendimento, reserva, rotulos)

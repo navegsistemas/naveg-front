@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { linkDaReserva, linkDeWhatsApp, mensagemDaReserva } from '../src/reserva/link-de-atendimento.js'
+import { linkDaReserva, linkDeWhatsApp, linkSemCodigo, mensagemDaReserva, mensagemSemCodigo } from '../src/reserva/link-de-atendimento.js'
 import { montarReserva, type ResultadoDaMontagem } from '../src/reserva/montagem-da-reserva.js'
 import type { Reserva } from '../src/reserva/reserva.js'
 import { CLIENTE, contexto, IDENTIDADE, REDE_COMPLETA } from './exemplos.js'
@@ -124,5 +124,15 @@ describe('a mensagem da reserva', () => {
     const link = linkDaReserva('(91) 98888-7777', REDE, ROTULOS)
     expect(link.startsWith('https://wa.me/5591988887777?text=')).toBe(true)
     expect(textoDo(link)).toBe(mensagemDaReserva(REDE, ROTULOS))
+  })
+})
+
+/* 2.6, B (PO, 2026-10-16): a reserva que o site não conseguiu enviar vai pelo WhatsApp, sem código — nada foi gravado. */
+describe('a mensagem sem código', () => {
+  it('a primeira linha diz o que aconteceu, e o resto é a mesma reserva', () => {
+    const linhas = mensagemSemCodigo(REDE, ROTULOS).split('\n')
+    expect(linhas[0]).toBe('Quero fazer esta reserva. O site não conseguiu enviar.')
+    expect(linhas.slice(1)).toEqual(mensagemDaReserva(REDE, ROTULOS).split('\n').slice(1))
+    expect(textoDo(linkSemCodigo('(91) 99203-5322', REDE, ROTULOS))).not.toMatch(/NVG-/)
   })
 })
