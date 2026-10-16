@@ -147,8 +147,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | a começar |
-| **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
+| **3 — O cadastro** | 3.1 a 3.5 | **em análise** (2026-10-16): o levantamento da área do cliente, inteira, e quatro perguntas que vêm antes das telas; depois, uma seção por vez, a começar pela 3.1 |
+| **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
@@ -743,3 +743,55 @@ profissional"**, a última mudança na reserva. A pergunta E teve a recomendaç�
 - **a mensagem do WhatsApp** (E) muda no domain, que só a página usa: a API e o KMP não leem o texto, e o domain
   não precisa de versão nova. O atendente acha a reserva pelo código, agora o primeiro campo;
 - **o quiosque** ganha só as frases: lá não há WhatsApp.
+
+### A área do cliente — o levantamento (etapa 3, 4.1 e 4.2)
+
+**Situação:** em análise (2026-10-16). O levantamento é da área inteira, porque ela ainda não existe no site e as
+perguntas que vêm antes das telas valem para todas. As telas andam depois **uma seção por vez**, pelo ritual: 3.1
+(criar a conta), 3.2 (confirmar o e-mail), 3.3 (entrar e sair), 3.4 (esqueci a senha), 3.5 com a 1.1 (onde se
+entra), 4.1 (Minha conta) e 4.2 (Meus dados).
+
+**Levantamento** (2026-10-16):
+
+| onde | o que já existe |
+|---|---|
+| **o site** | nenhuma tela da conta. Quatro páginas: `/`, `/totem`, `/privacidade` e `/termos`. O topo guarda o lugar de **"Minha conta" como item fixo do menu** (1.1, D, 2026-10-08), sem JavaScript para trocar entre "Entrar" e "Minha conta". O `meta.ts` já prevê `/conta` e `/pedidos` fora do mapa, com `noindex`. A privacidade e os termos dizem que a conta vem depois |
+| **o KMP** | **pronto** (fluviapp-kmp#55, ADR-0022, 2026-10-13). A conta é `contasDeCliente`, com **nome, e-mail, telefone (opcional), criada em, confirmada em e ativa**. A senha e o código de confirmação ficam num `segredos/` que só o servidor lê. O Supervisor desativa e reativa a conta pelo painel; o Agente só vê |
+| **a API** | **a fazer** (naveg-api-vercel#30): cadastro, confirmação, entrar (recusa a conta desativada), Meus dados (corrigir nome e telefone, apagar) e o resumo para a Saúde. As chaves entram antes no `@navegsistemas/domain` daqui |
+| **as regras do negócio** | **O6**: conta obrigatória **só para comprar**, com o e-mail confirmado; reservar continua sem conta. **O7**: apagar a conta tira os dados, e as passagens ficam. **U3**: a conta é pedida na hora de pagar. **U5**: o quiosque não tem conta. **ADR-0002**: o navegador não fala com o Firestore; tudo passa pela API |
+| **o que não existe em lugar nenhum** | **o envio de e-mail.** Nenhum dos três repositórios manda e-mail hoje. A confirmação (3.2), o esqueci a senha (3.4) e, depois, o bilhete (7.6) precisam de um provedor de e-mail transacional e de registros no DNS de `gruponaveg.com.br` (SPF e DKIM), ou caem no spam |
+
+**Achados:**
+
+1. **Antes da compra, a conta dá pouco ao cliente.** No MVP sem a 7.6, quem entra vê os próprios dados e pode deixar
+   opinião (1.6), e só. É o que o PO decidiu na ordem até o MVP, e não muda nada aqui. Mas é por isso que vale a conta
+   **preencher a reserva** com o nome e o celular (a 2.3 já deixou isso anotado): é o primeiro ganho visível.
+2. **O e-mail é o que mais trava**, mais que a tela. Sem provedor e sem o DNS, não há confirmação nem senha
+   esquecida, e a conta não se completa. Escolher o provedor é de engenharia; **ter acesso ao DNS de
+   `gruponaveg.com.br`** e aceitar o custo são do negócio.
+3. **A U8 e a D4 são uma ação só, no mesmo DNS.** A U8 (a homologação num subdomínio) trava a conta em homologação: em
+   `*.vercel.app` o iPhone descarta o cookie de outro domínio. **A D4 (o domínio da API de produção) não trava a
+   homologação** (naveg-api-vercel#30); trava só a produção. O que falta é quem tem acesso ao DNS, e os nomes.
+4. **O celular: obrigatório na reserva da página (2.3), opcional na conta (o contrato do KMP).** Se a conta não pede,
+   a reserva feita por quem entrou ainda vai perguntar. O contrato aceita os dois jeitos; a escolha é de produto.
+5. **"Sem revelar se o e-mail tem conta"** (3.1 e 3.4, e o plano da API) deixa as mensagens genéricas: "se houver uma
+   conta com este e-mail, enviamos o link". É o certo contra quem testa e-mails alheios, e a tela tem de deixar
+   claro o que fazer a seguir.
+6. **A conta desativada pelo Supervisor** precisa de uma frase e da saída para o WhatsApp (a régua da §2): "Esta conta
+   está desativada. Fale com o atendimento."
+7. **O site deixa de ser uma página só.** O topo já leva às âncoras da página a partir de qualquer página
+   (`ancoraVistaDe`), e o "Reservar agora" de `/conta` leva à página. O quiosque continua sem "Minha conta" (U5).
+8. **A privacidade muda com a conta** (U7): e-mail, senha, histórico. A seção nova vai à revisão jurídica e entra no
+   ar com a 7.4, mudando a versão e a data.
+
+**Perguntas para o PO, antes das telas, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O DNS de `gruponaveg.com.br` e os nomes (a U8 e a D4 juntas) | **o site da homologação em `homologacao.gruponaveg.com.br` e a API em `api-homologacao.gruponaveg.com.br`**; em produção, o site em `gruponaveg.com.br` e a API em `api.gruponaveg.com.br`. O Claude entrega os registros prontos; **quem tem o acesso ao DNS os grava**. Sem isso, a conta pode ser desenhada, mas não aceita no celular |
+| **B** | O e-mail que o site manda | **um provedor de e-mail transacional**, escolhido pelo Claude, saindo de `naoresponda@gruponaveg.com.br`, com os registros SPF e DKIM no mesmo DNS da A. No volume do MVP, os provedores grandes ficam na faixa gratuita; o custo aparece só com volume. As respostas de quem escreve de volta vão para o `contato@` |
+| **C** | O celular na conta | **obrigatório**, como na reserva da página: um campo a mais no cadastro, e quem entra reserva sem digitar nada. Contra: opcional, com a reserva perguntando de novo |
+| **D** | Entrar com o Google | **não no MVP**: e-mail e senha, como o KMP já preparou. O Google tira a senha e a confirmação, mas pede outro contrato com o KMP e outra configuração; o bilhete da 7.6 vai por e-mail do mesmo jeito. Volta à mesa se o uso pedir |
+
+**Depois das respostas:** o wireframe da 3.1 (criar a conta), e as seções seguintes uma de cada vez.
+
