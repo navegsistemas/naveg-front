@@ -797,7 +797,7 @@ entra), 4.1 (Minha conta) e 4.2 (Meus dados).
 
 | # | resposta | o que fica |
 |---|---|---|
-| **A** | "foi combinado que haveriam dois domínios inicialmente: endereço de produção e API de homologação, faltando apenas configurar na Vercel"; o endereço `*.vercel.app` serve hoje aos dois, em desenvolvimento. A configuração pode ter ficado em outra máquina | **em aberto, com uma recomendação nova** (abaixo) |
+| **A** | "foi combinado que haveriam dois domínios inicialmente: endereço de produção e API de homologação, faltando apenas configurar na Vercel"; o endereço `*.vercel.app` serve hoje aos dois, em desenvolvimento. A configuração pode ter ficado em outra máquina | **decidida em seguida, pela recomendação nova** (abaixo): a API atrás do site, em `/api` |
 | **B** | "o e-mail com o domínio já está completamente configurado" | **decidida.** O domínio usa o **Google Workspace**, com SPF, DKIM e DMARC no ar (conferido no DNS em 2026-10-16). O site manda e-mail pelo próprio Workspace, de um apelido `naoresponda@`, sem provedor novo e sem custo de licença. Na implementação da 3.2, o PO cria o apelido e a senha de app |
 | **C** | obrigatórios, "assim como na passagem": **nome completo, data de nascimento, tipo e número do documento, e-mail** (para a confirmação) e **celular** (para mandar as passagens) | **decidida.** Muda o contrato do KMP: a ADR-0022 dizia que a conta não era o passageiro e só tinha nome, e-mail e telefone (navegsistemas/fluviapp-kmp#70; a ordem é KMP, domain, API e site). O documento segue a O12: mascarado na tela, depois de gravado |
 | **D** | aceita | **decidida:** e-mail e senha, sem o Google no MVP |
@@ -826,5 +826,51 @@ navegador, o site e a API passam a ser o mesmo endereço, qualquer que seja ele,
 |---|---|---|
 | **E** | Uma conta por documento? | **sim, uma por documento**, como o passageiro (ADR-0023). Quem tenta outra conta com o mesmo documento lê a mesma frase que não revela nada: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." Contra: deixar repetir, e a análise de clientes contaria a mesma pessoa duas vezes |
 
-**Depois da A e da E:** o wireframe da 3.1 (criar a conta), e as seções seguintes uma de cada vez.
+**Decisões do PO (2026-10-16), em seguida:** **a A e a E pela recomendação** ("recomendações aceitas, pode começar").
+A API vai para trás do site, em `/api`, e a conferência do endereço de quem acessa fica na ADR-0003 (naveg-api-vercel#30).
+Uma conta por documento (fluviapp-kmp#70).
+
+**A seguir:** a 3.1 (criar a conta), e as seções seguintes uma de cada vez.
+
+### 3.1 — Criar a conta
+
+**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+[3.1](https://claude.ai/artifact/WTLLEkH8cCHm6WX8CgA1Es), com o formulário, os erros e a passagem para a 3.2, no
+celular e no computador.
+
+**Levantamento** (2026-10-16): a tela não existe. O que ela precisa seguir, das decisões da área do cliente:
+- **os campos**, todos obrigatórios (C): nome completo, nascimento, tipo e número do documento, e-mail e celular, mais a
+  senha (D);
+- **uma conta por documento**, com a frase que não revela nada (E);
+- **o e-mail de confirmação** sai pelo Google Workspace (B);
+- **a conta serve para comprar, não para reservar** (O6).
+
+O que o site já tem e a tela reaproveita: o campo "Celular com WhatsApp" e a linha de privacidade da 2.3; o quadro de
+aviso e o "Tentar de novo" da 2.6; o `TipoDocumento` do domain, com a máscara e a validação (CPF, CNPJ, RG, CNH e
+passaporte).
+
+**Achados:**
+
+1. **A conta pede mais que a reserva**, que não pede documento. A tela precisa dizer **por que** pede: a passagem sai
+   no nome da pessoa, como no balcão;
+2. **o CNPJ está no `TipoDocumento`**, mas a conta é de pessoa;
+3. **menores de idade:** com o nascimento obrigatório, a tela sabe a idade. Dado de criança e adolescente pede o
+   consentimento de um responsável (LGPD, art. 14);
+4. **os erros por campo** são novos no site (a reserva erra por passo). Eles aparecem embaixo do campo, e o foco vai
+   ao primeiro com erro;
+5. **a nota "já há registro seu"** (#57) fica de fora: ela espera a análise de LGPD.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Onde fica o cadastro | **uma página própria**, `/conta/criar`, com o topo do site. Chega-se a ela por "Minha conta" → "Criar conta" e, depois, pela compra (3.5). Contra: uma janela sobre a página, que some ao recarregar |
+| **B** | Uma página ou passos | **uma página, em dois grupos**: "Seus dados" e "Contato e acesso". São seis campos e a senha; cabem, e a pessoa vê de uma vez tudo o que vai informar. Contra: um campo por tela, com mais toques |
+| **C** | A senha | **pelo menos 8 caracteres, sem regra de símbolo**, com "Mostrar" e **sem "repita a senha"**, porque o "Mostrar" faz esse papel. Senha muito comum ou vazada é recusada, com a frase dizendo por quê |
+| **D** | A idade mínima | **18 anos.** Menores viajam com a passagem comprada por um adulto, como no balcão |
+| **E** | Os tipos de documento | **CPF** (já escolhido), **RG, CNH e Passaporte**; o CNPJ sai. O passaporte cobre o estrangeiro |
+| **F** | Os termos e a privacidade | **uma frase acima do botão**, com os dois links, **sem caixa de marcar** e sem autorização para propaganda. A seção da conta na política entra junto, com versão nova (U7) |
+
+**A ordem:** a tela só vai ao ar depois do KMP (fluviapp-kmp#70), do domain e da API (naveg-api-vercel#30). A decisão
+pode vir antes; a implementação espera.
 
