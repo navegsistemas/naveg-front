@@ -86,6 +86,89 @@
   color: var(--text-secondary);
 }
 
+/* ── A conferência em blocos (2.4, A e B) ────────────────────────────────────────────────────── */
+
+/* Um embaixo do outro no celular; no computador, os três lado a lado. */
+.totem-blocos {
+  display: grid;
+  gap: var(--espaco-3);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.totem-bloco {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: var(--espaco-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cartao);
+  background: var(--surface-2);
+}
+
+.totem-bloco__cabeca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.totem-bloco__titulo {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.totem-bloco__linha {
+  margin: 0;
+  color: var(--text-body);
+}
+
+.totem-bloco__linha--forte {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.totem-bloco__linha--leve {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* A conclusão na página (2.4, E): o código com o "Copiar" ao lado, e o passo que falta em destaque. */
+.totem-codigo-e-copiar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.totem-passo-que-falta {
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 2px solid var(--accent-superficie);
+  border-radius: var(--radius-cartao);
+  background: var(--surface);
+}
+
+.totem-passo-que-falta p {
+  margin: 0;
+}
+
+.totem-passo-que-falta__titulo {
+  color: var(--text);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* O que acontece ao confirmar (2.4, D): embaixo do botão. */
+.totem-nota {
+  font-size: 0.9375rem;
+}
+
 /* A linha de privacidade no passo de quem reserva (2.3, C): menor que a ajuda, porque é nota e não pergunta. */
 .totem-privacidade {
   font-size: 0.9375rem;
@@ -548,6 +631,16 @@
 }
 
 .totem:not(.totem--quiosque) :is(.totem-formulario:not(.totem-formulario--largo), .totem-conferencia, .totem-conclusao, .totem-saida) {
+  max-width: var(--largura-texto);
+}
+
+/* Em blocos (2.4), os três ficam lado a lado na largura do cartão, como no wireframe aprovado; o texto corrido (a nota,
+   o passo que falta) continua na largura de leitura. */
+.totem:not(.totem--quiosque) :is(.totem-conferencia, .totem-conclusao):has(> .totem-blocos) {
+  max-width: none;
+}
+
+.totem:not(.totem--quiosque) :is(.totem-nota, .totem-passo-que-falta, .totem-aviso) {
   max-width: var(--largura-texto);
 }
 

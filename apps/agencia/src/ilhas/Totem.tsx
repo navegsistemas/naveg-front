@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import {
   alcanceEmDias,
+  casoImpossivel,
   DataCalendario,
   DIAS_DA_JANELA,
   embarcacaoLeva,
@@ -29,14 +30,16 @@ import {
   travessiasOfertadas,
   voltar,
   type PendenciaDaReserva,
+  type RascunhoDoCliente,
   type Reserva,
   type RespostasDaReserva,
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
-import type { EtapaDaReserva, FotoDoCartao } from '@navegsistemas/ui'
+import type { AlvoDoBloco, EtapaDaReserva, FotoDoCartao } from '@navegsistemas/ui'
 import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
   AVISO_RESERVA_NAO_VENDA,
+  blocosDaReserva,
   CalendarioDeSaidas,
   Conferencia,
   EmbarqueEscolhido,
@@ -122,6 +125,17 @@ const OCIOSO: Envio = { estado: 'OCIOSO' }
 const CODIGO_DA_PREVIA = 'NVG-000000'
 
 /** A encomenda sem o destinatário: quem retira fica para o atendimento (naveg-front#58, 2.7). */
+/**
+ * **O que acontece ao confirmar** (2.4, D, PO, 2026-10-16), embaixo do botão. No lugar da linha "Vale até". Na encomenda,
+ * a entrega no porto, que é o que ela tem de diferente.
+ */
+function notaDaConferencia(reserva: Reserva): string {
+  const comum = 'Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp.'
+  return reserva.categoria === 'ENCOMENDA'
+    ? `${comum} Entregue no porto antes da saída: lá a encomenda é pesada e o frete é pago.`
+    : `${comum} A reserva vale até a saída.`
+}
+
 /**
  * **Para que servem os dados** (2.3, C, PO, 2026-10-16): a linha no passo de quem reserva, na hora em que o dado é
  * pedido. O prazo é o da política, e não um número escrito aqui.
@@ -252,7 +266,16 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
   /* Só se move o foco depois que a pessoa começou: roubá-lo no carregamento arrastaria a página até o totem. */
   const interagiu = useRef(false)
 
+  /* O último nome e celular digitados (2.4, B): "Voltar" e "Mudar" desfazem a resposta, e o formulário volta preenchido.
+     Recomeçar apaga — no quiosque, a inatividade também: o dado do próximo cliente não nasce com o do anterior. */
+  const anteriores = useRef<{ cliente?: RascunhoDoCliente; destinatario?: RascunhoDoCliente }>({})
+  useEffect(() => {
+    if (respostas.cliente !== undefined) anteriores.current = { ...anteriores.current, cliente: respostas.cliente }
+    if (respostas.destinatario !== undefined) anteriores.current = { ...anteriores.current, destinatario: respostas.destinatario }
+  }, [respostas])
+
   const recomecar = useCallback(() => {
+    anteriores.current = {}
     setTravessia(null)
     setRespostas(inicio)
     setEnvio(OCIOSO)
@@ -324,6 +347,25 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     setRespostas(respostas.cliente === undefined ? inicio : { ...inicio, cliente: respostas.cliente })
   }
 
+  /* O "Mudar" de cada bloco da conferência (2.4, B): o que vai embarcar e a saída, como os quadros já fazem; os dados,
+     o passo deles, com o formulário preenchido. */
+  function mudarNaConferencia(alvo: AlvoDoBloco) {
+    switch (alvo) {
+      case 'EMBARQUE':
+        return mudarEmbarque()
+      case 'SAIDA':
+        return trocarDeSaida()
+      case 'CLIENTE':
+      case 'DESTINATARIO':
+        interagiu.current = true
+        setEnvio(OCIOSO)
+        setRespostas(semResposta({ passo: alvo }, respostas))
+        return
+      default:
+        return casoImpossivel(alvo, 'mudarNaConferencia')
+    }
+  }
+
   function passoAnterior() {
     interagiu.current = true
     setEnvio(OCIOSO)
@@ -377,37 +419,65 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
 
   if (envio.estado === 'ENVIADA') {
     pergunta = 'Reserva feita'
+    const reserva = envio.reserva
+    const link = atendimento === null ? null : linkDaReserva(atendimento, reserva, envio.travessia.rotulos)
+    /* Na página (2.4, E, PO, 2026-10-16): a reserva só é confirmada pelo atendimento, no WhatsApp. Então é o passo que
+       falta, em destaque, logo abaixo do código. O quiosque segue como era. */
+    const passoQueFalta = (
+      <div className="totem-passo-que-falta">
+        <p className="totem-passo-que-falta__titulo">
+          Falta um passo: envie a reserva ao atendimento. É pelo WhatsApp que ela é confirmada.
+        </p>
+        {demonstracao !== null ? (
+          <p className="totem-aviso">
+            Nesta demonstração a reserva não é enviada. Na versão final, aqui fica o botão que abre a conversa com o
+            atendimento pelo WhatsApp, já com a reserva escrita.
+          </p>
+        ) : link !== null ? (
+          <>
+            <a className="acao" href={link} target="_blank" rel="noopener noreferrer">
+              Enviar pelo WhatsApp
+            </a>
+            <p className="totem-ajuda totem-nota">Se não abrir, fale com o atendimento pelo {atendimento}, com o código.</p>
+          </>
+        ) : (
+          <p className="totem-ajuda">Fale com o atendimento pelo WhatsApp, com o código.</p>
+        )}
+      </div>
+    )
+    const doQuiosque =
+      demonstracao !== null ? (
+        <p className="totem-aviso">
+          Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o atendimento pelo
+          WhatsApp, já com o código.
+        </p>
+      ) : link !== null ? (
+        <>
+          <a className="acao" href={link} target="_blank" rel="noopener noreferrer">
+            Enviar ao atendimento
+          </a>
+          <p className="totem-aviso">
+            Abre o WhatsApp com a reserva escrita. Se não abrir, fale com o atendimento informando o código.
+          </p>
+        </>
+      ) : (
+        <p className="totem-aviso">Fale com o atendimento pelo WhatsApp informando este código.</p>
+      )
     corpo = (
       <ReservaConcluida
-        codigo={envio.reserva.codigo}
-        linhas={resumoDaReserva(envio.reserva, envio.travessia)}
+        codigo={reserva.codigo}
+        linhas={resumoDaReserva(reserva, envio.travessia)}
         aoRecomecar={recomecar}
         /* Uma reserva por vez (2.7, decisão H): quem também viaja, ou também manda, reserva de novo. */
-        {...(site ? { rotuloDoRecomecar: 'Reservar mais alguma coisa' } : {})}
+        {...(site
+          ? { rotuloDoRecomecar: 'Reservar mais alguma coisa', blocos: blocosDaReserva(reserva, envio.travessia) }
+          : {})}
         atendimento={
           <>
-            {retiradaACombinar(envio.reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
-            {demonstracao !== null ? (
-            <p className="totem-aviso">
-              Nesta demonstração a reserva não é enviada. Na versão final, este passo abre a conversa com o
-              atendimento pelo WhatsApp, já com o código.
-            </p>
-          ) : atendimento !== null ? (
-            <>
-              <a
-                className="acao"
-                href={linkDaReserva(atendimento, envio.reserva, envio.travessia.rotulos)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Enviar ao atendimento
-              </a>
-              <p className="totem-aviso">
-                Abre o WhatsApp com a reserva escrita. Se não abrir, fale com o atendimento informando o código.
-              </p>
-            </>
-            ) : (
-              <p className="totem-aviso">Fale com o atendimento pelo WhatsApp informando este código.</p>
+            {site ? passoQueFalta : doQuiosque}
+            {retiradaACombinar(reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
+            {site && reserva.categoria === 'ENCOMENDA' && (
+              <p className="totem-aviso">Entregue no porto antes da saída: lá a encomenda é pesada e o frete é pago.</p>
             )}
           </>
         }
@@ -483,6 +553,14 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           pendencias={pendencias}
           enviando={envio.estado === 'ENVIANDO'}
           aoConfirmar={confirmar}
+          /* Na página, em blocos, com o "Mudar" e o que acontece ao confirmar (2.4, A, B e D). O quiosque não muda. */
+          {...(site && previa.caso === 'OK'
+            ? {
+                blocos: blocosDaReserva(previa.reserva, travessia),
+                aoMudar: mudarNaConferencia,
+                nota: notaDaConferencia(previa.reserva),
+              }
+            : {})}
         />
         {/* Sem o destinatário, a retirada fica para o atendimento (2.7, G): a conferência diz como funciona. */}
         {previa.caso === 'OK' && retiradaACombinar(previa.reserva) && <p className="totem-aviso">{RETIRADA_A_COMBINAR}</p>}
@@ -521,6 +599,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         no={atual}
         respostas={respostas}
         aoResponder={responder}
+        anteriores={anteriores.current}
         /* No site, o passo de quem reserva diz para que servem os dados, com a política (2.3, C). */
         {...(site ? { avisoDoCliente: <AvisoDePrivacidade /> } : {})}
       />

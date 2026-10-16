@@ -34,6 +34,7 @@ export { PESSOAS, VOLUMES } from './QuantidadeDePessoas.js'
 export type { PropsDaQuantidade, UnidadeDaQuantidade } from './QuantidadeDePessoas.js'
 export type { PropsDoPasso } from './PassoDaReserva.js'
 export {
+  BlocosDoResumo,
   Conferencia,
   EmbarqueEscolhido,
   ETAPAS_DA_RESERVA,
@@ -45,8 +46,8 @@ export {
   SaidaEscolhida,
 } from './Telas.js'
 export type { EtapaDaReserva } from './Telas.js'
-export { resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
-export type { LinhaDoResumo } from './resumo.js'
+export { blocosDaReserva, resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
+export type { AlvoDoBloco, BlocoDoResumo, LinhaDoBloco, LinhaDoResumo } from './resumo.js'
 export {
   TRACEJADOS_DA_ENCOMENDA,
   TRACEJADOS_DA_RESERVA,

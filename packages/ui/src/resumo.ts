@@ -136,6 +136,100 @@ export function resumoDaEncomenda(reserva: ReservaDeEncomenda, travessia: Traves
   ]
 }
 
+// ---------------------------------------------------------------------------------------------------------
+
+/** O que cada bloco corrige: o "Mudar" leva ao passo dele (2.4, B). */
+export type AlvoDoBloco = 'EMBARQUE' | 'SAIDA' | 'CLIENTE' | 'DESTINATARIO'
+
+export interface LinhaDoBloco {
+  readonly texto: string
+  /** `forte` é o que a pessoa escolheu; `leve`, o detalhe. */
+  readonly peso: 'forte' | 'normal' | 'leve'
+}
+
+export interface BlocoDoResumo {
+  readonly alvo: AlvoDoBloco
+  readonly titulo: string
+  readonly linhas: readonly LinhaDoBloco[]
+}
+
+const forte = (texto: string): LinhaDoBloco => ({ texto, peso: 'forte' })
+const normal = (texto: string): LinhaDoBloco => ({ texto, peso: 'normal' })
+const leve = (texto: string): LinhaDoBloco => ({ texto, peso: 'leve' })
+
+/** "2 pessoas em rede", "Carro, com 3 pessoas em suíte", "Moto · 160 cc" — como se fala (2.4, C). */
+function oQueVaiNaPassagem(reserva: ReservaDePassageiro | ReservaDeVeiculo): readonly LinhaDoBloco[] {
+  const noAtendimento = leve('Inteira, meia ou gratuidade: no atendimento')
+  switch (reserva.categoria) {
+    case 'PASSAGEIRO': {
+      const grupo = forte(`${pessoas(reserva.quantidadePessoas)} em ${Acomodacao.rotulo(reserva.acomodacao).toLowerCase()}`)
+      if (reserva.tipo === undefined) return [grupo, noAtendimento]
+      const tipo =
+        reserva.gratuidade === undefined
+          ? TipoPassagem.rotulo(reserva.tipo)
+          : `${TipoPassagem.rotulo(reserva.tipo)} (${TipoGratuidade.rotulo(reserva.gratuidade)})`
+      return [grupo, leve(tipo)]
+    }
+    case 'VEICULO': {
+      const veiculo = [ClasseVeiculo.rotulo(reserva.classe), ...(reserva.cilindrada === undefined ? [] : [`${reserva.cilindrada} cc`])].join(
+        ' · ',
+      )
+      const junto = pessoasComOVeiculo(reserva)
+      return junto === undefined ? [forte(veiculo)] : [forte(`${veiculo}, com ${junto}`), noAtendimento]
+    }
+    default:
+      return casoImpossivel(reserva, 'oQueVaiNaPassagem')
+  }
+}
+
+/** O dia e a hora, as cidades, o cais de embarque e a embarcação; e o aviso da data alterada (2.2, B). */
+function aViagem(travessia: TravessiaOfertada): BlocoDoResumo {
+  const { rotulos } = travessia
+  return {
+    alvo: 'SAIDA',
+    titulo: 'A viagem',
+    linhas: [
+      forte(rotulos.partida),
+      normal(`${rotulos.origem} → ${rotulos.destino}`),
+      leve(`Embarque no ${rotulos.embarque} · ${travessia.embarcacao.nome}`),
+      ...(rotulos.alteracao === null ? [] : [normal(rotulos.alteracao)]),
+    ],
+  }
+}
+
+function contato(nome: string, telefone: string | undefined): readonly LinhaDoBloco[] {
+  return [forte(nome), ...(telefone === undefined ? [leve('Celular não informado')] : [normal(formatarWhatsapp(telefone))])]
+}
+
+/**
+ * **A conferência em blocos** (2.4, A, PO, 2026-10-16): "O que vai", "A viagem" e "Em nome de", na ordem de quem
+ * escolheu, cada um com o passo que o corrige. Na encomenda, quem manda e quem recebe. O desembarque e o tipo da
+ * embarcação ficam para o WhatsApp.
+ */
+export function blocosDaReserva(reserva: Reserva, travessia: TravessiaOfertada): readonly BlocoDoResumo[] {
+  if (reserva.categoria === 'ENCOMENDA') {
+    const { destinatario } = reserva
+    return [
+      { alvo: 'EMBARQUE', titulo: 'O que vai', linhas: [forte(oQueVai(reserva))] },
+      aViagem(travessia),
+      { alvo: 'CLIENTE', titulo: 'Quem manda', linhas: contato(reserva.cliente.nome, reserva.cliente.telefone) },
+      {
+        alvo: 'DESTINATARIO',
+        titulo: 'Quem recebe',
+        linhas:
+          reserva.retirada === 'OUTRA_PESSOA' && destinatario !== undefined
+            ? contato(destinatario.nome, destinatario.telefone)
+            : [normal(reserva.retirada === 'REMETENTE' ? 'Quem manda retira' : 'A combinar com o atendimento')],
+      },
+    ]
+  }
+  return [
+    { alvo: 'EMBARQUE', titulo: 'O que vai', linhas: oQueVaiNaPassagem(reserva) },
+    aViagem(travessia),
+    { alvo: 'CLIENTE', titulo: 'Em nome de', linhas: contato(reserva.cliente.nome, reserva.cliente.telefone) },
+  ]
+}
+
 export function resumoDaReserva(reserva: Reserva, travessia: TravessiaOfertada): readonly LinhaDoResumo[] {
   if (reserva.categoria === 'ENCOMENDA') return resumoDaEncomenda(reserva, travessia)
   return [
