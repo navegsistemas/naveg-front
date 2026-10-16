@@ -18,6 +18,8 @@ import { useRef, type KeyboardEvent } from 'react'
 
 import { linkDeWhatsApp, type DataCalendario } from '@navegsistemas/domain'
 
+import { TRACEJADOS_DA_RESERVA, type TextoDosTracejados } from './textos.js'
+
 import {
   NOMES_DOS_MESES,
   rotuloDoDia,
@@ -38,6 +40,8 @@ export interface PropsDoCalendario {
   readonly aoFiltrar: (origem: string | null) => void
   /** O WhatsApp do atendimento, como se escreve. Sem ele, o aviso dos dias tracejados não tem link. */
   readonly atendimento: string | null
+  /** Por que os dias tracejados não abrem. A reserva, por padrão; a encomenda tem a semana (2.7, E). */
+  readonly tracejados?: TextoDosTracejados
 }
 
 const INICIAIS_DA_SEMANA = [
@@ -82,6 +86,7 @@ export function CalendarioDeSaidas({
   origemEscolhida,
   aoFiltrar,
   atendimento,
+  tracejados = TRACEJADOS_DA_RESERVA,
 }: PropsDoCalendario) {
   const grade = useRef<HTMLDivElement>(null)
   const mes = meses[mesVisivel]
@@ -232,12 +237,12 @@ export function CalendarioDeSaidas({
 
       {temAlem && (
         <p className="calendario-alem">
-          Os dias tracejados ainda não abrem para reserva pelo site.{' '}
+          {tracejados.porque}{' '}
           {atendimento === null ? (
-            'Para viajar nesses dias, fale com o atendimento.'
+            `${tracejados.paraQue}, fale com o atendimento.`
           ) : (
             <>
-              Para viajar nesses dias,{' '}
+              {tracejados.paraQue},{' '}
               <a href={linkDeWhatsApp(atendimento)} target="_blank" rel="noopener noreferrer">
                 fale com o atendimento pelo WhatsApp
               </a>

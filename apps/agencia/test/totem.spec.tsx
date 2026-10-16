@@ -382,6 +382,9 @@ describe('a encomenda, na página', () => {
     tocar('Continuar')
 
     expect(pergunta()).toBe('Quem recebe no destino?')
+    /* Os campos de quem recebe começam vazios: não herdam o que se digitou para quem manda. */
+    expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/Celular com DDD/) as HTMLInputElement).value).toBe('')
     tocar(/^Pular/)
     expect(pergunta()).toBe('Confira a reserva')
     expect(screen.getByText('A combinar com o atendimento')).toBeTruthy()

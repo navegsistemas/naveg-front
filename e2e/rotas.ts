@@ -13,7 +13,8 @@ export interface Rota {
 }
 
 export const ROTAS: readonly Rota[] = [
-  { caminho: '/', ilhas: 2 },
+  /* Só o totem: desde a 2.7, a encomenda é reservada nele, e a seção dela não tem ilha. */
+  { caminho: '/', ilhas: 1 },
   { caminho: '/totem/', ilhas: 1 },
   { caminho: '/privacidade/', ilhas: 0 },
 ]

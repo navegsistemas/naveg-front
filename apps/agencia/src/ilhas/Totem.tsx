@@ -36,7 +36,6 @@ import {
 import type { EtapaDaReserva, FotoDoCartao } from '@navegsistemas/ui'
 import type { EnvioDaReserva, FonteDoCatalogo } from '@navegsistemas/dados'
 import {
-  ALCANCE_DA_ENCOMENDA,
   AVISO_RESERVA_NAO_VENDA,
   CalendarioDeSaidas,
   Conferencia,
@@ -51,6 +50,7 @@ import {
   ReservaConcluida,
   SaidaEscolhida,
   TEXTO_DE_QUEM_MANDA,
+  TRACEJADOS_DA_ENCOMENDA,
   TEXTO_DO_PASSO,
   TEXTO_DO_PASSO_NO_SITE,
   mesesDoCalendario,
@@ -442,8 +442,10 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
             setMesEscolhido(null)
           }}
           atendimento={atendimento}
+          /* A encomenda se reserva na semana: a nota dos tracejados diz por quê (2.7, E). Dentro do calendário, e não
+             ao lado, para não tomar a coluna das saídas no computador. */
+          {...(ehEncomenda ? { tracejados: TRACEJADOS_DA_ENCOMENDA } : {})}
         />
-        {ehEncomenda && <p className="totem-ajuda totem-alcance">{ALCANCE_DA_ENCOMENDA}</p>}
         <div className="totem-saidas-do-dia">
           {dia !== null && (
             <h4 ref={tituloDasSaidas} className="totem-saidas-do-dia__titulo" tabIndex={-1}>
@@ -497,7 +499,9 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
         : ((quiosque ? undefined : TEXTO_DO_PASSO_NO_SITE[atual.passo]) ?? TEXTO_DO_PASSO[atual.passo])
     pergunta = texto.pergunta
     ajuda = texto.ajuda
-    corpo = <PassoDaReserva no={atual} respostas={respostas} aoResponder={responder} />
+    /* A chave é o passo: sem ela, o React reaproveita o formulário de quem manda em "Quem recebe?", com o que já
+       estava digitado, e o remetente iria como destinatário (2.7). */
+    corpo = <PassoDaReserva key={atual.passo} no={atual} respostas={respostas} aoResponder={responder} />
   }
 
   /* Na página, as etapas pelo nome (UI 2.2, decisão C), do que vai embarcar à conferência, e desde a primeira pergunta;

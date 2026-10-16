@@ -48,7 +48,9 @@ export type { EtapaDaReserva } from './Telas.js'
 export { resumoDaEncomenda, resumoDaReserva, resumoDoEmbarque } from './resumo.js'
 export type { LinhaDoResumo } from './resumo.js'
 export {
-  ALCANCE_DA_ENCOMENDA,
+  TRACEJADOS_DA_ENCOMENDA,
+  TRACEJADOS_DA_RESERVA,
+  type TextoDosTracejados,
   AVISO_RESERVA_NAO_VENDA,
   RETIRADA_A_COMBINAR,
   TEXTO_DE_QUEM_MANDA,

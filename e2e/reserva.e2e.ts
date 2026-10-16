@@ -21,8 +21,8 @@ const WHATSAPP_DA_NAVEG = '5591992035322'
  */
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
 
-/** O totem, e só ele: na página há outros títulos, outras listas — e a seção de encomenda, com a mesma moldura. */
-const totem = (page: Page): Locator => page.locator('.totem:not(.totem--encomenda)')
+/** O totem, e só ele: na página há outros títulos e outras listas. Desde a 2.7, a encomenda é reservada nele. */
+const totem = (page: Page): Locator => page.locator('.totem')
 /** A pergunta do passo: `h3` na página, sob o título da seção; `h2` no quiosque, que não tem seção. */
 const pergunta = (page: Page): Locator => totem(page).locator('.totem-pergunta')
 

@@ -445,15 +445,21 @@
   margin: 0;
 }
 
+/* Os rótulos numa coluna só, da largura do maior: cada linha é uma subgrade do resumo. Sem ela, "Celular de quem
+   manda" empurrava o valor da sua linha para fora do alinhamento das outras (2.7). */
 .totem-resumo {
   display: grid;
-  gap: var(--espaco-2);
+  grid-template-columns: max-content 1fr;
+  gap: var(--espaco-2) var(--espaco-3);
   margin: 0;
 }
 
 .totem-resumo__linha {
   display: grid;
+  grid-column: 1 / -1;
+  /* Sem `subgrid` (navegador antigo), fica a grade de cada linha, como antes. */
   grid-template-columns: minmax(7rem, auto) 1fr;
+  grid-template-columns: subgrid;
   gap: var(--espaco-3);
 }
 
@@ -486,6 +492,10 @@
 }
 
 @media (max-width: 480px) {
+  .totem-resumo {
+    grid-template-columns: 1fr;
+  }
+
   .totem-resumo__linha {
     grid-template-columns: 1fr;
     gap: 0;

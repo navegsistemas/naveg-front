@@ -55,9 +55,25 @@ export const TEXTO_DE_QUEM_MANDA: TextoDoPasso = {
   ajuda: 'É pelo celular que o atendimento fala com você e avisa quando a encomenda chegar.',
 }
 
-/** A encomenda se reserva na semana (fluviapp-kmp#44); o calendário diz por que o resto está apagado (2.7, E). */
-export const ALCANCE_DA_ENCOMENDA =
-  'A encomenda se reserva para os próximos 7 dias. Para mais adiante, fale com o atendimento.'
+/**
+ * **Por que os dias tracejados não abrem**, e o que fazer: a nota embaixo do calendário. Na encomenda, que se reserva na
+ * semana (fluviapp-kmp#44), é a linha da decisão E (2.7), com o link do WhatsApp no lugar de "fale com o atendimento".
+ */
+export interface TextoDosTracejados {
+  readonly porque: string
+  /** O começo da frase que leva ao atendimento: "Para viajar nesses dias". */
+  readonly paraQue: string
+}
+
+export const TRACEJADOS_DA_RESERVA: TextoDosTracejados = {
+  porque: 'Os dias tracejados ainda não abrem para reserva pelo site.',
+  paraQue: 'Para viajar nesses dias',
+}
+
+export const TRACEJADOS_DA_ENCOMENDA: TextoDosTracejados = {
+  porque: 'A encomenda se reserva para os próximos 7 dias.',
+  paraQue: 'Para mais adiante',
+}
 
 /** Sem o destinatário, quem retira fica para o atendimento (2.7, decisão G, texto do PO). */
 export const RETIRADA_A_COMBINAR =
