@@ -147,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 em análise**, esperando o PO; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
+| **3 — O cadastro** | 3.1 a 3.5 | **3.1 decidida** (2026-10-16; a implementação espera o KMP, o domain e a API); **3.2 decidida** (2026-10-16; a F na naveg-api-vercel#43); **3.3 decidida** (2026-10-16); **3.4 decidida** (2026-10-16); as regras da conta e as anormalidades que o painel sana, juntas na ficha "As regras da conta"; a 3.5 a seguir; a 3.6 (resgatar a reserva) retirada pelo PO, e o convite na conclusão vai para a 3.5; o levantamento da área do cliente inteira, com as respostas do PO, na ficha "A área do cliente" |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | 4.1 e 4.2 no levantamento da área do cliente; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -1017,7 +1017,8 @@ que falta. A reserva não tem dono: ela guarda o nome e o celular de quem reserv
 
 ### 3.4 — Esqueci a senha
 
-**Situação:** em análise, esperando o PO (2026-10-16). **Wireframe** (privado do PO):
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). A implementação espera
+o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
 [3.4](https://claude.ai/artifact/WdKaLFHigKz3vY4Tffbst6): pedir o link, "Confira seu e-mail", o e-mail, a senha nova, a
 senha trocada e o link que não vale mais.
 
@@ -1047,3 +1048,69 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 | **F** | A conta desativada | **a tela responde igual** (B), e o e-mail que chega diz que a conta está desativada, com o WhatsApp, sem link de troca |
 
 **A ordem:** como a 3.1 a 3.3. O link, o aviso e o freio são da API (naveg-api-vercel#30).
+
+### As regras da conta (3.1 a 3.4, decididas em 2026-10-16)
+
+**Para que serve:** a especificação, num lugar só, do que o PO decidiu para a conta do cliente, para a API
+(naveg-api-vercel#30, #43) e o painel (fluviapp-kmp#70, #71) implementarem igual. O PO pediu "tudo isso documentado"
+(2026-10-16). As fichas acima guardam o porquê de cada uma; aqui fica só a regra.
+
+**A conta**
+
+| regra | decisão | de onde |
+|---|---|---|
+| para que serve | comprar passagens, para si ou para outra pessoa (com o documento e o nascimento dela), e reservar veículos e encomendas com o atendimento. Reservar pela página continua sem conta | O6; 3.1 |
+| os campos, todos obrigatórios | nome completo, data de nascimento, tipo e número do documento, e-mail e celular com WhatsApp, e a senha | C da área do cliente |
+| os documentos | CPF (o padrão), RG, CNH e Passaporte; sem CNPJ | 3.1, E |
+| uma conta por documento | sim; a frase não revela se já existe: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." | E da área do cliente |
+| a idade mínima | 18 anos | 3.1, D |
+| a senha | pelo menos 8 caracteres, sem regra de símbolo, com "Mostrar" e sem "repita a senha"; senha muito comum ou vazada é recusada, com o motivo | 3.1, C |
+| os termos | uma frase acima do botão, com os links dos Termos e da Política, sem caixa de marcar e sem autorização para propaganda | 3.1, F |
+| entrar | e-mail e senha; sem o Google | D da área do cliente |
+| o endereço | a API atrás do site, em `/api`; a sessão é um cookie do próprio site | A da área do cliente |
+| o e-mail que o site manda | pelo Google Workspace, de `naoresponda@gruponaveg.com.br`; as respostas vão ao `contato@` | B da área do cliente |
+| a passagem, no MVP | por e-mail, ou em PDF baixado no site; pelo WhatsApp, numa fase futura | C da área do cliente |
+| a reserva feita sem conta | não é resgatada; a conclusão ganha um convite para comprar com conta, no ar junto com a compra (desenho na 3.5) | 3.6, retirada |
+
+**Os prazos e os limites**
+
+| o quê | valor | de onde |
+|---|---|---|
+| o link de confirmação do e-mail | 24 horas; o novo invalida o anterior | 3.2, B |
+| o link de troca de senha | 1 hora, e uma vez só; o novo invalida o anterior | 3.4, A |
+| reenviar um link | a cada 60 segundos, com um limite por hora | 3.2, B |
+| a conta que nunca confirma | apagada sozinha depois de 7 dias, e o documento fica livre | 3.2, F (naveg-api-vercel#43) |
+| ficar dentro da conta | 30 dias no mesmo aparelho, renovados a cada uso | 3.3, A |
+| tentativas de entrar | 5 erros seguidos no mesmo e-mail → 15 minutos de espera; e o limite por endereço de rede | 3.3, C |
+
+**O que acontece em cada caso**
+
+| caso | o que o site faz | de onde |
+|---|---|---|
+| criou a conta | "Confira seu e-mail"; a pessoa já está dentro | 3.2, D |
+| entrou sem confirmar | entra; o aviso "Confirme seu e-mail para comprar" em Minha conta e na hora de pagar | 3.2, D |
+| confirmou pelo link | fica dentro da conta no aparelho em que abriu o link, e volta para onde ia | 3.2, C |
+| errou o e-mail | "Corrigir o e-mail", enquanto não confirmou | 3.2, E |
+| e-mail ou senha errados | "E-mail ou senha não conferem", a mesma frase nos dois casos | 3.3, B |
+| conta desativada | "Esta conta está desativada", com o WhatsApp, **só depois da senha certa** | 3.3, F |
+| entrou | volta para onde ia: a compra, a opinião, ou Minha conta | 3.3, E |
+| sair | no fim de Minha conta; o menu não muda | 3.3, D |
+| esqueceu a senha | "Se houver uma conta com este e-mail, o link chega em instantes", sempre a mesma | 3.4, B |
+| trocou a senha | fica dentro neste aparelho, sai dos outros, e recebe o e-mail "Sua senha foi trocada" | 3.4, C e D |
+| pediu troca sem ter confirmado | o link de troca também confirma o e-mail | 3.4, E |
+| pediu troca com a conta desativada | a mesma resposta na tela; o e-mail diz que a conta está desativada, sem link | 3.4, F |
+
+**As anormalidades que o painel sana** (PO, 2026-10-16: "anormalidades devem ser capazes de serem sanadas pelo
+backend"). Detalhe e forma em navegsistemas/fluviapp-kmp#71:
+
+1. não lembra o e-mail da conta → achar a conta pelo documento e mostrar o e-mail mascarado;
+2. perdeu o acesso ao e-mail → corrigir o e-mail, conferida a pessoa, e mandar a confirmação ao novo;
+3. o e-mail não chega → reenviar o link e ver o último envio (marcar como confirmado à mão, não);
+4. bloqueada por tentativas → liberar;
+5. alguém entrou na conta → tirar de todos os aparelhos e mandar o link de troca, ou desativar;
+6. documento preso → apagar a conta não confirmada antes dos 7 dias;
+7. dado do cadastro errado → o Supervisor corrige o que o Meus dados (4.2) não corrigir;
+8. pedido de apagar a conta → apagar pelo painel (O7);
+9. conta desativada → reativar (já existe).
+
+Cada ação do painel fica registrada: quem fez, quando e o quê. **A conta não vai ao ar sem os remédios 1 a 5.**
