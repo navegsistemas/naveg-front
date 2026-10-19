@@ -98,7 +98,7 @@ o domínio da homologação (U8).
 | **3.2** | **Confirmar o e-mail** | "abra seu e-mail"; o link confirmado; o link vencido, com reenviar |
 | **3.3** | **Entrar e sair** | senha errada; e-mail ainda não confirmado; muitas tentativas; voltar ao lugar de onde veio |
 | **3.4** | **Esqueci a senha** | pedir o link; o link; a senha nova; o link vencido |
-| **3.5** | **Onde se entra** | o item no topo (1.1) e o convite na hora de pagar (U3) |
+| **3.5** | **Onde se entra** | o item no topo (1.1), o convite na hora de pagar (U3) e **o convite na conclusão da reserva feita sem conta** (pedido do PO, 2026-10-16; ver a nota da 3.6 nas fichas) |
 
 ## 6. Etapa 4 — As páginas do cliente
 
@@ -147,8 +147,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
-| **3 — O cadastro** | 3.1 a 3.5 | a começar |
-| **4 — As páginas do cliente** | 4.1 a 4.4 | a começar |
+| **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
+| **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
 **Antes do roteiro:** o endurecimento (13.1 a 13.6), que não muda nenhuma tela. **Em paralelo:** as
@@ -162,7 +162,7 @@ ter a área do cliente, e o topo passa a dizer se a pessoa está logada ou não.
 1. **2.4, a conferência**; depois **2.5, a conclusão**, e **2.6, os erros**: duas seções curtas, porque os erros já
    acontecem no ar e a reserva continua sendo o caminho livre depois da compra;
 2. **a área do cliente**: as etapas 3 (o cadastro, com o "Entrar" e o "Minha conta" no topo, a 3.5 com a 1.1) e 4.1 e
-   4.2 (Minha conta e Meus dados). **A implementação trava na U8 e na D4**, que o PO decide antes de a 2.4 terminar;
+   4.2 (Minha conta e Meus dados). **A implementação travava na U8 e na D4**; com a API atrás do site (2026-10-16, ficha "A área do cliente"), nenhuma das duas trava a homologação;
 3. **1.6, as opiniões** (abaixo);
 4. **a emissão e o pagamento online**: a etapa 5, com a 4.3 (Meus pedidos) e a 4.4 (as páginas legais de cancelamento
    e reembolso, O5), que só fazem sentido com a compra.
@@ -743,3 +743,525 @@ profissional"**, a última mudança na reserva. A pergunta E teve a recomendaç�
 - **a mensagem do WhatsApp** (E) muda no domain, que só a página usa: a API e o KMP não leem o texto, e o domain
   não precisa de versão nova. O atendente acha a reserva pelo código, agora o primeiro campo;
 - **o quiosque** ganha só as frases: lá não há WhatsApp.
+
+### A área do cliente — o levantamento (etapa 3, 4.1 e 4.2)
+
+**Situação:** em análise (2026-10-16). O levantamento é da área inteira, porque ela ainda não existe no site e as
+perguntas que vêm antes das telas valem para todas. As telas andam depois **uma seção por vez**, pelo ritual: 3.1
+(criar a conta), 3.2 (confirmar o e-mail), 3.3 (entrar e sair), 3.4 (esqueci a senha), 3.5 com a 1.1 (onde se
+entra), 4.1 (Minha conta) e 4.2 (Meus dados).
+
+**Levantamento** (2026-10-16):
+
+| onde | o que já existe |
+|---|---|
+| **o site** | nenhuma tela da conta. Quatro páginas: `/`, `/totem`, `/privacidade` e `/termos`. O topo guarda o lugar de **"Minha conta" como item fixo do menu** (1.1, D, 2026-10-08), sem JavaScript para trocar entre "Entrar" e "Minha conta". O `meta.ts` já prevê `/conta` e `/pedidos` fora do mapa, com `noindex`. A privacidade e os termos dizem que a conta vem depois |
+| **o KMP** | **pronto** (fluviapp-kmp#55, ADR-0022, 2026-10-13). A conta é `contasDeCliente`, com **nome, e-mail, telefone (opcional), criada em, confirmada em e ativa**. A senha e o código de confirmação ficam num `segredos/` que só o servidor lê. O Supervisor desativa e reativa a conta pelo painel; o Agente só vê |
+| **a API** | **a fazer** (naveg-api-vercel#30): cadastro, confirmação, entrar (recusa a conta desativada), Meus dados (corrigir nome e telefone, apagar) e o resumo para a Saúde. As chaves entram antes no `@navegsistemas/domain` daqui |
+| **as regras do negócio** | **O6**: conta obrigatória **só para comprar**, com o e-mail confirmado; reservar continua sem conta. **O7**: apagar a conta tira os dados, e as passagens ficam. **U3**: a conta é pedida na hora de pagar. **U5**: o quiosque não tem conta. **ADR-0002**: o navegador não fala com o Firestore; tudo passa pela API |
+| **o que não existe em lugar nenhum** | **o envio de e-mail.** Nenhum dos três repositórios manda e-mail hoje. A confirmação (3.2), o esqueci a senha (3.4) e, depois, o bilhete (7.6) precisam de um provedor de e-mail transacional e de registros no DNS de `gruponaveg.com.br` (SPF e DKIM), ou caem no spam |
+
+**Achados:**
+
+1. **Antes da compra, a conta dá pouco ao cliente.** No MVP sem a 7.6, quem entra vê os próprios dados e pode deixar
+   opinião (1.6), e só. É o que o PO decidiu na ordem até o MVP, e não muda nada aqui. Mas é por isso que vale a conta
+   **preencher a reserva** com o nome e o celular (a 2.3 já deixou isso anotado): é o primeiro ganho visível.
+2. **O e-mail é o que mais trava**, mais que a tela. Sem provedor e sem o DNS, não há confirmação nem senha
+   esquecida, e a conta não se completa. Escolher o provedor é de engenharia; **ter acesso ao DNS de
+   `gruponaveg.com.br`** e aceitar o custo são do negócio.
+3. **A U8 e a D4 são uma ação só, no mesmo DNS.** A U8 (a homologação num subdomínio) trava a conta em homologação: em
+   `*.vercel.app` o iPhone descarta o cookie de outro domínio. **A D4 (o domínio da API de produção) não trava a
+   homologação** (naveg-api-vercel#30); trava só a produção. O que falta é quem tem acesso ao DNS, e os nomes.
+4. **O celular: obrigatório na reserva da página (2.3), opcional na conta (o contrato do KMP).** Se a conta não pede,
+   a reserva feita por quem entrou ainda vai perguntar. O contrato aceita os dois jeitos; a escolha é de produto.
+5. **"Sem revelar se o e-mail tem conta"** (3.1 e 3.4, e o plano da API) deixa as mensagens genéricas: "se houver uma
+   conta com este e-mail, enviamos o link". É o certo contra quem testa e-mails alheios, e a tela tem de deixar
+   claro o que fazer a seguir.
+6. **A conta desativada pelo Supervisor** precisa de uma frase e da saída para o WhatsApp (a régua da §2): "Esta conta
+   está desativada. Fale com o atendimento."
+7. **O site deixa de ser uma página só.** O topo já leva às âncoras da página a partir de qualquer página
+   (`ancoraVistaDe`), e o "Reservar agora" de `/conta` leva à página. O quiosque continua sem "Minha conta" (U5).
+8. **A privacidade muda com a conta** (U7): e-mail, senha, histórico. A seção nova vai à revisão jurídica e entra no
+   ar com a 7.4, mudando a versão e a data.
+
+**Perguntas para o PO, antes das telas, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O DNS de `gruponaveg.com.br` e os nomes (a U8 e a D4 juntas) | **o site da homologação em `homologacao.gruponaveg.com.br` e a API em `api-homologacao.gruponaveg.com.br`**; em produção, o site em `gruponaveg.com.br` e a API em `api.gruponaveg.com.br`. O Claude entrega os registros prontos; **quem tem o acesso ao DNS os grava**. Sem isso, a conta pode ser desenhada, mas não aceita no celular |
+| **B** | O e-mail que o site manda | **um provedor de e-mail transacional**, escolhido pelo Claude, saindo de `naoresponda@gruponaveg.com.br`, com os registros SPF e DKIM no mesmo DNS da A. No volume do MVP, os provedores grandes ficam na faixa gratuita; o custo aparece só com volume. As respostas de quem escreve de volta vão para o `contato@` |
+| **C** | O celular na conta | **obrigatório**, como na reserva da página: um campo a mais no cadastro, e quem entra reserva sem digitar nada. Contra: opcional, com a reserva perguntando de novo |
+| **D** | Entrar com o Google | **não no MVP**: e-mail e senha, como o KMP já preparou. O Google tira a senha e a confirmação, mas pede outro contrato com o KMP e outra configuração; o bilhete da 7.6 vai por e-mail do mesmo jeito. Volta à mesa se o uso pedir |
+
+**Respostas do PO (2026-10-16):**
+
+| # | resposta | o que fica |
+|---|---|---|
+| **A** | "foi combinado que haveriam dois domínios inicialmente: endereço de produção e API de homologação, faltando apenas configurar na Vercel"; o endereço `*.vercel.app` serve hoje aos dois, em desenvolvimento. A configuração pode ter ficado em outra máquina | **decidida em seguida, pela recomendação nova** (abaixo): a API atrás do site, em `/api` |
+| **B** | "o e-mail com o domínio já está completamente configurado" | **decidida.** O domínio usa o **Google Workspace**, com SPF, DKIM e DMARC no ar (conferido no DNS em 2026-10-16). O site manda e-mail pelo próprio Workspace, de um apelido `naoresponda@`, sem provedor novo e sem custo de licença. Na implementação da 3.2, o PO cria o apelido e a senha de app |
+| **C** | obrigatórios, "assim como na passagem": **nome completo, data de nascimento, tipo e número do documento, e-mail** (para a confirmação) e **celular** (para mandar as passagens) | **decidida.** Muda o contrato do KMP: a ADR-0022 dizia que a conta não era o passageiro e só tinha nome, e-mail e telefone (navegsistemas/fluviapp-kmp#70; a ordem é KMP, domain, API e site). O documento segue a O12: mascarado na tela, depois de gravado |
+| **D** | aceita | **decidida:** e-mail e senha, sem o Google no MVP |
+
+**E o bilhete, para a etapa 5** (PO, 2026-10-16): o celular serve, numa fase futura, para mandar a passagem pelo
+WhatsApp, com automação. Como a automação custa tempo, **no MVP a passagem vai por e-mail, ou é baixada no site em PDF**.
+Vale para a 5.6.
+
+**O que se achou da A** (2026-10-16): `gruponaveg.com.br` e `www` estão no projeto do site na Vercel, mas **o DNS, no
+Registro.br, ainda não aponta para a Vercel**: o endereço não abre. Não há `api.` nem `homologacao.`. O que falta é um
+registro no Registro.br, e não na Vercel.
+
+**A recomendação nova para a A:** **a API atrás do próprio site, em `/api`** (a Vercel repassa o pedido). Para o
+navegador, o site e a API passam a ser o mesmo endereço, qualquer que seja ele, e o login funciona inclusive em
+`*.vercel.app`. Com isso:
+
+- **a U8 deixa de travar**: a homologação continua onde está, sem subdomínio;
+- **a D4 encolhe**: a produção precisa só de `gruponaveg.com.br` apontado para a Vercel, e a API não ganha endereço
+  público próprio;
+- **o que conferir antes** (é de engenharia, na ADR-0003): que a API continue vendo o endereço de quem acessa, porque
+  o limite de envios e o Turnstile dependem dele.
+
+**Uma pergunta nova, que a C trouxe:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **E** | Uma conta por documento? | **sim, uma por documento**, como o passageiro (ADR-0023). Quem tenta outra conta com o mesmo documento lê a mesma frase que não revela nada: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." Contra: deixar repetir, e a análise de clientes contaria a mesma pessoa duas vezes |
+
+**Decisões do PO (2026-10-16), em seguida:** **a A e a E pela recomendação** ("recomendações aceitas, pode começar").
+A API vai para trás do site, em `/api`, e a conferência do endereço de quem acessa fica na ADR-0003 (naveg-api-vercel#30).
+Uma conta por documento (fluviapp-kmp#70).
+
+**A seguir:** a 3.1 (criar a conta), e as seções seguintes uma de cada vez.
+
+### 3.1 — Criar a conta
+
+**Situação:** **decidida** (2026-10-16): os campos, o texto da versão 3 e **A a F pela recomendação** ("perfeito,
+recomendações aceitas"). A implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). **Wireframe** (privado do PO):
+[3.1](https://claude.ai/artifact/WTLLEkH8cCHm6WX8CgA1Es), com o formulário, os erros e a passagem para a 3.2, no
+celular e no computador.
+
+**Levantamento** (2026-10-16): a tela não existe. O que ela precisa seguir, das decisões da área do cliente:
+- **os campos**, todos obrigatórios (C): nome completo, nascimento, tipo e número do documento, e-mail e celular, mais a
+  senha (D);
+- **uma conta por documento**, com a frase que não revela nada (E);
+- **o e-mail de confirmação** sai pelo Google Workspace (B);
+- **a conta serve para comprar, não para reservar** (O6).
+
+O que o site já tem e a tela reaproveita: o campo "Celular com WhatsApp" e a linha de privacidade da 2.3; o quadro de
+aviso e o "Tentar de novo" da 2.6; o `TipoDocumento` do domain, com a máscara e a validação (CPF, CNPJ, RG, CNH e
+passaporte).
+
+**Achados:**
+
+1. **A conta pede mais que a reserva**, que não pede documento. *Corrigido pelo PO (2026-10-16, abaixo): a passagem
+   não sai necessariamente no nome de quem tem a conta, e a tela não explica o porquê;*
+2. **o CNPJ está no `TipoDocumento`**, mas a conta é de pessoa;
+3. **menores de idade:** com o nascimento obrigatório, a tela sabe a idade. Dado de criança e adolescente pede o
+   consentimento de um responsável (LGPD, art. 14);
+4. **os erros por campo** são novos no site (a reserva erra por passo). Eles aparecem embaixo do campo, e o foco vai
+   ao primeiro com erro;
+5. **a nota "já há registro seu"** (#57) fica de fora: ela espera a análise de LGPD.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Onde fica o cadastro | **uma página própria**, `/conta/criar`, com o topo do site. Chega-se a ela por "Minha conta" → "Criar conta" e, depois, pela compra (3.5). Contra: uma janela sobre a página, que some ao recarregar |
+| **B** | Uma página ou passos | **uma página, em dois grupos**: "Seus dados" e "Contato e acesso". São seis campos e a senha; cabem, e a pessoa vê de uma vez tudo o que vai informar. Contra: um campo por tela, com mais toques |
+| **C** | A senha | **pelo menos 8 caracteres, sem regra de símbolo**, com "Mostrar" e **sem "repita a senha"**, porque o "Mostrar" faz esse papel. Senha muito comum ou vazada é recusada, com a frase dizendo por quê |
+| **D** | A idade mínima | **18 anos.** Menores viajam com a passagem comprada por um adulto, como no balcão |
+| **E** | Os tipos de documento | **CPF** (já escolhido), **RG, CNH e Passaporte**; o CNPJ sai. O passaporte cobre o estrangeiro |
+| **F** | Os termos e a privacidade | **uma frase acima do botão**, com os dois links, **sem caixa de marcar** e sem autorização para propaganda. A seção da conta na política entra junto, com versão nova (U7) |
+
+**A ordem:** a tela só vai ao ar depois do KMP (fluviapp-kmp#70), do domain e da API (naveg-api-vercel#30). A decisão
+pode vir antes; a implementação espera.
+
+**O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
+
+- **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para
+  outra pessoa, desde que tenha em mãos o documento e a data de nascimento dela. Os dados de quem viaja são pedidos na
+  compra (5.3, com a O14);
+- **o e-mail e o celular são dados de contato**;
+- **na área do cliente, ele também reserva veículo e encomenda**, que seguem para o atendimento, como a reserva da
+  página. Isso entra na 4.1 (Minha conta) e na etapa 5.
+
+**Wireframe, versão 2:** sem o texto de apoio. **Versão 3**, a pedido do PO no mesmo dia ("achei melhor com o texto,
+porém pode ter a informação extra que eu dei, e resumida"): uma linha de abertura e uma de apoio por grupo, nenhuma
+embaixo de campo:
+
+- **abertura:** "Com a conta, você compra passagens para você ou para outra pessoa, e reserva veículos e encomendas com o
+  atendimento.";
+- **Seus dados:** "Para comprar para outra pessoa, basta ter o documento e a data de nascimento dela.";
+- **Contato e acesso:** "O e-mail confirma a conta. Por ele e pelo celular, falamos com você sobre seus pedidos."
+
+
+### 3.2 — Confirmar o e-mail
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). A F virou a
+naveg-api-vercel#43. A implementação espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
+[3.2](https://claude.ai/artifact/D7H3ptFWbr2dDrGAUDqgGq): a tela "Confira seu e-mail", o reenvio, a correção do e-mail,
+o próprio e-mail, o link confirmado e o link que não vale mais.
+
+**Levantamento** (2026-10-16): a tela não existe, e nenhum dos três repositórios manda e-mail. O que já está decidido:
+- **comprar pede o e-mail confirmado (O6)**; reservar não pede conta;
+- **o e-mail sai pelo Google Workspace**, de `naoresponda@gruponaveg.com.br` (B da área do cliente);
+- **o KMP guarda `confirmadaEm`** na conta, e o código de confirmação em `segredos/`, que só o servidor lê (ADR-0022);
+- **quem volta do link cai na compra**, e não no começo (U3).
+
+**Achados:**
+
+1. **o e-mail é aberto, muitas vezes, em outro aparelho** ou no aplicativo de e-mail. O link precisa funcionar fora do
+   navegador em que a conta foi criada. Por isso a volta à compra (U3) depende de o pedido estar guardado no servidor,
+   e não só no navegador;
+2. **quem errou o e-mail fica preso:** com uma conta por documento (E), não dá para criar outra. A tela precisa deixar
+   corrigir;
+3. **a conta que nunca confirma** guarda documento e nascimento sem uso. É dado pessoal parado, e prende o documento;
+4. **o e-mail cai no spam** às vezes, mesmo com SPF e DKIM. A tela diz onde procurar;
+5. **"Reenviar" sem freio** vira abuso, e o Workspace tem limite de envios por dia.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Link ou código | **um link no e-mail**, de um toque, que funciona em qualquer aparelho. Contra: um código de 6 números para digitar no site |
+| **B** | Quanto tempo o link vale | **24 horas**, e o "Reenviar" a cada 60 segundos, com um limite por hora. O link novo invalida o anterior |
+| **C** | Depois de confirmar | **a pessoa já fica dentro da conta** e volta para onde ia: a compra (U3) ou Minha conta, com o aviso "E-mail confirmado". Contra: pedir a senha de novo |
+| **D** | Entrar antes de confirmar | **pode**, com o aviso "Confirme seu e-mail para comprar" em Minha conta e na hora de pagar. Só a compra espera |
+| **E** | Errou o e-mail | **"Corrigir o e-mail"** na tela de espera, enquanto ele não foi confirmado; o link do e-mail antigo deixa de valer |
+| **F** | A conta que nunca confirma | **apagada sozinha depois de 7 dias**, e o documento fica livre. Pede a API (uma tarefa agendada, como a #21) e conta no resumo do painel |
+
+**A ordem:** como a 3.1, a implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). O
+PO cria o apelido `naoresponda@` e a senha de app quando a API for mandar o primeiro e-mail.
+
+### 3.3 — Entrar e sair
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("as recomendações foram aceitas"). A implementação
+espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
+[3.3](https://claude.ai/artifact/LNG8wmYhfbS7RTtzRyLesb): entrar, entrar vindo da compra, o erro, as tentativas demais,
+a conta desativada, o menu com "Minha conta" e o sair.
+
+**Levantamento** (2026-10-16): a tela não existe. O que já está decidido:
+- **e-mail e senha**, sem o Google (D da área do cliente);
+- **"Minha conta" é um item fixo do menu** (1.1, D): ele não troca para "Entrar", para não pedir JavaScript em toda
+  página;
+- **a API recusa a conta desativada** pelo Supervisor (naveg-api-vercel#30) e tem Turnstile e limite por endereço de
+  rede no entrar (plano da venda online);
+- **as respostas não revelam se um e-mail tem conta**;
+- **entrar antes de confirmar o e-mail** é permitido (3.2, D);
+- **a sessão é um cookie do próprio site**, com a API em `/api` (A da área do cliente). A forma vai na ADR-0003.
+
+**Achados:**
+
+1. **o celular é o aparelho de quem compra**, e digitar a senha a cada visita afasta. Mas o celular também é emprestado:
+   o sair precisa ser fácil de achar e de conferir;
+2. **o limite por endereço de rede não basta** contra quem tenta senhas de uma conta só, de vários endereços. O freio
+   precisa ser também por e-mail;
+3. **a conta desativada** precisa de uma frase própria e da saída para o WhatsApp; antes da senha certa, ela não pode se
+   distinguir de um e-mail sem conta;
+4. **quem chega da compra** (U3) precisa saber por que está entrando, e voltar para ela.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quanto tempo fica dentro | **30 dias no mesmo aparelho**, renovados a cada uso, sem a caixa "lembrar de mim". Trocar a senha (3.4) tira a conta de todos os aparelhos |
+| **B** | A frase do erro | **"E-mail ou senha não conferem"**, a mesma nos dois casos |
+| **C** | Muitas tentativas | **5 erros seguidos no mesmo e-mail → 15 minutos de espera**, com o "Esqueci a senha" liberado; e o limite por endereço de rede, que já existe |
+| **D** | Onde fica o "Sair" | **no fim de Minha conta**; o menu não muda. "Sair de todos os aparelhos" fica para depois do MVP |
+| **E** | Depois de entrar | **volta para onde a pessoa ia**: a compra (U3), a opinião (1.6), ou Minha conta |
+| **F** | A conta desativada | **"Esta conta está desativada"**, com o WhatsApp e a reserva sem conta, **só depois da senha certa** |
+
+**A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 30 dias (A) são da API (naveg-api-vercel#30,
+ADR-0003).
+
+### 3.6 — Resgatar a reserva (retirada: vira um convite na 3.5)
+
+**Situação:** **retirada pelo PO no mesmo dia (2026-10-16)**: "esquece, não resgata reserva, só indica que pode emitir e
+embarcar direto com o cadastro". A reserva feita sem conta continua sem dono, e nada muda no KMP nem na API. O que fica
+é **um convite na conclusão da reserva da página**, desenhado na **3.5** (onde se entra), com duas perguntas que vão
+para lá:
+
+- **quando entra:** a recomendação é **junto com a compra online (7.6)**. Antes dela, o convite prometeria uma emissão
+  que o site ainda não faz;
+- **o texto:** algo como "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca.",
+  com "Criar conta". Ele não aparece no quiosque (U5).
+
+O registro abaixo é o da análise do pedido de antes, mantido para o histórico.
+
+**O pedido de antes:** "acrescentar ao final da reserva deslogada a possibilidade de resgatar a reserva
+e emitir a passagem se cadastrando".
+
+**O que existe hoje:** a conclusão da reserva da página (2.5, no ar) mostra o código, "Copiar" e o WhatsApp como o passo
+que falta. A reserva não tem dono: ela guarda o nome e o celular de quem reservou, e o código. O quiosque não tem conta
+(U5).
+
+**Achados:**
+
+1. **"Emitir" pela internet é a compra (7.6)**, que ainda não existe, e que no MVP cobre só **passageiro, em rede, com
+   preço na tabela**. Veículo, encomenda, as outras acomodações e a saída sem preço seguem com o atendimento. Antes da
+   7.6, resgatar só pode **guardar a reserva na conta**;
+2. **a prova de que a reserva é da pessoa:** o código sozinho não serve, porque ele vai no WhatsApp e pode ser visto
+   por outros. Quem tiver o código tomaria a reserva, e os dados de quem reservou;
+3. **a reserva no painel muda de figura:** o atendente precisa ver que ela está numa conta. Se ele já converteu a
+   reserva em passagem no balcão, o site não pode deixar pagar de novo;
+4. **o nome de quem reservou pode não ser o da conta**, e quem viaja pode ser outra pessoa (3.1). Na compra, os dados
+   de quem viaja são pedidos como em qualquer compra (5.3, com a O14).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quando o convite aparece | **na conclusão de toda reserva da página**: "Guarde esta reserva na sua conta", com "Criar conta" e "Entrar". **"Emitir a passagem"** só onde a compra cobre (passageiro em rede com preço); nas outras, a reserva fica na conta e segue com o atendimento. O quiosque não mostra (U5) |
+| **B** | A prova de que é dela | **só no mesmo aparelho**, logo depois de reservar: a API entrega, junto com o código, um comprovante que fica guardado no navegador até a saída do barco. Sem ele, não há resgate, nem pelo código digitado |
+| **C** | Antes da compra online | **resgatar entra com a área do cliente**: a reserva aparece em Minha conta, com o código e o WhatsApp. **Emitir entra com a 7.6**, a partir dessa mesma reserva, sem escolher a saída de novo |
+| **D** | No painel | **a reserva ganha o vínculo com a conta**, e o atendente vê "reserva de cliente com conta". Se ela já foi convertida no balcão, o site mostra a passagem como emitida e não oferece pagar. Pede o KMP e a API (issues depois da decisão) |
+
+### 3.4 — Esqueci a senha
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). A implementação espera
+o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
+[3.4](https://claude.ai/artifact/WdKaLFHigKz3vY4Tffbst6): pedir o link, "Confira seu e-mail", o e-mail, a senha nova, a
+senha trocada e o link que não vale mais.
+
+**Levantamento** (2026-10-16): a tela não existe. O que já está decidido: o e-mail pelo Google Workspace (B da área do
+cliente); respostas que não revelam se um e-mail tem conta; a senha de pelo menos 8 caracteres, com "Mostrar" (3.1, C);
+trocar a senha tira a conta de todos os aparelhos (3.3, A); o "Esqueci a senha" liberado mesmo depois de tentativas
+demais (3.3, C). O formato do e-mail é o da 3.2.
+
+**Achados:**
+
+1. **o link de troca dá acesso à conta**: precisa valer menos tempo que o da confirmação, e uma vez só;
+2. **quem não lembra o e-mail da conta** não tem como recuperar pelo site; a saída é o atendimento, que vê as contas no
+   painel;
+3. **a troca feita por outra pessoa** (alguém com acesso ao e-mail) só é percebida se a conta avisar;
+4. **a conta sem e-mail confirmado** pede o link de troca: abrir o link prova que a pessoa recebe naquele e-mail;
+5. **a conta desativada** não pode trocar a senha e entrar, mas a tela de pedir não pode revelar que ela existe.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Quanto tempo o link vale | **1 hora, e uma vez só**; o link novo invalida o anterior |
+| **B** | A resposta ao pedido | **"Se houver uma conta com este e-mail, o link chega em instantes"**, sempre a mesma |
+| **C** | Depois de trocar | **a pessoa já fica dentro da conta neste aparelho**, e sai dos outros |
+| **D** | O aviso da troca | **um e-mail "Sua senha foi trocada"**, com a hora e o WhatsApp para quem não reconhece a troca |
+| **E** | A conta sem e-mail confirmado | **o link também confirma o e-mail** |
+| **F** | A conta desativada | **a tela responde igual** (B), e o e-mail que chega diz que a conta está desativada, com o WhatsApp, sem link de troca |
+
+**A ordem:** como a 3.1 a 3.3. O link, o aviso e o freio são da API (naveg-api-vercel#30).
+
+### As regras da conta (3.1 a 4.2, decididas em 2026-10-16)
+
+**Para que serve:** a especificação, num lugar só, do que o PO decidiu para a conta do cliente, para a API
+(naveg-api-vercel#30, #43) e o painel (fluviapp-kmp#70, #71) implementarem igual. O PO pediu "tudo isso documentado"
+(2026-10-16). As fichas acima guardam o porquê de cada uma; aqui fica só a regra.
+
+**A conta**
+
+| regra | decisão | de onde |
+|---|---|---|
+| para que serve | comprar passagens, para si ou para outra pessoa (com o documento e o nascimento dela), e reservar veículos e encomendas com o atendimento. Reservar pela página continua sem conta | O6; 3.1 |
+| os campos, todos obrigatórios | nome completo, data de nascimento, tipo e número do documento, e-mail e celular com WhatsApp, e a senha | C da área do cliente |
+| os documentos | CPF (o padrão), RG, CNH e Passaporte; sem CNPJ | 3.1, E |
+| uma conta por documento | sim; a frase não revela se já existe: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." | E da área do cliente |
+| a idade mínima | 18 anos | 3.1, D |
+| a senha | pelo menos 8 caracteres, sem regra de símbolo, com "Mostrar" e sem "repita a senha"; senha muito comum ou vazada é recusada, com o motivo | 3.1, C |
+| os termos | uma frase acima do botão, com os links dos Termos e da Política, sem caixa de marcar e sem autorização para propaganda | 3.1, F |
+| entrar | e-mail e senha; sem o Google | D da área do cliente |
+| o endereço | a API atrás do site, em `/api`; a sessão é um cookie do próprio site | A da área do cliente |
+| o e-mail que o site manda | pelo Google Workspace, de `naoresponda@gruponaveg.com.br`; as respostas vão ao `contato@` | B da área do cliente |
+| a passagem, no MVP | por e-mail, ou em PDF baixado no site; pelo WhatsApp, numa fase futura | C da área do cliente |
+| a reserva feita sem conta | não é resgatada; a conclusão ganha o convite "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca.", no ar junto com a compra | 3.6, retirada; 3.5, E |
+
+**Os prazos e os limites**
+
+| o quê | valor | de onde |
+|---|---|---|
+| o link de confirmação do e-mail | 24 horas; o novo invalida o anterior | 3.2, B |
+| o link de troca de senha | 1 hora, e uma vez só; o novo invalida o anterior | 3.4, A |
+| reenviar um link | a cada 60 segundos, com um limite por hora | 3.2, B |
+| a conta que nunca confirma | apagada sozinha depois de 7 dias, e o documento fica livre | 3.2, F (naveg-api-vercel#43) |
+| ficar dentro da conta | 30 dias no mesmo aparelho, renovados a cada uso | 3.3, A |
+| tentativas de entrar | 5 erros seguidos no mesmo e-mail → 15 minutos de espera; e o limite por endereço de rede | 3.3, C |
+
+**O que acontece em cada caso**
+
+| caso | o que o site faz | de onde |
+|---|---|---|
+| criou a conta | "Confira seu e-mail"; a pessoa já está dentro | 3.2, D |
+| entrou sem confirmar | entra; o aviso "Confirme seu e-mail para comprar" em Minha conta e na hora de pagar | 3.2, D |
+| confirmou pelo link | fica dentro da conta no aparelho em que abriu o link, e volta para onde ia | 3.2, C |
+| errou o e-mail | "Corrigir o e-mail", enquanto não confirmou | 3.2, E |
+| e-mail ou senha errados | "E-mail ou senha não conferem", a mesma frase nos dois casos | 3.3, B |
+| conta desativada | "Esta conta está desativada", com o WhatsApp, **só depois da senha certa** | 3.3, F |
+| entrou | volta para onde ia: a compra, a opinião, ou Minha conta | 3.3, E |
+| sair | no fim de Minha conta; o menu não muda | 3.3, D |
+| esqueceu a senha | "Se houver uma conta com este e-mail, o link chega em instantes", sempre a mesma | 3.4, B |
+| trocou a senha | fica dentro neste aparelho, sai dos outros, e recebe o e-mail "Sua senha foi trocada" | 3.4, C e D |
+| pediu troca sem ter confirmado | o link de troca também confirma o e-mail | 3.4, E |
+| pediu troca com a conta desativada | a mesma resposta na tela; o e-mail diz que a conta está desativada, sem link | 3.4, F |
+
+**Onde se entra, Minha conta e Meus dados**
+
+| regra | decisão | de onde |
+|---|---|---|
+| "Minha conta" no topo | item fixo do menu, igual para todos; no celular, o último item, separado; no computador, no fim do menu, com o desenho de uma pessoa. Se não couber no tablet em pé, o menu recolhe até 50rem | 1.1, D; 3.5, B e C |
+| quem não entrou e toca em "Minha conta" | a página da conta mostra o entrar (3.3), com "Criar conta" | 3.5, A |
+| o nome de quem entrou | em Minha conta, não no topo | 3.5, F |
+| o convite na hora de pagar | "Para comprar, entre na sua conta": "Entrar" primeiro, "Criar conta", e "Prefere não criar conta? Reservar"; a escolha fica guardada | 3.5, D; U3 |
+| Minha conta, primeiro | "Olá, (nome)" e as ações: reservar passagem, reservar veículo, enviar encomenda. Com a compra, "Comprar passagem" vira a primeira ação | 4.1, A e E |
+| a reserva feita com a conta | o nome e o celular já vão preenchidos, e podem ser mudados naquela reserva | 4.1, B |
+| as reservas da conta | não são listadas antes da compra; Meus pedidos (4.3) chega com ela | 4.1, C |
+| os dados em Minha conta | um resumo (e-mail, celular, documento mascarado), com "Ver e corrigir" | 4.1, D |
+| a opinião (1.6) | um atalho em Minha conta, quando a 1.6 existir | 4.1, F |
+| o que a pessoa corrige | o nome e o celular, com "Salvar alterações". O nascimento e o documento, só pelo atendimento (painel) | 4.2, A e F |
+| trocar o e-mail | com a senha atual; o novo só vale depois de confirmado pelo link (24 horas), e o antigo recebe um aviso. Se o novo já for de outra conta, a resposta é a mesma | 4.2, B |
+| trocar a senha | com a senha atual; a conta sai dos outros aparelhos, e chega o aviso da troca | 4.2, C |
+| o documento na tela | sempre mascarado, inclusive para o dono | 4.2, D; O12 |
+| apagar a conta | num passo próprio, com o que sai e o que fica escrito antes e a senha para confirmar; vale na hora, a conta sai de todos os aparelhos e o documento fica livre. As passagens ficam | 4.2, E; O7 |
+
+**As anormalidades que o painel sana** (PO, 2026-10-16: "anormalidades devem ser capazes de serem sanadas pelo
+backend"). Detalhe e forma em navegsistemas/fluviapp-kmp#71:
+
+1. não lembra o e-mail da conta → achar a conta pelo documento e mostrar o e-mail mascarado;
+2. perdeu o acesso ao e-mail → corrigir o e-mail, conferida a pessoa, e mandar a confirmação ao novo;
+3. o e-mail não chega → reenviar o link e ver o último envio (marcar como confirmado à mão, não);
+4. bloqueada por tentativas → liberar;
+5. alguém entrou na conta → tirar de todos os aparelhos e mandar o link de troca, ou desativar;
+6. documento preso → apagar a conta não confirmada antes dos 7 dias;
+7. dado do cadastro errado → o Supervisor corrige o que o Meus dados (4.2) não corrigir;
+8. pedido de apagar a conta → apagar pelo painel (O7);
+9. conta desativada → reativar (já existe).
+
+Cada ação do painel fica registrada: quem fez, quando e o quê. **A conta não vai ao ar sem os remédios 1 a 5.**
+
+### 3.5 — Onde se entra
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). Na E, o PO corrigiu o
+texto: "nesse embarca direto, me expressei mal, melhor um 'confirma no balcão em segundos e embarca'". O convite fica
+"Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca." **Para a etapa 5:** a
+passagem comprada pelo site ainda passa pelo balcão, numa conferência rápida (o bilhete e o QR, 5.6), e não vai direto
+ao barco. **Wireframe** (privado do PO):
+[3.5](https://claude.ai/artifact/GYSnUUPhVRWTavWb8Mu1dK): o "Minha conta" no menu do celular e do computador, a página
+da conta para quem não entrou, o convite na hora de pagar e o convite na conclusão da reserva.
+
+**Levantamento** (2026-10-16, o `Topo.astro` e as fichas): o topo tem quatro itens (Encomendas, Atendentes, Social,
+Contato) e "Reservar agora"; abaixo de 44rem, o menu recolhe num `<details>`. A barra presa do celular tem três coisas
+(logo, botão, menu). **"Minha conta" é um item fixo** (1.1, D), sem JavaScript para trocar o rótulo. A U3 pede a conta
+na hora de pagar, com a escolha guardada. O PO trocou o resgate da reserva por **um convite na conclusão** (3.6).
+
+**Achados:**
+
+1. **a barra presa do celular não comporta um quarto elemento** em 360px: "Minha conta" vai para dentro do menu;
+2. **com cinco itens, o tablet em pé (768px) pode não caber numa linha**, o defeito que a 1.1 resolveu. Medir na
+   implementação; se não couber, o menu recolhe até 50rem;
+3. **"Minha conta" para quem não entrou** leva a uma página que precisa mostrar o entrar, sem um salto de endereço que
+   pisca ou se perde sem JavaScript;
+4. **na hora de pagar, quem já tem conta é quem volta a comprar**: "Entrar" vem antes de "Criar conta". A reserva sem
+   conta continua como saída (O11);
+5. **o convite na conclusão não pode competir com o WhatsApp**, que é o passo que confirma a reserva (2.5), nem prometer
+   a compra antes de ela existir.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O que "Minha conta" abre para quem não entrou | **a tela de entrar (3.3), na própria página da conta**, com "Criar conta"; depois de entrar, a mesma página vira Minha conta |
+| **B** | No celular | **o último item do menu, separado**, com o desenho de uma pessoa; a barra presa não muda |
+| **C** | No computador e no tablet | **no fim do menu, com o desenho de uma pessoa**, antes de "Reservar agora"; se não couber no tablet em pé, o menu recolhe até 50rem |
+| **D** | O convite na hora de pagar | **"Para comprar, entre na sua conta"**, com "Entrar" primeiro, "Criar conta", e "Prefere não criar conta? Reservar"; a escolha fica guardada |
+| **E** | O convite na conclusão da reserva | **uma linha e um link embaixo do passo do WhatsApp**: "Com uma conta, você compra a passagem aqui no site, confirma no balcão em segundos e embarca." Só na página, e **só quando a compra existir** |
+| **F** | O nome de quem entrou no topo | **não**: o topo é igual para todos (1.1, D); o nome aparece em Minha conta |
+
+**A ordem:** o item do topo e a página da conta entram com a conta (depois do KMP, do domain e da API). Os convites D
+e E entram com a compra (7.6).
+
+### 4.1 — Minha conta
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas"). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes
+da compra, no celular e no computador; o e-mail sem confirmar; e o lugar da compra e de Meus pedidos, quando
+existirem.
+
+**Levantamento** (2026-10-16): a página não existe. O que já está decidido:
+- **é o lugar para onde "Minha conta" leva** (3.5, A); para quem não entrou, a mesma página mostra o entrar;
+- **com a conta, o cliente compra passagens** para si ou para outra pessoa, e **reserva veículos e encomendas** com o
+  atendimento (3.1);
+- **o aviso "Confirme seu e-mail para comprar"** fica aqui (3.2, D), e o **"Sair" no fim** (3.3, D);
+- **o nome de quem entrou** aparece aqui, e não no topo (3.5, F);
+- **o documento aparece mascarado** (O12), como no painel.
+
+**Achados:**
+
+1. **antes da compra pelo site, a conta serve para reservar**: o que a pessoa veio fazer é reservar, e é isso que
+   deve vir primeiro;
+2. **a reserva com conta pode vir preenchida** com o nome e o celular: é o primeiro ganho visível da conta (achado 1 da
+   área do cliente);
+3. **listar as reservas feitas com a conta** pede que a reserva guarde a conta, uma mudança no KMP e na API que o PO
+   recusou para a reserva sem conta (3.6). Sem a lista, a conta não tem histórico até a compra;
+4. **a compra (7.6) e Meus pedidos (4.3) precisam de lugar** na página desde já, para a página não ser refeita.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O que aparece primeiro | **"Olá, Maria" e as ações**: reservar passagem, reservar veículo, enviar encomenda; os dados depois, num resumo |
+| **B** | A reserva feita com a conta | **o nome e o celular já vão preenchidos**, e podem ser mudados naquela reserva; o resto do caminho é o da página |
+| **C** | As reservas feitas com a conta aparecem aqui? | **não antes da compra**: a reserva segue com o código e o WhatsApp; Meus pedidos (4.3) chega com a compra |
+| **D** | Os dados na Minha conta | **um resumo** (e-mail, celular, documento mascarado), com "Ver e corrigir" para Meus dados (4.2) |
+| **E** | Comprar, quando existir | **vira a primeira ação**, com "pague pelo site, confirme no balcão em segundos e embarque"; antes da 7.6, não aparece |
+| **F** | Deixe sua opinião (1.6) | **um atalho aqui também**, quando a 1.6 existir |
+
+**A ordem:** como o cadastro, depois do KMP, do domain e da API. A reserva preenchida (B) é só da página.
+
+### 4.2 — Meus dados
+
+**Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas, pode
+documentar"). Com ela, **a área do cliente está toda desenhada e decidida**; as regras estão juntas em "As regras da
+conta". **Wireframe** (privado do PO): [4.2](https://claude.ai/artifact/8GtC5KXTQpFxiDjsRwXSn8): os dados,
+trocar o e-mail, trocar a senha, apagar a conta e a conta apagada.
+
+**Levantamento** (2026-10-16): a página não existe. O que já está decidido:
+- **chega-se por "Ver e corrigir"** em Minha conta (4.1, D);
+- **o documento inteiro não volta à tela** depois de gravado (O12);
+- **apagar a conta tira os dados, e as passagens ficam** (O7);
+- **o KMP previa que o Meus dados corrigisse o nome e o telefone** (ADR-0022; naveg-api-vercel#30). A conta ganhou
+  nascimento e documento depois (fluviapp-kmp#70);
+- **o que a pessoa não corrige, o atendimento corrige pelo painel** (fluviapp-kmp#71, item 7);
+- **a troca de senha** segue a 3.4: tira a conta dos outros aparelhos e manda o aviso.
+
+**Achados:**
+
+1. **o documento faz a conta ser uma por pessoa** (E da área do cliente): se a pessoa pudesse trocá-lo, uma conta
+   tomaria o documento de outra;
+2. **trocar o e-mail muda o acesso à conta**: precisa da senha atual, da confirmação do e-mail novo e de um aviso ao
+   antigo, ou quem pegar o celular desbloqueado leva a conta;
+3. **apagar é para sempre**: a página precisa dizer o que sai e o que fica antes de pedir a confirmação;
+4. **o botão de apagar não pode ter a cor da ação principal** (o laranja).
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | O que a pessoa corrige sozinha | **o nome e o celular**; o nascimento e o documento, só pelo atendimento |
+| **B** | Trocar o e-mail | **com a senha atual e o link ao e-mail novo**; o novo só vale depois de confirmado, e o antigo recebe um aviso |
+| **C** | Trocar a senha | **com a senha atual**; a conta sai dos outros aparelhos, e chega o aviso da troca |
+| **D** | O documento na tela | **sempre mascarado, inclusive para o dono** (O12) |
+| **E** | Apagar a conta | **num passo próprio**, com o que sai e o que fica escrito antes e a senha para confirmar; vale na hora, e o documento fica livre |
+| **F** | Como salvar | **um "Salvar alterações" para o nome e o celular**; o e-mail, a senha e o apagar, cada um no seu passo |
+
+**A ordem:** como o cadastro, depois do KMP, do domain e da API. Trocar o e-mail e apagar a conta são da API
+(naveg-api-vercel#30).
+
+**A ordem de implementação da área do cliente** (a regra de sempre: KMP, domain, API e site):
+
+1. **KMP:** as chaves novas da conta e o índice do documento (fluviapp-kmp#70); os remédios do painel, ao menos os
+   itens 1 a 5 (fluviapp-kmp#71);
+2. **`@navegsistemas/domain`** (naveg-front): a conta, as validações dos campos (nascimento, documento, idade mínima,
+   senha) e as frases, com versão e tag;
+3. **API:** a conta (naveg-api-vercel#30), com a ADR-0003 (a sessão, e a API atrás do site, em `/api`, conferindo que
+   o limite por endereço de rede e o Turnstile continuam vendo quem acessa); o envio pelo Google Workspace; a conta que
+   nunca confirma (#43). **O PO cria o apelido `naoresponda@` e a senha de app** quando o primeiro e-mail for sair;
+4. **site:** a política de privacidade com a seção da conta (U7, versão nova); as telas da 3.1 à 4.2, com o E2E e o axe
+   de cada estado desenhado; o "Minha conta" no topo; a reserva preenchida para quem entrou;
+5. **o aceite do PO na homologação**, no celular, com os remédios do painel testados de verdade.
+
+Os convites da compra (3.5, D e E), "Comprar passagem" (4.1, E) e Meus pedidos (4.3) entram com a compra (7.6).
