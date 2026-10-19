@@ -35,6 +35,11 @@ atrasada: o PO junta PRs e decide coisas entre uma sessão e outra.
 5. **Rodar os testes na `main` atualizada**, nos dois checkouts: `git pull` e `npm run verify` (pelo PowerShell,
    com `$env:NPM_TOKEN = gh auth token`; na API, `npm ci` antes se faltar o `node_modules`). O "verde" da issue é
    de um commit; o da sessão é o de agora. Vermelho na `main` vem antes de qualquer próximo passo.
+6. **As marcas do aceite**: o PO confere no celular pelos roteiros da página "Rumo ao MVP" (o link está na issue,
+   em `#aceite`) e marca Ok ou Falhou em cada passo. Ler a coleção `aceites` do banco da página (`ArtifactData`,
+   `list`; um documento por roteiro). Cada Falhou, com o que o PO viu, é pendência a tratar antes da seção
+   seguinte; um roteiro todo Ok é entrega aceita: sai da página e do `docs/roteiro-de-aceite.md`, e a ficha ganha
+   a data do aceite (PO, 2026-10-19: "assim nossa comunicação assíncrona não fica limitada ao prompt").
 
 ## Antes de propor o próximo passo
 
