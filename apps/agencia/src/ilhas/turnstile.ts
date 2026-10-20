@@ -11,9 +11,12 @@
  * - **um token por envio**. Tokens não se reaproveitam (a API os confere uma vez), então cada envio desenha um
  *   widget novo e remove o anterior;
  * - se o desafio não resolver em dois minutos, o envio falha — e o totem diz "não foi possível enviar agora",
- *   em vez de girar para sempre.
+ *   em vez de girar para sempre;
+ * - **sem internet, a falha é da conexão, não do robô** (aceite do roteiro 3, PO, 2026-10-20): o script que não
+ *   carrega, ou o widget que falha com o aparelho fora da rede, rejeitam com `DesafioSemConexao`, e o totem diz
+ *   "a internet pode ter caído…", com o **Tentar de novo**.
  */
-import type { ObterDesafio } from '@navegsistemas/dados'
+import { DesafioSemConexao, type ObterDesafio } from '@navegsistemas/dados'
 
 interface OpcoesDoWidget {
   readonly sitekey: string
@@ -48,9 +51,11 @@ function carregar(): Promise<Turnstile> {
     script.src = SCRIPT
     script.async = true
     script.onload = () => (window.turnstile !== undefined ? resolve(window.turnstile) : reject(new Error('turnstile ausente')))
+    /* O script que não carrega é a rede (ou um bloqueador): sai da página, para o Tentar de novo pôr outro. */
     script.onerror = () => {
       carregamento = null
-      reject(new Error('o script do Turnstile não carregou'))
+      script.remove()
+      reject(new DesafioSemConexao('o script do Turnstile não carregou'))
     }
     document.head.appendChild(script)
   })
@@ -72,10 +77,11 @@ export function desafioTurnstile(chave: string): ObterDesafio {
     const alvo = conteiner
 
     return new Promise<string>((resolve, reject) => {
-      const prazo = setTimeout(() => reject(new Error('o desafio não resolveu a tempo')), PRAZO_MS)
+      const prazo = setTimeout(() => falhar('o desafio não resolveu a tempo')(), PRAZO_MS)
+      /* Com o script já carregado, o widget também falha sem rede; o navegador é quem sabe se o aparelho está fora. */
       const falhar = (motivo: string) => () => {
         clearTimeout(prazo)
-        reject(new Error(motivo))
+        reject(navigator.onLine ? new Error(motivo) : new DesafioSemConexao(motivo))
       }
       widget = turnstile.render(alvo, {
         sitekey: chave,

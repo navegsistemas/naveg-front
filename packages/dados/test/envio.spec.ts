@@ -19,7 +19,7 @@ import {
   type TravessiaOfertada,
 } from '@navegsistemas/domain'
 
-import { envioHttp, envioHttpDaEncomenda, type PedidoDaEncomenda, type PedidoDoTotem } from '../src/envio.js'
+import { DesafioSemConexao, envioHttp, envioHttpDaEncomenda, type PedidoDaEncomenda, type PedidoDoTotem } from '../src/envio.js'
 import type { Buscar } from '../src/http.js'
 
 const CONTEXTO: ContextoDaReserva = {
@@ -157,6 +157,15 @@ describe('o envio pela API', () => {
     expect(caida.caso === 'FALHA' && caida.porque).toBe('CONEXAO')
     const semDesafio = await envioHttp('https://api', () => Promise.reject(new Error('fechou')), semRede).enviar(PEDIDO)
     expect(semDesafio.caso === 'FALHA' && semDesafio.porque).toBe('DESAFIO')
+  })
+
+  /* Aceite do roteiro 3 (PO, 2026-10-20): no modo avião, o desafio não resolve, e a culpa é da rede, não do robô. */
+  it('o desafio que não resolve por falta de rede é a conexão, e nada é enviado', async () => {
+    const { buscar, pedidos } = respondendo(201, {})
+    const semRede = () => Promise.reject(new DesafioSemConexao('o script do Turnstile não carregou'))
+    const resultado = await envioHttp('https://api', semRede, buscar).enviar(PEDIDO)
+    expect(resultado.caso === 'FALHA' && resultado.porque).toBe('CONEXAO')
+    expect(pedidos).toEqual([])
   })
 
   it('o desafio que não resolve é falha, e nada é enviado', async () => {
