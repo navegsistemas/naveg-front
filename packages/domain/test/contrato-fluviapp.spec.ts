@@ -45,6 +45,19 @@ import { describe, expect, it } from 'vitest'
 
 import { TIPOS_DE_DOCUMENTO, TipoDocumento } from '../src/documento/tipo-documento.js'
 import { FAIXAS_DE_PESO, FORMAS_DE_RETIRADA, TIPOS_DE_VOLUME } from '../src/encomenda/volume.js'
+import {
+  ACOES_DO_SERVIDOR,
+  ACOES_NA_CONTA,
+  CAMPOS_DO_ATENDIMENTO,
+  CAMPOS_DO_ENDERECO_DO_SERVIDOR,
+  SITUACOES_DO_ATENDIMENTO,
+} from '../src/conta/atendimento-da-conta.js'
+import {
+  CAMPOS_DA_CONTA,
+  CAMPOS_DO_INDICE_DA_CONTA,
+  CAMPOS_DO_RESUMO_DAS_CONTAS,
+  TIPOS_DE_LINK,
+} from '../src/conta/conta-do-cliente.js'
 import { CAMPOS_DO_EVENTO, paraDoTipo, TIPOS_DE_EVENTO } from '../src/evento/evento.js'
 import { UFS } from '../src/localidade/localidade.js'
 import { ACOMODACOES, Acomodacao } from '../src/passagem/acomodacao.js'
@@ -265,7 +278,45 @@ const ENUMS: readonly ClausulaDeEnum[] = [
       'DESTINATARIO_TELEFONE', 'VOLUMES', 'COMPLEMENTO',
     ],
   },
+  // --- a conta do site e o atendimento dela (fluviapp-kmp#70, #71, #77) ---
+  {
+    fonte: KMP, enum: 'AcaoNaConta',
+    arquivo: 'cliente/AtendimentoDaConta.kt',
+    aqui: ACOES_NA_CONTA,
+    kotlin: [
+      'REENVIAR_CONFIRMACAO', 'ENVIAR_TROCA_DE_SENHA', 'CORRIGIR_EMAIL', 'LIBERAR_TENTATIVAS', 'ENCERRAR_SESSOES',
+      'APAGAR_CONTA', 'DESATIVAR', 'REATIVAR', 'TIRAR_DOCUMENTO', 'CORRIGIR_CADASTRO',
+    ],
+  },
+  { fonte: KMP, enum: 'SituacaoDoAtendimento', arquivo: 'cliente/AtendimentoDaConta.kt', aqui: SITUACOES_DO_ATENDIMENTO, kotlin: ['PENDENTE', 'FEITO', 'RECUSADO'] },
+  { fonte: KMP, enum: 'TipoDeLink', arquivo: 'cliente/ContaDoCliente.kt', aqui: TIPOS_DE_LINK, kotlin: ['CONFIRMACAO', 'TROCA_DE_SENHA'] },
 ]
+
+/**
+ * **Os documentos da conta, que a agência escreve** (o servidor grava; o painel lê): as chaves de cada classe do
+ * KMP, na ordem, e a lista do `hasOnly` da regra que confere cada uma.
+ */
+const DOCUMENTOS_DA_CONTA: readonly {
+  readonly arquivo: string
+  readonly classe: string
+  readonly aqui: readonly string[]
+  /** O trecho da regra que abre o `hasOnly` desta forma. */
+  readonly regra: string | null
+}[] = [
+  { arquivo: 'cliente/ContaDoClienteDocumento.kt', classe: 'ContaDoClienteDocumento', aqui: CAMPOS_DA_CONTA, regra: 'function formaDaConta(d)' },
+  { arquivo: 'cliente/ContaDoClienteDocumento.kt', classe: 'IndiceDaContaDocumento', aqui: CAMPOS_DO_INDICE_DA_CONTA, regra: 'match /documentosDeConta/{chave}' },
+  { arquivo: 'cliente/ContaDoClienteDocumento.kt', classe: 'ResumoDasContasDocumento', aqui: CAMPOS_DO_RESUMO_DAS_CONTAS, regra: 'function formaDoResumo(d)' },
+  { arquivo: 'cliente/AtendimentoDaContaDocumento.kt', classe: 'AtendimentoDaContaDocumento', aqui: CAMPOS_DO_ATENDIMENTO, regra: 'function formaDoPedido(d)' },
+  { arquivo: 'cliente/AtendimentoDaContaDocumento.kt', classe: 'EnderecoDoServidorDocumento', aqui: CAMPOS_DO_ENDERECO_DO_SERVIDOR, regra: 'match /servidorDoSite/{doc}' },
+]
+
+/** As listas entre colchetes do primeiro `hasOnly([...])` depois de `inicio`, na regra. */
+function hasOnlyDaRegra(regras: string, inicio: string): string[] | null {
+  const posicao = regras.indexOf(inicio)
+  if (posicao < 0) return null
+  const lista = /hasOnly\(\[([^\]]*)\]\)/.exec(regras.slice(posicao))?.[1]
+  return lista === undefined ? null : [...lista.matchAll(/'([a-zA-Z]+)'/g)].map((m) => m[1] as string)
+}
 
 /** O que cada classe declara no Kotlin: natureza e, se houver, `exigeCilindrada = true`. */
 const CLASSES_NO_KOTLIN: Readonly<Record<string, { natureza: string; exigeCilindrada: boolean }>> = Object.fromEntries(
@@ -396,6 +447,20 @@ describe('camada 1 · este pacote bate com a tabela do aplicativo', () => {
     expect(CAMPOS_DO_DOCUMENTO).toContain('tratamento')
     expect([...CAMPOS_DO_EVENTO]).toEqual(['tipo', 'entidade', 'agenciaId', 'origem', 'severidade', 'porId', 'em', 'dados'])
     expect([...TIPOS_DE_EVENTO]).toEqual(['reserva.criada', 'reserva.cancelada', 'reserva.convertida'])
+  })
+
+  it('a conta e o atendimento: as chaves da tabela, e as seis ações do servidor', () => {
+    expect([...CAMPOS_DA_CONTA]).toEqual([
+      'nome', 'email', 'telefone', 'tipoDocumento', 'numeroDocumento', 'dataNascimento', 'criadaEm', 'confirmadaEm',
+      'ativa', 'ultimoEnvioTipo', 'ultimoEnvioEm', 'bloqueadaAte', 'envioPorEmail', 'envioPorEmailEm', 'envioPorWhatsapp',
+      'envioPorWhatsappEm',
+    ])
+    expect([...CAMPOS_DO_ATENDIMENTO]).toEqual([
+      'contaId', 'acao', 'emailNovo', 'porId', 'porNome', 'criadoEm', 'situacao', 'concluidoEm', 'motivo',
+    ])
+    expect([...ACOES_DO_SERVIDOR]).toEqual([
+      'REENVIAR_CONFIRMACAO', 'ENVIAR_TROCA_DE_SENHA', 'CORRIGIR_EMAIL', 'LIBERAR_TENTATIVAS', 'ENCERRAR_SESSOES', 'APAGAR_CONTA',
+    ])
   })
 
   it('cada documento tem o comprimento do aplicativo', () => {
@@ -564,9 +629,34 @@ describe(`camada 2 · a tabela bate com o fluviapp-kmp${ausente(KMP)}`, () => {
     expect(tipos.map((m) => m[1])).toEqual([...TIPOS_DE_EVENTO])
   })
 
+  /* A conta do site (fluviapp-kmp#70, #71, #79): a agência grava, e o `hasOnly` recusa o lote inteiro por uma chave a
+     mais. A classe e a regra conferem as mesmas chaves, na ordem da classe. */
+  for (const { arquivo, classe, aqui, regra } of DOCUMENTOS_DA_CONTA) {
+    it.skipIf(!KMP.presente)(`a conta: ${classe} tem as chaves daqui, e a regra também`, () => {
+      expect(propriedadesDaClasse(kotlin(KMP, `${KMP.dados}/${arquivo}`), classe)).toEqual([...aqui])
+      if (regra === null) return
+      const regras = readFileSync(join(KMP.raiz, 'firestore.rules'), 'utf8')
+      expect(hasOnlyDaRegra(regras, regra), regra).toEqual([...aqui])
+    })
+  }
+
+  it.skipIf(!KMP.presente)('a conta: as ações que o servidor executa, no Kotlin e na regra', () => {
+    const entradas = entradasDoEnum(kotlin(KMP, `${KMP.dominio}/cliente/AtendimentoDaConta.kt`), 'AcaoNaConta') ?? []
+    expect(entradas).toHaveLength(ACOES_NA_CONTA.length)
+    expect(entradas.filter((e) => /^\s*true\b/.test(e.argumentos)).map((e) => e.nome)).toEqual([...ACOES_DO_SERVIDOR])
+
+    const regras = readFileSync(join(KMP.raiz, 'firestore.rules'), 'utf8')
+    const pedido = regras.slice(regras.indexOf('function pedidoAoServidor(d)'))
+    const lista = /d\.acao in \[([^\]]*)\]/.exec(pedido)?.[1] ?? ''
+    expect([...lista.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1])).toEqual([...ACOES_DO_SERVIDOR])
+  })
+
   it.skipIf(!KMP.presente)('as coleções existem nas Rules, e os tipos de evento estão na lista fechada', () => {
     const regras = readFileSync(join(KMP.raiz, 'firestore.rules'), 'utf8')
-    for (const colecao of [...COLECOES_LIDAS, 'reservas', 'eventos']) {
+    for (const colecao of [
+      ...COLECOES_LIDAS, 'reservas', 'eventos',
+      'contasDeCliente', 'documentosDeConta', 'atendimentosDeConta', 'servidorDoSite', 'resumos',
+    ]) {
       expect(regras, colecao).toMatch(new RegExp(`match /${colecao}/\{`))
     }
     for (const tipo of TIPOS_DE_EVENTO) expect(regras, tipo).toContain(`'${tipo}': '${paraDoTipo(tipo)}'`)

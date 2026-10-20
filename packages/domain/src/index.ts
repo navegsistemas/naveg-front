@@ -1,7 +1,7 @@
 /**
  * **`@navegsistemas/domain`** — o domínio da reserva.
  *
- * Três partes, e as fronteiras entre elas são o que importa:
+ * Quatro partes, e as fronteiras entre elas são o que importa:
  *
  * - **o porte** (`primitivos/`, `passagem/`, `documento/`, `localidade/`, `rota/`, `viagem/`) — o subconjunto
  *   do domínio do **aplicativo fluviapp** (a gestão comercial), com os mesmos valores canônicos e as mesmas
@@ -10,7 +10,9 @@
  *   que a concessão da agência permite oferecer. A agência não tem catálogo próprio: é alimentada por ele;
  * - **a reserva** (`reserva/`) — a `Reserva` como tipo próprio (ADR-0001), a FSM dela, o roteiro do totem,
  *   o código `NVG-XXXXXX`, a validade (até a partida) e o codec. Sem documento de
- *   ninguém: a passagem pedida e o cliente (nome, telefone opcional).
+ *   ninguém: a passagem pedida e o cliente (nome, telefone opcional);
+ * - **a conta do cliente** (`conta/`) — a conta do site, o índice do documento e o atendimento pelo painel, com
+ *   as chaves da regra do `fluviapp-kmp` e os lotes que a API grava.
  *
  * Sem React, sem Astro, sem Firebase — e `test/estrutura.spec.ts` é quem garante que continue assim.
  */
@@ -243,3 +245,72 @@ export {
   TIPOS_DE_EVENTO,
 } from './evento/evento.js'
 export type { EventoDocumento, OrigemDoEvento, Severidade, TipoDeEvento } from './evento/evento.js'
+
+// --- a conta do cliente (7.4; fluviapp-kmp#70, #71, #76, #77, #79) ---
+export {
+  CAMPOS_DA_CONTA,
+  CAMPOS_DO_INDICE_DA_CONTA,
+  CAMPOS_DO_RESUMO_DAS_CONTAS,
+  caminhoDaConta,
+  caminhoDoIndiceDaConta,
+  chaveDoIndiceDaConta,
+  contaDoDocumento,
+  contaNova,
+  contaParaDocumento,
+  contaTemDocumento,
+  documentoDaConta,
+  documentoMascarado,
+  IDADE_MINIMA_DA_CONTA,
+  idadeEm,
+  LIMITE_DO_EMAIL_DA_CONTA,
+  LIMITE_DO_NOME_DA_CONTA,
+  loteDaContaApagada,
+  loteDaContaNova,
+  loteDoDocumentoDaConta,
+  normalizarEmail,
+  normalizarNome,
+  PENDENCIAS_DO_CADASTRO,
+  pendenciasDoCadastro,
+  TAMANHO_MINIMO_DA_SENHA,
+  TIPOS_DE_DOCUMENTO_DA_CONTA,
+  TIPOS_DE_LINK,
+} from './conta/conta-do-cliente.js'
+export type {
+  CadastroDaConta,
+  ContaDoCliente,
+  ContaDoClienteDocumento,
+  DocumentoDaConta,
+  EnvioDeLink,
+  EscritaDaConta,
+  IndiceDaContaDocumento,
+  PendenciaDoCadastro,
+  PermissaoDeEnvio,
+  ResultadoDoCadastro,
+  ResultadoDoDocumentoDaConta,
+  ResumoDasContasDocumento,
+  TipoDeLink,
+} from './conta/conta-do-cliente.js'
+export {
+  ACOES_DO_SERVIDOR,
+  ACOES_NA_CONTA,
+  atendimentoFeito,
+  atendimentoRecusado,
+  CAMINHO_DO_ENDERECO_DO_SERVIDOR,
+  CAMPOS_DO_ATENDIMENTO,
+  CAMPOS_DO_ENDERECO_DO_SERVIDOR,
+  enderecoDoServidor,
+  LIMITE_DO_MOTIVO,
+  MOTIVOS_DA_RECUSA,
+  pedidoDoDocumento,
+  SITUACOES_DO_ATENDIMENTO,
+} from './conta/atendimento-da-conta.js'
+export type {
+  AcaoDoServidor,
+  AcaoNaConta,
+  AtendimentoDaContaDocumento,
+  EnderecoDoServidorDocumento,
+  FechamentoDoAtendimento,
+  MotivoDaRecusa,
+  PedidoDeAtendimento,
+  SituacaoDoAtendimento,
+} from './conta/atendimento-da-conta.js'
