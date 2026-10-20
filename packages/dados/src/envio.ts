@@ -24,6 +24,7 @@
  * | `422` com pendências | `INCOERENTE`, com elas |
  * | `429` (`LIMITE_EXCEDIDO`) | `FALHA` por `LIMITE` — envios demais deste aparelho (2.6) |
  * | `403` com `DESAFIO_INVALIDO`, ou o desafio que não se resolve | `FALHA` por `DESAFIO` |
+ * | o desafio que não se resolve por falta de rede (`DesafioSemConexao`) | `FALHA` por `CONEXAO` |
  * | qualquer outra, ou a rede | `FALHA` por `CONEXAO` — "não foi possível enviar agora" |
  */
 import {
@@ -90,6 +91,16 @@ export function envioLocalDaEncomenda(repositorio: ReservaRepositorio): EnvioDaE
 /** Quem entrega o token do desafio (o Turnstile, na página). Um token por envio: eles não se reaproveitam. */
 export type ObterDesafio = () => Promise<string>
 
+/**
+ * **O desafio que não resolveu porque a internet caiu**, e não porque a Cloudflare desconfiou. Quem obtém o desafio
+ * rejeita com este erro quando sabe que foi a rede (o script não carregou, ou o aparelho está fora da rede), e o
+ * envio responde como a conexão: "a internet pode ter caído…", com o **Tentar de novo**. Sem ele, o modo avião dava
+ * "a verificação contra robô não passou" (aceite do roteiro 3, PO, 2026-10-20).
+ */
+export class DesafioSemConexao extends Error {
+  override readonly name = 'DesafioSemConexao'
+}
+
 /** O que a API pode responder, já lido: a reserva gravada, as pendências, ou a falha. */
 type RespostaDaApi =
   | { readonly caso: 'ENVIADA'; readonly reserva: Reserva }
@@ -126,8 +137,10 @@ async function postar(
   let desafio: string
   try {
     desafio = await obterDesafio()
-  } catch {
-    return falha('o desafio não foi resolvido', 'DESAFIO')
+  } catch (erro) {
+    return erro instanceof DesafioSemConexao
+      ? falha('o desafio não foi resolvido: sem conexão')
+      : falha('o desafio não foi resolvido', 'DESAFIO')
   }
 
   let resposta: Response
