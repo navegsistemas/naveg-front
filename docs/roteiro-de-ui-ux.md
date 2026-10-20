@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.7 e o texto da 2.6 aceitos pelo PO no celular em 2026-10-20**; dos erros da 2.6, falta conferir de novo o modo avião, depois do #87 |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87) |
 | **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -694,8 +694,8 @@ teve a recomendação aceita:
 ### 2.6 — Os erros
 
 **Situação:** no ar (#81). **O texto do WhatsApp aceito pelo PO no celular, em 2026-10-20** (roteiros de aceite 1 e 2).
-Dos erros (roteiro 3), o passo 1 falhou: com o modo avião, o site disse "a verificação contra robô não passou", porque
-o script do Turnstile não carrega sem rede. A correção é o #87; os passos 2 a 4 passaram. O que a pessoa vê quando algo dá errado na reserva da página: ao
+**Os erros aceitos no mesmo dia** (roteiro 3), depois do #87: na primeira vez, o passo 1 falhou (com o modo avião, o
+site disse "a verificação contra robô não passou", porque o script do Turnstile não carrega sem rede). O que a pessoa vê quando algo dá errado na reserva da página: ao
 confirmar, e quando as saídas não carregam. **Wireframe** (privado do PO): [2.6](https://claude.ai/artifact/3WKUvz1NP45qtgZZ3tCMqF).
 
 **Levantamento** (2026-10-16, o build do E2E com a API falsa, 360px; a conferência da 2.4): a API já responde cada caso
