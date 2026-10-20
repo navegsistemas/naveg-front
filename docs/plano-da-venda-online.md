@@ -76,6 +76,11 @@ mais, recusam cookie entre sites diferentes. **No iPhone o login simplesmente n�
    limite por IP, que protege a reserva hoje, deixaria de funcionar sem ajuste. Fica como alternativa a provar
    num experimento, não como plano.
 
+**O que valeu: a 2** (PO, 2026-10-16, na área do cliente do roteiro de UI/UX; **a D4 fechada assim em 2026-10-20**).
+A API fica atrás do site, em `/api`: em produção, `gruponaveg.com.br/api`, sem endereço próprio; na homologação, os
+endereços automáticos da Vercel, sem subdomínio. Falta só o DNS de `gruponaveg.com.br` no Registro.br. O endereço de
+quem acessa, que o limite por IP e o Turnstile pedem, é conferido na ADR-0003 da API (naveg-api-vercel#30).
+
 A forma da sessão (cookie, duração, como a API prova a conta para a plataforma) é a **ADR-0003** daqui, escrita
 junto da 7.4, depois que o KMP disser como o servidor prova quem é o cliente.
 

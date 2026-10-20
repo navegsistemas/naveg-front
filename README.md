@@ -40,7 +40,8 @@ Pelo plano de ambientes, §3:
 
 - **Homologação do front:** `naveg-front-agencia.vercel.app`, o preview da `main`, atrás do login da Vercel.
 - **A API:** `naveg-api-vercel.vercel.app`, o deploy de *produção*, sobre o `fluvi-app-dev`. Faz as vezes de
-  homologação até o lançamento, por decisão (D4). Os domínios entram juntos, um por ambiente. **O merge na
+  homologação, por decisão (D4): os endereços automáticos da Vercel são a homologação. Em produção, a API fica atrás
+  do site, em `gruponaveg.com.br/api`, e falta só o DNS no Registro.br (D4 decidida, PO, 2026-10-20). **O merge na
   `main` da API não chega a ele:** gera um *Preview*, e quem tem acesso promove o deploy do merge
   (`vercel promote`). Foi assim com o #17 da API, em 2026-10-05.
 - **Variável `PUBLIC_…` nova no front:** só vale num build novo **do preview da `main`**. Chave nova na API: só
