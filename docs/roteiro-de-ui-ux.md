@@ -145,8 +145,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59); as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 decidida e em PR** (os erros, e o texto do WhatsApp; 2026-10-16) |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.7 e o texto da 2.6 aceitos pelo PO no celular em 2026-10-20**; dos erros da 2.6, falta conferir de novo o modo avião, depois do #87 |
 | **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -292,7 +292,10 @@ quatro categorias.
 
 ### 1.3 — Reserve sua passagem
 
-**Situação:** no ar (#49, 2026-10-09), conferida pelo PO na prévia. Pedido na prévia: escolhido o dia, a página
+**Situação:** no ar (#49, 2026-10-09), conferida pelo PO na prévia. **Os 90 dias e a saída suspensa aceitos pelo PO no
+celular, em 2026-10-20** (roteiro de aceite 4, com o roteiro 4 do KMP). A data suspensa leva até um minuto e um
+recarregar a mais para sumir: é o cache de borda do catálogo (`s-maxage=60, stale-while-revalidate`). A API confere o
+catálogo sem cache a cada reserva e recusa a data suspensa com 409. Pedido na prévia: escolhido o dia, a página
 leva até as saídas — no celular elas ficam abaixo do calendário. Desde a #51 (2026-10-11), os 90 dias se reservam. A primeira proposta (A–C, abaixo) deu
 lugar à segunda, o calendário, depois da orientação do PO no mesmo dia (ver "A segunda proposta", no fim da ficha).
 **Wireframes** (privados do PO): o da [primeira proposta](https://claude.ai/artifact/Hvj4pTK9ai5Yph3zA9Why5) e o da
@@ -501,7 +504,7 @@ a API nova continua aceitando a página de antes (a `categoria` vale como o que 
 ### 2.7 — A reserva de encomenda
 
 **Situação:** no ar (#72, juntado em 2026-10-16, depois de o PO conferir a prévia), com a API do domain 0.11.0
-promovida no mesmo dia (naveg-api-vercel#40). A #58 fechou. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
+promovida no mesmo dia (naveg-api-vercel#40). **Aceita pelo PO no celular, em 2026-10-20** (roteiro de aceite 2). A #58 fechou. O PO pediu, depois do aceite da 2.2: "continuemos na UX agora
 com a parte de encomenda". Entra junto a #58 (a encomenda só com quem manda, decisão de LGPD de 2026-10-07).
 **Wireframe** (privado do PO): [2.7](https://claude.ai/artifact/V7vUdrj1vNqNyhY7ftWCNc).
 
@@ -575,6 +578,7 @@ O que as capturas mostraram, e foi corrigido no mesmo PR:
 ### 2.3 — Quem reserva
 
 **Situação:** no ar (#75, juntado em 2026-10-16), com a API do domain 0.12.0 promovida depois dele (naveg-api-vercel#41).
+**Aceita pelo PO no celular, em 2026-10-20** (roteiro de aceite 1, com a reserva gravada que conferiu a promoção da API).
 É o passo "Seus dados" da reserva de passagem e de veículo na página. A encomenda já tem o dela, decidido na 2.7 (F). O quiosque não muda (decisão de 2026-10-14).
 **Wireframe** (privado do PO): [2.3](https://claude.ai/artifact/U1rdUt7V5BZdR1VqF4E3GF).
 
@@ -631,6 +635,7 @@ continua opcional.
 ### 2.4 — A conferência
 
 **Situação:** no ar (#77, juntado em 2026-10-16), com a melhoria da conclusão (a 2.5) junto, a pedido do PO.
+**A 2.4 e a 2.5 aceitas pelo PO no celular, em 2026-10-20** (roteiros de aceite 1 e 2).
 É a última tela antes de confirmar a reserva de passagem ou de veículo, na página. A da encomenda segue a mesma tela, com as linhas dela (2.7). O quiosque não muda.
 **Wireframe** (privado do PO): [2.4](https://claude.ai/artifact/Vq8MEfYSrWSRopTmXzzpZK).
 
@@ -688,7 +693,9 @@ teve a recomendação aceita:
 
 ### 2.6 — Os erros
 
-**Situação:** decidida e implementada, em PR (2026-10-16). O que a pessoa vê quando algo dá errado na reserva da página: ao
+**Situação:** no ar (#81). **O texto do WhatsApp aceito pelo PO no celular, em 2026-10-20** (roteiros de aceite 1 e 2).
+Dos erros (roteiro 3), o passo 1 falhou: com o modo avião, o site disse "a verificação contra robô não passou", porque
+o script do Turnstile não carrega sem rede. A correção é o #87; os passos 2 a 4 passaram. O que a pessoa vê quando algo dá errado na reserva da página: ao
 confirmar, e quando as saídas não carregam. **Wireframe** (privado do PO): [2.6](https://claude.ai/artifact/3WKUvz1NP45qtgZZ3tCMqF).
 
 **Levantamento** (2026-10-16, o build do E2E com a API falsa, 360px; a conferência da 2.4): a API já responde cada caso

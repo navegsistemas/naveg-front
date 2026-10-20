@@ -22,89 +22,28 @@ que o PO estranhar no caminho vira pedido.
 
 ## Pendentes (já no ar)
 
-Pela ordem sugerida. A 1 vem primeiro porque grava a reserva que confere também a promoção da API
-(`docs/RUNBOOK.md` §5): se ela não chegar ao painel, `vercel rollback --scope kurtmatheus-projects` volta à `4f41300`.
+**Aceitos pelo PO em 2026-10-20**, e por isso fora daqui: o roteiro 1 (a reserva de passagem até o WhatsApp, com a
+reserva gravada que conferiu a promoção da API), o 2 (o veículo e a encomenda), o 4 (os 90 dias e a saída suspensa)
+e o 5 (o rodapé e os Termos de Uso). As fichas guardam a data. Do roteiro 3, os passos 2 a 4 passaram; **falta o 1**,
+que falhou e foi corrigido no #87.
 
-### 1. Uma reserva de passagem, do começo ao WhatsApp — 2.3, 2.4 e 2.5 (#75, #77) e o texto da 2.6 (#81)
+### 3. Os erros — 2.6 (#81), o passo 1 de novo depois do #87
 
-| # | quem | faz | espera |
-|---|---|---|---|
-| 1 | Celular | "Reserve sua passagem" → **Passageiros**, 2 pessoas em rede, uma saída desta semana | o quadro da saída com o cais de embarque |
-| 2 | | em "Seus dados", só o nome, sem o celular → **Continuar** | recusado: "Informe um celular com DDD, como (91) 98888-7777." |
-| 3 | | olhar o passo | o campo "Celular com WhatsApp", a ajuda "É pelo WhatsApp deste celular que o atendimento confirma a reserva com você" e, antes do botão, "Usamos o nome e o celular só para esta reserva, e apagamos 14 dias depois da viagem.", com o link da política |
-| 4 | | o celular → **Continuar** | a conferência em três blocos: **O que vai** ("2 pessoas em rede"), **A viagem** e **Em nome de** (com "Celular"); sem "Vale até" |
-| 5 | | embaixo do botão | "Nada é pago agora. Ao confirmar, você recebe o código e fala com o atendimento pelo WhatsApp. A reserva vale até a saída." |
-| 6 | | **Mudar** em "Em nome de" | volta a "Seus dados" **preenchido**; **Continuar** volta à conferência sem perder o resto |
-| 7 | | **Mudar** em "O que vai", trocar para 3 pessoas, seguir até a conferência | "3 pessoas em rede"; nome e celular mantidos |
-| 8 | | **Confirmar reserva** | a conclusão: o código com **Copiar** ao lado; logo abaixo, o quadro "Falta um passo: envie a reserva ao atendimento. É pelo WhatsApp que ela é confirmada.", o botão **Enviar pelo WhatsApp** e o número do atendimento; depois os três blocos, sem "Mudar" |
-| 9 | | **Copiar**, colar numa nota | o código, como `NVG-…` |
-| 10 | | **Enviar pelo WhatsApp** | abre a conversa com o atendimento, a mensagem pronta (abaixo). **Não precisa enviar** |
-| 11 | Agente NAVEG | painel → Reservas | a reserva, com o código do passo 9, o nome e o celular: **é a conferência da promoção da API** |
-
-A mensagem do passo 10 (2.6, E):
-
-```
-Olá! Gostaria de confirmar a reserva que fiz pelo site.
-
-*Reserva:* NVG-…
-*Trecho:* … → …
-*Saída:* …
-*Embarque:* …
-*Passagem:* Rede · 3 pessoas
-*Nome:* Teste PO
-
-Aguardo a confirmação.
-```
-
-Sem "Vale até a partida.".
-
-### 2. O veículo e a encomenda — 2.4 (C) e 2.6 (E)
-
-| # | quem | faz | espera |
-|---|---|---|---|
-| 1 | Celular | **Veículo**: carro, com 3 pessoas em suíte, até a conferência | em "O que vai": "Carro, com 3 pessoas em suíte", e numa linha à parte "Inteira, meia ou gratuidade: no atendimento" |
-| 2 | | confirmar → **Enviar pelo WhatsApp** | a mensagem com `*Veículo:*` e `*Acompanhantes:*` |
-| 3 | Celular | **Mandar uma encomenda** (na seção "Envie sua encomenda") | a reserva abre já em Encomenda; o calendário acende só os próximos 7 dias |
-| 4 | | 2 volumes, até a conferência, pulando quem recebe | os blocos "O que vai", "A viagem", "Quem manda" e "Quem recebe"; "Quem retira: A combinar com o atendimento" |
-| 5 | | confirmar → **Enviar pelo WhatsApp** | a mensagem com `*Volumes:*`, `*Remetente:*` e, no fim, "Entrego no porto antes da saída. Aguardo a confirmação." |
-| 6 | Agente NAVEG | painel → Reservas | as duas reservas |
-
-### 3. Os erros — 2.6 (#81)
-
-O erro de conexão se provoca com o **modo avião**, com a conferência já na tela.
+O erro de conexão se provoca com o **modo avião**, com a conferência já na tela. **Recarregar a página antes**, para
+vir o site com o #87. Em 2026-10-20, o passo 1 deu "A verificação contra robô não passou": sem rede, o script do
+Turnstile não carregava, e o site culpava o robô. Os passos 2 a 4 passaram, mas valem de novo, porque seguem o 1.
 
 | # | quem | faz | espera |
 |---|---|---|---|
 | 1 | Celular | uma reserva de passageiros até a conferência; ligar o **modo avião**; **Confirmar reserva** | num quadro **acima** do botão: "A reserva não foi enviada. A internet pode ter caído, ou o sistema está fora do ar por um instante. O que você escolheu continua aqui."; o botão passa a dizer **Tentar de novo**; embaixo, **Enviar pelo WhatsApp** |
 | 2 | | desligar o modo avião; tocar em **Enviar pelo WhatsApp** | a conversa abre com "Olá! Tentei fazer esta reserva pelo site, mas ela não foi enviada. Podem registrá-la para mim?" e a reserva, **sem a linha do código**. Não precisa enviar |
-| 3 | | voltar ao site; **Tentar de novo** | a reserva vai: a conclusão com o código, como no roteiro 1 |
+| 3 | | voltar ao site; **Tentar de novo** | a reserva vai: a conclusão com o código `NVG-…` e o **Enviar pelo WhatsApp** |
 | 4 | Agente NAVEG | painel → Reservas | a reserva do passo 3, **uma só** |
 
 **Ficam com os testes automáticos**, porque o celular não os provoca sem mexer na API: envios demais ("Muitas reservas
 deste aparelho em pouco tempo…"), a verificação contra robô, a saída que fecha com a conferência aberta ("Esta saída não
 está mais aberta para reserva…") e as saídas que não carregam (as saídas carregam uma vez, quando a seção aparece).
 Estão no `apps/agencia/test/totem.spec.tsx` e no `e2e/reserva.e2e.ts`.
-
-### 4. O calendário de 90 dias e a saída suspensa — 1.3, com o KMP (#44 de lá)
-
-É o que o KMP pôs em "As que virão" para o site. Usa a suspensão do **roteiro 4 do KMP**.
-
-| # | quem | faz | espera |
-|---|---|---|---|
-| 1 | Celular | Passageiros → o calendário | os dias acendem até **90 dias** à frente |
-| 2 | Supervisor MOCORONGO | KMP, roteiro 4, passo 2: suspender uma data da semana que vem | — |
-| 3 | Celular | recarregar a página; o calendário | a data suspensa **não acende** |
-| 4 | | uma reserva para daqui a uns 60 dias | grava |
-| 5 | Agente NAVEG | painel → Reservas | a reserva de 60 dias, como qualquer outra |
-| 6 | Supervisor MOCORONGO | KMP, roteiro 4, passo 5: **Desfazer** | no site, a data volta a acender |
-
-### 5. O rodapé e os Termos de Uso (#78, #79)
-
-| # | quem | faz | espera |
-|---|---|---|---|
-| 1 | Celular | o rodapé | o telefone (91) 99203-5322, o e-mail `contato@gruponaveg.com.br` e só o endereço de Belém: Terminal Hidroviário de Belém, Av. Marechal Hermes, 901, CEP 66010-000. Sem Macapá |
-| 2 | | tocar no telefone e no e-mail | abre o WhatsApp (ou o discador) e o e-mail |
-| 3 | | **Termos de Uso** | a página `/termos/`, com o aviso de rascunho até a revisão jurídica |
 
 ## As que virão
 
