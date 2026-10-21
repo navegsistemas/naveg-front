@@ -10,6 +10,7 @@
  * Na página, a reserva começa pelo que vai embarcar, antes do dia (naveg-front#66); o quiosque não muda, e começa
  * pela saída.
  */
+import type { ReactNode } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -39,11 +40,13 @@ function montar(
     catalogo?: CatalogoDoFluviapp
     envio?: EnvioDaReserva
     fonte?: FonteDoCatalogo
+    verificacao?: { readonly elemento: ReactNode; readonly verificada: boolean } | null
   } = {},
 ) {
   const repositorio = new ReservaEmMemoria()
   render(
     <Totem
+      verificacao={opcoes.verificacao ?? null}
       fonte={opcoes.fonte ?? catalogoFixo(opcoes.catalogo ?? CATALOGO_DE_DEMONSTRACAO)}
       envio={opcoes.envio ?? envioLocal(repositorio)}
       fuso={FUSO_DA_OPERACAO}
@@ -1015,7 +1018,7 @@ describe('os erros, na página', () => {
     cleanup()
     await ateConfirmar({ demonstracao: null, atendimento: '(91) 98888-7777', envio: falhando('DESAFIO') })
     expect((await screen.findByRole('alert')).textContent).toBe(
-      'A verificação contra robô não passou. Atualize a página e tente de novo.',
+      'A verificação contra robô não passou. Tente de novo.',
     )
   })
 
@@ -1030,6 +1033,30 @@ describe('os erros, na página', () => {
     tocar('Confirmar reserva')
     expect((await screen.findByRole('alert')).textContent).toMatch(/^A reserva não foi enviada/)
     expect(screen.queryByRole('link', { name: 'Enviar pelo WhatsApp' })).toBeNull()
+  })
+
+  /* 2.8 (PO, 2026-10-21): a verificação contra robô é um passo visível da conferência, e o botão espera por ela. */
+  it('a verificação contra robô fica acima do botão, que diz "Verificando…" e espera até ela passar', async () => {
+    const passo = (verificada: boolean) => ({ elemento: <p>passo da verificação</p>, verificada })
+    montar({ demonstracao: null, verificacao: passo(false) })
+    embarcarPassageiros('2 pessoas')
+    await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+    const esperando = screen.getByRole('button', { name: 'Verificando…' }) as HTMLButtonElement
+    expect(esperando.disabled).toBe(true)
+    const verificacao = screen.getByText('passo da verificação')
+    expect(verificacao.compareDocumentPosition(esperando) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    cleanup()
+
+    montar({ demonstracao: null, verificacao: passo(true) })
+    embarcarPassageiros('2 pessoas')
+    await escolherSaida('Ferry de demonstração')
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })
+    fireEvent.change(screen.getByLabelText(/^Celular com/), { target: { value: '91988887777' } })
+    tocar('Continuar')
+    expect((screen.getByRole('button', { name: 'Confirmar reserva' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('as saídas que não carregam: "Tentar de novo" carrega de novo, e o que foi escolhido fica', async () => {

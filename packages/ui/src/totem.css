@@ -34,20 +34,38 @@
   font-size: 0.95rem;
 }
 
-/* O desafio do Turnstile, quando a Cloudflare pede interação: fixo no rodapé, acima de tudo, e vazio — sem
-   ocupar espaço — no caso comum, em que ele resolve sozinho. */
-.totem-desafio {
-  position: fixed;
-  inset-inline: 0;
-  bottom: var(--espaco-3);
-  display: flex;
-  justify-content: center;
-  z-index: 50;
-  pointer-events: none;
+/* A verificação contra robô, um passo da conferência (2.8): o título e o quadro da Cloudflare, logo acima do botão.
+   O quadro é `flexible` (300px no mínimo, a largura do cartão no máximo); a altura fica reservada, para o botão não
+   pular quando ele aparece. */
+.totem-verificacao {
+  display: grid;
+  gap: var(--espaco-2);
+  max-width: 40rem;
 }
 
-.totem-desafio > * {
-  pointer-events: auto;
+/* O título como o dos blocos da conferência: é mais um bloco, o último antes do botão. */
+.totem-verificacao__titulo {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.totem-verificacao__quadro {
+  min-height: 65px;
+}
+
+.totem-verificacao__falha {
+  display: grid;
+  gap: var(--espaco-2);
+  justify-items: start;
+}
+
+.totem-verificacao__falha p {
+  margin: 0;
 }
 
 .totem-demonstracao {

@@ -204,6 +204,11 @@ export interface PropsDaConferencia {
   readonly depoisDoBotao?: ReactNode
   /** Uma pendência com texto próprio desta reserva: a saída fechada da encomenda (2.6, D). */
   readonly textoDaPendencia?: Partial<Record<PendenciaDaReserva, string>>
+  /**
+   * A verificação contra robô (2.8, PO, 2026-10-21): um passo visível, logo acima do botão. Com `verificada` falso, o
+   * botão espera e diz "Verificando…" — diz por quê, e por isso pode ficar desativado. Sem ela (a demonstração), nada.
+   */
+  readonly verificacao?: { readonly elemento: ReactNode; readonly verificada: boolean }
 }
 
 /** O rótulo do "Mudar" de cada bloco: a saída se troca; o resto se muda. */
@@ -266,7 +271,9 @@ export function Conferencia({
   erro,
   depoisDoBotao,
   textoDaPendencia,
+  verificacao,
 }: PropsDaConferencia) {
+  const aVerificar = verificacao !== undefined && !verificacao.verificada
   return (
     <div className="totem-conferencia">
       {blocos !== undefined ? (
@@ -289,13 +296,14 @@ export function Conferencia({
         </ul>
       ) : (
         <>
+          {verificacao?.elemento}
           {erro !== undefined && (
             <p className="totem-aviso totem-erro-do-envio" role="alert">
               {erro}
             </p>
           )}
-          <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando}>
-            {enviando ? 'Enviando…' : erro !== undefined ? 'Tentar de novo' : rotuloDoConfirmar}
+          <button type="button" className="acao totem-continuar" onClick={aoConfirmar} disabled={enviando || aVerificar}>
+            {enviando ? 'Enviando…' : aVerificar ? 'Verificando…' : erro !== undefined ? 'Tentar de novo' : rotuloDoConfirmar}
           </button>
           {depoisDoBotao}
           {nota !== undefined && erro === undefined && <p className="totem-ajuda totem-nota">{nota}</p>}
