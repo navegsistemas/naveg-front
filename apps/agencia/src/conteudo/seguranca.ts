@@ -36,11 +36,12 @@ export const ORIGEM_DO_TURNSTILE = 'https://challenges.cloudflare.com'
 
 /**
  * As diretivas do site inteiro, menos `script-src` e `style-src`, que o Astro monta com os *hashes*. A única
- * origem de fora é a da API, e só para conversa (`connect-src`): é de onde vem o catálogo e para onde vai a
- * reserva. Sem API (a demonstração), nem ela.
+ * origem de fora que pode entrar é a da API, e só para conversa (`connect-src`): é de onde vem o catálogo e para
+ * onde vai a reserva. Com a API atrás do site (`/api`), nem ela: o `'self'` já cobre. Sem API (a demonstração),
+ * também não.
  */
 export function diretivasDoSite(fonte: FonteConfigurada): Diretiva[] {
-  const api = fonte.tipo === 'API' ? ` ${new URL(fonte.url).origin}` : ''
+  const api = fonte.tipo === 'API' && !fonte.url.startsWith('/') ? ` ${new URL(fonte.url).origin}` : ''
   return [
     "default-src 'self'",
     `connect-src 'self'${api}`,

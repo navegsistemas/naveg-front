@@ -48,7 +48,7 @@ jobs:
       # (a que sempre passa). Com as duas, o build monta o totem no modo que envia — o mesmo que vai ao ar.
       - run: npm run build
         env:
-          PUBLIC_URL_DA_API: https://naveg-api-vercel.vercel.app
+          PUBLIC_URL_DA_API: /api
           PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       - run: npm run conferir:build
 
