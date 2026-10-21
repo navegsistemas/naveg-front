@@ -70,7 +70,14 @@ de arquitetura em [docs/adr/](docs/adr/); operação em [docs/RUNBOOK.md](docs/R
 - Se `git`/`node` sumirem da sessão, o PATH está velho: reabrir o VS Code; usar `npm.cmd`.
 - **PowerShell 5.1 e texto para programa:** um pipe põe BOM no valor (`'x' | vercel env add` gravou `﻿x`), e
   `gh pr create --body` com aspas quebra os argumentos. Valor de variável pelo Git Bash (`printf`); corpo de PR por
-  arquivo (`--body-file`).
+  arquivo (`--body-file`). O `Set-Content -Encoding utf8` também grava BOM (um título de commit saiu com ele em
+  2026-10-21), e a ferramenta de escrita mantém o BOM de um arquivo que já o tinha: mensagem de commit em arquivo
+  novo, e conferir o primeiro caractere sem pipe do PowerShell (que acrescenta BOM ele mesmo).
+- **Prévia protegida da Vercel:** `vercel curl <caminho> --deployment <url>` passa pelo login sozinho; tirar o
+  segredo de passagem do token e usá-lo à mão é recusado pelo classificador. O `vercel link` dentro de
+  `apps/agencia` cria lá um `.gitignore`, um `.env.local` e a pasta `.vercel`: não fazer o link ali.
+- **E2E com botão abaixo da dobra:** a rolagem do Playwright pode deixar o botão na beirada e o clique se perder,
+  sem erro (2.8, 2026-10-21). Pôr o botão no meio da tela antes de clicar (`scrollIntoView({ block: 'center' })`).
 - **E2E nesta máquina:** com os 6 workers do padrão, quase tudo cai por tempo; `--workers=2` passa. O WebKit não
   instala aqui (fica para o CI).
 - **Não há Python na máquina** (o `python` do Windows abre a Microsoft Store). Script de apoio é em Node; troca de
