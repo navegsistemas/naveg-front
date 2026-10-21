@@ -44,6 +44,10 @@ Pelo plano de ambientes, §3:
   do site, em `gruponaveg.com.br/api`, e falta só o DNS no Registro.br (D4 decidida, PO, 2026-10-20). **O merge na
   `main` da API não chega a ele:** gera um *Preview*, e quem tem acesso promove o deploy do merge
   (`vercel promote`). Foi assim com o #17 da API, em 2026-10-05.
+- **O site chama a API por `/api`** (desde o PR 4 da naveg-api-vercel#30, 2026-10-21): o `apps/agencia/vercel.json`
+  repassa `/api/…` para `naveg-api-vercel.vercel.app`, e o `PUBLIC_URL_DA_API` vazio quer dizer `/api`. O
+  `vercel.json` vale para todos os ambientes do site: **quando a API de produção existir, o destino do repasse muda**
+  (o site de produção não pode falar com a API de homologação). As prévias de PR seguem com `demonstracao`.
 - **Variável `PUBLIC_…` nova no front:** só vale num build novo **do preview da `main`**. Chave nova na API: só
   vale num build novo de cada ambiente. Trocar uma chave é colar a nova, refazer os builds, e só então apagar a
   antiga.

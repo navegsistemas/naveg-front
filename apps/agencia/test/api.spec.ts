@@ -7,10 +7,15 @@ import { describe, expect, it } from 'vitest'
 import { envioConfigurado, fonteConfigurada, URL_DA_API_PADRAO, UrlDaApiInvalida } from '../src/conteudo/api'
 
 describe('a fonte do catálogo', () => {
-  it('sem configuração, é a API de produção — o site publicado não mostra saídas fictícias por esquecimento', () => {
+  it('sem configuração, é a API atrás do site — o site publicado não mostra saídas fictícias por esquecimento', () => {
     expect(fonteConfigurada(undefined)).toEqual({ tipo: 'API', url: URL_DA_API_PADRAO })
     expect(fonteConfigurada('   ')).toEqual({ tipo: 'API', url: URL_DA_API_PADRAO })
-    expect(URL_DA_API_PADRAO.startsWith('https://')).toBe(true)
+    expect(URL_DA_API_PADRAO).toBe('/api')
+  })
+
+  it('um caminho do próprio site é a API por ele, sem a barra do fim', () => {
+    expect(fonteConfigurada('/api/')).toEqual({ tipo: 'API', url: '/api' })
+    expect(fonteConfigurada('/api/v2')).toEqual({ tipo: 'API', url: '/api/v2' })
   })
 
   it('a demonstração é pedida pelo nome', () => {
@@ -23,7 +28,15 @@ describe('a fonte do catálogo', () => {
   })
 
   it('o que não é nada disso quebra o build, em vez de virar um totem que nunca carrega', () => {
-    for (const torto of ['naveg-api-vercel.vercel.app', 'http://naveg-api-vercel.vercel.app', 'demonstração', 'ftp://x']) {
+    for (const torto of [
+      'naveg-api-vercel.vercel.app',
+      'http://naveg-api-vercel.vercel.app',
+      'demonstração',
+      'ftp://x',
+      '//outro.site/api',
+      '/api?x=1',
+      '/API',
+    ]) {
       expect(() => fonteConfigurada(torto), torto).toThrow(UrlDaApiInvalida)
     }
   })

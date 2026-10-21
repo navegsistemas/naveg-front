@@ -7,18 +7,26 @@
  *
  * `PUBLIC_URL_DA_API`:
  *
- * - ausente ou em branco → a API de produção, `URL_DA_API_PADRAO`;
+ * - ausente ou em branco → `/api`, a API atrás do próprio site (`URL_DA_API_PADRAO`);
  * - `demonstracao` → o catálogo de demonstração, com a faixa dizendo que as saídas são fictícias. É o que se
  *   usa sem rede, ou para mostrar o totem sem depender do cadastro do fluviapp;
- * - uma URL `https://…` (ou `http://localhost…`) → essa API. Para apontar para outro deploy.
+ * - um caminho do próprio site (`/api`) → a API por ele;
+ * - uma URL `https://…` (ou `http://localhost…`) → essa API, direto. Para apontar para outro deploy, e para o E2E.
  *
  * Qualquer outra coisa **quebra o build**. Um endereço digitado errado não dá erro em lugar nenhum — dá um totem
  * dizendo "não foi possível carregar as saídas" para todo mundo, o dia inteiro.
  *
+ * ### Por que `/api`
+ *
+ * A API fica atrás do site (D4, PO, 2026-10-16 e 2026-10-20): o `vercel.json` do site repassa `/api/…` para ela.
+ * Para o navegador, o site e a API são o mesmo endereço, qualquer que seja ele. É o que deixa a sessão da conta ser
+ * um cookie do próprio site (ADR-0003), e tira o CORS do caminho. A API continua vendo o endereço de quem acessa
+ * (medido em 2026-10-21; ADR-0003).
+ *
  * A variável é pública de propósito: é um endereço, não um segredo.
  */
 
-export const URL_DA_API_PADRAO = 'https://naveg-api-vercel.vercel.app'
+export const URL_DA_API_PADRAO = '/api'
 
 export const PEDIDO_DE_DEMONSTRACAO = 'demonstracao'
 
@@ -27,7 +35,7 @@ export type FonteConfigurada = { readonly tipo: 'API'; readonly url: string } | 
 export class UrlDaApiInvalida extends Error {
   constructor(valor: string) {
     super(
-      `PUBLIC_URL_DA_API="${valor}" não é uma URL https (nem http://localhost) nem "${PEDIDO_DE_DEMONSTRACAO}".`,
+      `PUBLIC_URL_DA_API="${valor}" não é um caminho do site (/api), uma URL https (nem http://localhost) nem "${PEDIDO_DE_DEMONSTRACAO}".`,
     )
     this.name = 'UrlDaApiInvalida'
   }
@@ -37,6 +45,11 @@ export function fonteConfigurada(valor: string | undefined): FonteConfigurada {
   const texto = (valor ?? '').trim()
   if (texto.length === 0) return { tipo: 'API', url: URL_DA_API_PADRAO }
   if (texto === PEDIDO_DE_DEMONSTRACAO) return { tipo: 'DEMONSTRACAO' }
+  /* Um caminho do próprio site: a barra do começo, letras, números e hífens. `//outro.site` seria outro endereço. */
+  if (texto.startsWith('/')) {
+    if (!/^(\/[a-z0-9-]+)+\/?$/.test(texto)) throw new UrlDaApiInvalida(texto)
+    return { tipo: 'API', url: texto.replace(/\/+$/, '') }
+  }
 
   let url: URL
   try {

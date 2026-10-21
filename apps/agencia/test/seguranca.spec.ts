@@ -14,6 +14,11 @@ describe('a política do site', () => {
     expect(diretivas.filter((d) => d.includes('https://'))).toEqual(["connect-src 'self' https://outra-api.vercel.app"])
   })
 
+  it('com a API atrás do site (/api), o padrão, o navegador também só conversa com o site', () => {
+    expect(diretivasDoSite(fonteConfigurada(undefined))).toContain("connect-src 'self'")
+    expect(diretivasDoSite(fonteConfigurada('/api')).join('; ')).not.toMatch(/https?:\/\//)
+  })
+
   it('sem API (a demonstração), o navegador não conversa com ninguém além do site', () => {
     expect(diretivasDoSite(fonteConfigurada('demonstracao'))).toContain("connect-src 'self'")
   })
