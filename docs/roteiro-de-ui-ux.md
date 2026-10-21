@@ -977,7 +977,10 @@ a conta desativada, o menu com "Minha conta" e o sair.
 | **E** | Depois de entrar | **volta para onde a pessoa ia**: a compra (U3), a opinião (1.6), ou Minha conta |
 | **F** | A conta desativada | **"Esta conta está desativada"**, com o WhatsApp e a reserva sem conta, **só depois da senha certa** |
 
-**A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 30 dias (A) são da API (naveg-api-vercel#30,
+**A revista pelo PO (2026-10-21):** **14 dias**, e não 30, ainda renovados a cada uso ("alinhe as sessões em 14", o
+teto da sessão do Firebase; ADR-0003).
+
+**A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 14 dias (A) são da API (naveg-api-vercel#30,
 ADR-0003).
 
 ### 3.6 — Resgatar a reserva (retirada: vira um convite na 3.5)
@@ -1087,7 +1090,7 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 | o link de troca de senha | 1 hora, e uma vez só; o novo invalida o anterior | 3.4, A |
 | reenviar um link | a cada 60 segundos, com um limite por hora | 3.2, B |
 | a conta que nunca confirma | apagada sozinha depois de 7 dias, e o documento fica livre | 3.2, F (naveg-api-vercel#43) |
-| ficar dentro da conta | 30 dias no mesmo aparelho, renovados a cada uso | 3.3, A |
+| ficar dentro da conta | 14 dias no mesmo aparelho, renovados a cada uso (era 30; PO, 2026-10-21) | 3.3, A; ADR-0003 |
 | tentativas de entrar | 5 erros seguidos no mesmo e-mail → 15 minutos de espera; e o limite por endereço de rede | 3.3, C |
 
 **O que acontece em cada caso**

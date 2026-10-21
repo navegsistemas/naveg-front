@@ -82,7 +82,7 @@ endereços automáticos da Vercel, sem subdomínio. Falta só o DNS de `gruponav
 quem acessa, que o limite por IP e o Turnstile pedem, foi medido em 2026-10-21: a API o vê através do repasse
 ([ADR-0003](adr/ADR-0003-a-sessao-e-os-segredos-da-conta.md); naveg-api-vercel#30).
 
-A forma da sessão (um cookie `__Host-` assinado pela API, 30 dias renovados), a senha (scrypt) e os códigos dos
+A forma da sessão (um cookie `__Host-` assinado pela API, 14 dias renovados), a senha (scrypt) e os códigos dos
 links estão na **[ADR-0003](adr/ADR-0003-a-sessao-e-os-segredos-da-conta.md)** (2026-10-21). A plataforma não lê a
 conta, só o resumo; a API grava com o token de serviço, como na reserva.
 

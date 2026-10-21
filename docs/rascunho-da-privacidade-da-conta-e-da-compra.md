@@ -34,7 +34,7 @@ Autoridade Marítima que exige a lista].
 ### A sessão
 
 Para você continuar logado, o site guarda um **cookie de sessão**, necessário ao serviço, que o JavaScript da
-página não lê. Ele dura 30 dias e se renova a cada vez que você usa o site; "Sair" o apaga (ADR-0003). A seção "o site não usa cookies próprios" da versão de hoje
+página não lê. Ele dura 14 dias e se renova a cada vez que você usa o site; "Sair" o apaga (ADR-0003). A seção "o site não usa cookies próprios" da versão de hoje
 muda: passa a dizer que usa **só esse**, e nenhum de análise ou publicidade.
 
 ### Apagar a conta (O7)

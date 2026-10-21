@@ -47,7 +47,7 @@ Ao entrar, a API responde com um cookie:
 
 ```
 __Host-sessao=v1.<contaId>.<emitidaEm>.<geracao>.<assinatura>
-Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=2592000
+Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=1209600
 ```
 
 - **`__Host-`**: o navegador só aceita o cookie com `Secure`, `Path=/` e sem `Domain`. Ele fica preso ao endereço
@@ -56,7 +56,9 @@ Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=2592000
 - **`HttpOnly`**: o JavaScript da página não lê o cookie. É o que a política de privacidade promete.
 - **`SameSite=Lax`**: outro site não consegue fazer o navegador mandar o cookie num `POST`. A API confere também o
   `Origin` de todo pedido que muda alguma coisa, como já faz na reserva.
-- **30 dias, renovados a cada uso** (3.3, A). A API devolve um cookie novo quando o atual tem mais de um dia, e não a
+- **14 dias, renovados a cada uso** (PO, 2026-10-21, revendo os 30 da 3.3, A: "alinhe as sessões em 14", o teto da
+  sessão do Firebase, para o caso de a conta um dia mudar para lá). Quem usa o site ao menos uma vez a cada duas
+  semanas não precisa entrar de novo. A API devolve um cookie novo quando o atual tem mais de um dia, e não a
   cada pedido.
 - **A assinatura** é um HMAC-SHA256 de tudo o que vem antes dela, com o segredo `SEGREDO_DA_SESSAO` da API. Quem
   muda um número do cookie perde a assinatura.
@@ -98,10 +100,23 @@ scrypt$15$8$3$<sal>$<resumo>
    caracteres do SHA-1 da senha e procura o resto na resposta. A senha, e mesmo o resumo inteiro dela, não saem da API.
    É gratuito e não tem chave. Se a consulta não responder em 2 segundos, vale só a lista.
 
-**Por que não o Firebase Authentication**, como o rascunho da privacidade supunha: as contas do site ficariam no mesmo
-cadastro de usuários do aplicativo, no `fluvi-app-dev` hoje e no projeto de produção depois, ao lado dos funcionários
-e dos papéis. O contrato do KMP (ADR-0022) foi feito para o contrário: a conta é um documento da agência, e a senha
-fica nos segredos dela. O rascunho foi corrigido junto desta ADR.
+**Por que não o Firebase Authentication**, como o rascunho da privacidade supunha, mesmo sendo gratuito no volume
+do site (o PO perguntou, em 2026-10-21, e concordou):
+
+- **as regras do fluviapp abririam dados ao cliente.** Lá, `autenticado()` é qualquer login que não seja o do
+  servidor (`sign_in_provider != 'custom'`), e `users/{uid}` (os perfis, os papéis e os vínculos dos funcionários) é
+  legível a quem passa por ela. Um cliente com conta no Firebase leria isso direto do navegador, com a chave pública
+  do site. É o mesmo buraco que a ADR-0002 achou no login anônimo, e fechá-lo pede reescrever as regras do KMP;
+- a sessão do Firebase no servidor dura no máximo 14 dias, e os links e os e-mails seguem os prazos e os modelos dele,
+  e não os decididos (24 h e 1 h, de `naoresponda@gruponaveg.com.br`);
+- o contrato do KMP (ADR-0022) foi feito para o contrário: a conta é um documento da agência, e a senha fica nos
+  segredos dela.
+
+O rascunho foi corrigido junto desta ADR.
+
+**"Entrar com o Google"**, se vier depois do MVP (D da área do cliente), **entra pela API**, e não pelo Firebase: a
+API confere o token de identidade do Google, acha ou cria a conta da agência pelo e-mail, e entrega o mesmo cookie da
+seção 1. As regras do fluviapp não mudam (PO, 2026-10-21: "seria mais fácil implementar na API direto").
 
 ### 3. Os códigos dos links
 
@@ -157,7 +172,7 @@ da seção 1. Nenhuma regra do Firestore depende da sessão do cliente.
   também o `SEGREDO_DA_SESSAO_ANTERIOR`, para a troca do segredo seguir a lição de sempre: colar o novo, refazer o
   build e só então tirar o antigo. Trocar o segredo sem o anterior tira todo mundo da conta, e é o remédio se ele
   vazar. **Quem grava o segredo no ambiente de produção da Vercel é o PO**, no PR 5 da #30.
-- **A privacidade muda:** o site passa a ter um cookie próprio, o `__Host-sessao`, necessário ao serviço, por 30 dias
+- **A privacidade muda:** o site passa a ter um cookie próprio, o `__Host-sessao`, necessário ao serviço, por 14 dias
   renovados. Não há cookie de análise. A senha é guardada pela própria agência, e não pelo Google. O rascunho
   (`docs/rascunho-da-privacidade-da-conta-e-da-compra.md`) já diz isso.
 - **Duas leituras do Firestore por pedido de quem entrou**, feitas em paralelo. É o custo de recusar na hora a
