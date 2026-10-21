@@ -79,10 +79,12 @@ mais, recusam cookie entre sites diferentes. **No iPhone o login simplesmente n�
 **O que valeu: a 2** (PO, 2026-10-16, na área do cliente do roteiro de UI/UX; **a D4 fechada assim em 2026-10-20**).
 A API fica atrás do site, em `/api`: em produção, `gruponaveg.com.br/api`, sem endereço próprio; na homologação, os
 endereços automáticos da Vercel, sem subdomínio. Falta só o DNS de `gruponaveg.com.br` no Registro.br. O endereço de
-quem acessa, que o limite por IP e o Turnstile pedem, é conferido na ADR-0003 da API (naveg-api-vercel#30).
+quem acessa, que o limite por IP e o Turnstile pedem, foi medido em 2026-10-21: a API o vê através do repasse
+([ADR-0003](adr/ADR-0003-a-sessao-e-os-segredos-da-conta.md); naveg-api-vercel#30).
 
-A forma da sessão (cookie, duração, como a API prova a conta para a plataforma) é a **ADR-0003** daqui, escrita
-junto da 7.4, depois que o KMP disser como o servidor prova quem é o cliente.
+A forma da sessão (um cookie `__Host-` assinado pela API, 14 dias renovados), a senha (scrypt) e os códigos dos
+links estão na **[ADR-0003](adr/ADR-0003-a-sessao-e-os-segredos-da-conta.md)** (2026-10-21). A plataforma não lê a
+conta, só o resumo; a API grava com o token de serviço, como na reserva.
 
 ## 4. O endurecimento, já com a compra em mente (passo 13 = entrega 6 do MVP)
 

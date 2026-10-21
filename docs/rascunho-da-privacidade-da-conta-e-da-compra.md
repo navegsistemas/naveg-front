@@ -18,8 +18,9 @@ Os trechos entre colchetes são o que ainda depende de decisão (do PO, do conta
 
 ### Quais dados, e para quê
 
-- **E-mail e senha**, para criar a conta e entrar. A senha não é guardada por nós: quem a guarda, cifrada, é o
-  serviço de autenticação [o Firebase Authentication, do Google — confirmar na ADR-0003].
+- **E-mail e senha**, para criar a conta e entrar. A senha não é guardada como você a digitou: guardamos só um
+  resumo dela, do qual não se volta à senha, e é ele que conferimos quando você entra (ADR-0003). Para recusar
+  senhas já vazadas na internet, consultamos uma base pública delas sem enviar a sua senha.
 - **Nome completo e documento (tipo e número)** de quem viaja, e a **data de nascimento** — a Capitania dos
   Portos exige a lista de passageiros com eles, e a conferência na doca também. Diferente do totem público, o
   documento é digitado no aparelho do próprio cliente, logado.
@@ -33,7 +34,7 @@ Autoridade Marítima que exige a lista].
 ### A sessão
 
 Para você continuar logado, o site guarda um **cookie de sessão**, necessário ao serviço, que o JavaScript da
-página não lê [a forma e a duração vêm da ADR-0003]. A seção "o site não usa cookies próprios" da versão de hoje
+página não lê. Ele dura 14 dias e se renova a cada vez que você usa o site; "Sair" o apaga (ADR-0003). A seção "o site não usa cookies próprios" da versão de hoje
 muda: passa a dizer que usa **só esse**, e nenhum de análise ou publicidade.
 
 ### Apagar a conta (O7)
