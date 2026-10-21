@@ -109,6 +109,11 @@ test.describe('a reserva no quiosque', () => {
   })
 
   test('a API fora do ar não perde o que foi preenchido', async ({ page }) => {
+    /* Com o passo da verificação (2.8), o "Tentar de novo" fica abaixo da dobra. A rolagem do próprio Playwright o deixa
+       na beirada da tela, e o clique se perde (medido em 2026-10-21: o pedido não sai). Quem está na tela clica no
+       botão que vê; aqui, sem rolagem suave e com o botão no meio da tela, o cenário confere o que é dele: o token
+       novo. */
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     const api = await servirApiFalsa(page, { envio: 'FORA_DO_AR' })
     await page.goto('/totem')
     await preencherAteAConferencia(page)
@@ -120,12 +125,10 @@ test.describe('a reserva no quiosque', () => {
     await expect(page.getByRole('link', { name: 'Enviar pelo WhatsApp' })).toHaveCount(0)
 
     /* Tentar de novo pede um token novo: eles não se reaproveitam. Desde a 2.8, o botão espera a verificação nova
-       ("Verificando…") e só então se libera. Com o passo da verificação, ele fica abaixo da dobra: o clique espera a
-       rolagem suave chegar, como quem está olhando a tela — clicar no meio dela erra o botão. */
+       ("Verificando…") e só então se libera. */
     const tentarDeNovo = page.getByRole('button', { name: 'Tentar de novo' })
     await expect(tentarDeNovo).toBeEnabled(PRAZO_DO_ENVIO)
-    await tentarDeNovo.scrollIntoViewIfNeeded()
-    await expect(tentarDeNovo).toBeInViewport({ ratio: 1 })
+    await tentarDeNovo.evaluate((botao) => botao.scrollIntoView({ block: 'center' }))
     await tentarDeNovo.click()
     await expect.poll(() => api.pedidos.length, PRAZO_DO_ENVIO).toBe(2)
     expect(api.pedidos.every((p) => p.desafio === TOKEN_DE_TESTE_DO_TURNSTILE)).toBe(true)
