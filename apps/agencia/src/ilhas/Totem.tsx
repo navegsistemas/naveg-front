@@ -116,6 +116,11 @@ export interface PropsDoTotem {
   readonly relogio?: () => Date
   /** A foto do cartão do Veículo, gerada no build pela página (decisão M da 2.2). */
   readonly fotoDoVeiculo?: FotoDoCartao | null
+  /**
+   * A verificação contra robô, como passo da conferência (2.8), na página e no quiosque. Quem a faz é a ilha; aqui ela
+   * só é posta no lugar. `null` na demonstração, que não envia.
+   */
+  readonly verificacao?: { readonly elemento: ReactNode; readonly verificada: boolean } | null
 }
 
 type Envio =
@@ -165,7 +170,7 @@ const RESPOSTAS_DO_SITE: RespostasDaReserva = { canal: 'SITE' }
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null, verificacao = null }: PropsDoTotem) {
   /* Com o calendário (a página), a passagem vai até o alcance da reserva — 90 dias, para passageiro e veículo
      (fluviapp-kmp#44). Sem ele (o quiosque), a lista fica na semana: o quiosque não muda (UI 1.3). */
   const { lerAgora, agora, catalogo, catalogoFalhou, oferta, recarregar } = useOferta(
@@ -577,6 +582,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
           pendencias={pendencias}
           enviando={envio.estado === 'ENVIANDO'}
           aoConfirmar={confirmar}
+          {...(verificacao !== null ? { verificacao } : {})}
           /* Na página, em blocos, com o "Mudar" e o que acontece ao confirmar (2.4, A, B e D). O quiosque não muda. */
           {...(site && previa.caso === 'OK'
             ? {

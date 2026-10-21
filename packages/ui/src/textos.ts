@@ -131,8 +131,19 @@ export const FALHA_DO_ENVIO: Readonly<Record<MotivoDaFalha, string>> = {
   CONEXAO:
     'A reserva não foi enviada. A internet pode ter caído, ou o sistema está fora do ar por um instante. O que você escolheu continua aqui.',
   LIMITE: 'Muitas reservas deste aparelho em pouco tempo. Tente de novo daqui a alguns minutos.',
-  DESAFIO: 'A verificação contra robô não passou. Atualize a página e tente de novo.',
+  DESAFIO: 'A verificação contra robô não passou. Tente de novo.',
 }
+
+/**
+ * **A verificação contra robô**, o passo visível da conferência (2.8, PO, 2026-10-21). O título fica acima do quadro
+ * da Cloudflare; as frases, quando ele não resolve. Sem rede, a frase é a da conexão (aceite do roteiro 3).
+ */
+export const TEXTO_DA_VERIFICACAO = {
+  titulo: 'Verificação contra robô',
+  semConexao: 'A verificação não carregou. A internet pode ter caído. O que você escolheu continua aqui.',
+  falhou: 'A verificação não passou.',
+  tentarDeNovo: 'Verificar de novo',
+} as const
 
 /** Na encomenda, a saída fechada pode ser também a semana que passou (2.6, D). */
 export const VALIDADE_DA_ENCOMENDA =

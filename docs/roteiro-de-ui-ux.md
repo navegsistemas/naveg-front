@@ -81,6 +81,7 @@ livre, sem cadastro (O11), e é ela que recebe tudo o que a compra não cobre �
 | **2.5** | **A conclusão** | o código `NVG-XXXXXX` e o botão "Enviar ao atendimento" (WhatsApp) |
 | **2.6** | **Os erros** | a saída que partiu, a API fora do ar, o catálogo que não carrega, o desafio do Turnstile |
 | **2.7** | **A reserva de encomenda** | o tipo do volume, a faixa de peso, quem manda, quem recebe, quem retira |
+| **2.8** | **A verificação contra robô** | o quadro do Turnstile, solto no rodapé da tela, fora do totem |
 
 **O que a análise vai trazer** se descobre no passo 2 de cada parte, não aqui. Ficam anotados, só como pontos a
 olhar, os que já apareceram em conversa: o preço da tabela (7.2) aparecer na reserva também; voltar e corrigir
@@ -146,7 +147,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 | etapa | seções | situação |
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.7 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87) |
+| **2 — Melhorias na reserva** | 2.1 a 2.8 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 sem mudança** (o calendário da 1.3 cobriu); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87); **2.8 decidida** (2026-10-21; a verificação contra robô como passo da conferência) |
 | **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -750,6 +751,46 @@ profissional"**, a última mudança na reserva. A pergunta E teve a recomendaç�
 - **a mensagem do WhatsApp** (E) muda no domain, que só a página usa: a API e o KMP não leem o texto, e o domain
   não precisa de versão nova. O atendente acha a reserva pelo código, agora o primeiro campo;
 - **o quiosque** ganha só as frases: lá não há WhatsApp.
+
+### 2.8 — A verificação contra robô
+
+**Situação:** **decidida** (2026-10-21): **A e B pela recomendação**. O pedido do PO, no mesmo dia: "não vi adequação à
+interface a verificação de robô, antes ele aparecia avulso no meio da tela embaixo e ficava lá mesmo depois de ter sido
+verificado; se possível, adiciona como pequeno passo extra pra confirmar reserva no próprio totem". **Wireframe:** os
+dois desenhos foram mostrados ao PO na própria pergunta, em texto.
+
+**Levantamento** (2026-10-21): o Turnstile era desenhado num contêiner preso ao `body` da página, fixo no rodapé da
+tela, fora do totem, e só no envio (`appearance: 'interaction-only'`). Quase sempre ele resolvia sem aparecer. Quando a
+Cloudflare pedia um toque, o quadro aparecia solto embaixo da tela e **ficava lá com o "Sucesso"**, porque nada o tirava
+depois do token. Vale para a passagem, o veículo e a encomenda, na página e no quiosque; a conta (3.1, 3.3) vai usar o
+mesmo.
+
+**Achados:**
+
+1. **o quadro solto não diz de onde vem**: aparece longe do botão, e parece outra coisa da página;
+2. **ele não sai depois de verificado**: fica sobre o conteúdo até recarregar;
+3. **carregar na conferência, e não no envio**, muda o momento em que a Cloudflare recebe o endereço: a política dizia
+   "Ao enviar uma reserva", e passa a dizer "na conferência, antes de você confirmar". Continua só para quem chega à
+   conferência.
+
+**Perguntas para o PO, com a recomendação:**
+
+| # | pergunta | recomendação |
+|---|---|---|
+| **A** | Como a verificação entra | **um passo visível da conferência**, "Verificação contra robô", acima do botão: começa sozinha ao abrir a conferência, quase sempre passa em um ou dois segundos com o visto, às vezes pede um toque; o "Confirmar reserva" diz "Verificando…" e espera. Contra: invisível como hoje, só que dentro do cartão e sumindo depois |
+| **B** | O quiosque | **igual à página**: ele tem o mesmo defeito. Contra: só corrigir o quadro solto |
+
+**A implementação:**
+
+- o quadro é o da Cloudflare (`appearance: 'always'`, `size: 'flexible'`, em português), dentro do cartão, com o título
+  no estilo dos blocos da conferência; ele sai da tela com a conferência;
+- **um token por envio**: o envio leva o token, e o quadro busca outro, que serve ao "Tentar de novo" se a API recusar.
+  O token que vence (5 minutos) se renova sozinho, e o botão volta a "Verificando…";
+- **quando não resolve**, a frase fica embaixo do quadro, com "Verificar de novo": sem rede, "A verificação não carregou.
+  A internet pode ter caído. O que você escolheu continua aqui."; com rede, "A verificação não passou.";
+- a frase do envio recusado por robô (2.6, A) perde o "Atualize a página": "A verificação contra robô não passou. Tente
+  de novo.", porque o "Tentar de novo" agora pede outra verificação;
+- a demonstração, que não envia, não tem o passo.
 
 ### A área do cliente — o levantamento (etapa 3, 4.1 e 4.2)
 

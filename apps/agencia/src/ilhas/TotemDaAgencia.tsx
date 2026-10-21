@@ -7,7 +7,7 @@
  *
  * - **O catálogo**: da API da agência, por padrão; o de demonstração só quando pedido
  *   (`PUBLIC_URL_DA_API=demonstracao`).
- * - **A reserva**: para a API, com o desafio do Turnstile, quando a chave pública está configurada
+ * - **A reserva**: para a API, com a verificação do Turnstile como passo da conferência, quando a chave pública está configurada
  *   (`PUBLIC_TURNSTILE_SITE_KEY`); sem ela, montada e guardada em memória, e a faixa diz que nada é enviado.
  *
  * As duas regras estão em `conteudo/api.ts`, com cenário.
@@ -23,7 +23,8 @@ import { WHATSAPP_DAS_RESERVAS } from '../conteudo/atendimento'
 import { CATALOGO_DE_DEMONSTRACAO } from '../conteudo/catalogo-de-demonstracao'
 import { ALCANCE_DO_CALENDARIO_DIAS, FUSO_DA_OPERACAO, INATIVIDADE_DO_QUIOSQUE_MS } from '../conteudo/operacao'
 import { Totem, type Demonstracao } from './Totem'
-import { desafioTurnstile } from './turnstile'
+import { verificacaoTurnstile } from './turnstile'
+import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraRobo'
 
 export interface PropsDaIlha {
   readonly modo: 'pagina' | 'quiosque'
@@ -43,13 +44,16 @@ export default function TotemDaAgencia({ modo, fotoDoVeiculo = null }: PropsDaIl
     () => (FONTE.tipo === 'API' ? catalogoHttp(FONTE.url) : catalogoFixo(CATALOGO_DE_DEMONSTRACAO)),
     [],
   )
+  /* A verificação contra robô é um passo da conferência (2.8): o envio leva o token que ela guardou. */
+  const verificacao = useMemo(() => (ENVIO.tipo === 'API' ? verificacaoTurnstile(ENVIO.chaveDoDesafio) : null), [])
   const envio = useMemo(
     () =>
-      ENVIO.tipo === 'API'
-        ? envioHttp(ENVIO.url, desafioTurnstile(ENVIO.chaveDoDesafio))
+      ENVIO.tipo === 'API' && verificacao !== null
+        ? envioHttp(ENVIO.url, verificacao.obterDesafio)
         : envioLocal(new ReservaEmMemoria()),
-    [],
+    [verificacao],
   )
+  const estadoDaVerificacao = useEstadoDaVerificacao(verificacao)
   const quiosque = modo === 'quiosque'
 
   return (
@@ -63,6 +67,14 @@ export default function TotemDaAgencia({ modo, fotoDoVeiculo = null }: PropsDaIl
       atendimento={WHATSAPP_DAS_RESERVAS}
       alcanceDoCalendario={quiosque ? null : ALCANCE_DO_CALENDARIO_DIAS}
       fotoDoVeiculo={fotoDoVeiculo}
+      verificacao={
+        verificacao === null || estadoDaVerificacao === null
+          ? null
+          : {
+              elemento: <PassoDaVerificacao verificacao={verificacao} estado={estadoDaVerificacao} />,
+              verificada: estadoDaVerificacao === 'VERIFICADA',
+            }
+      }
     />
   )
 }
