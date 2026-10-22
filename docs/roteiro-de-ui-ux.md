@@ -146,7 +146,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; as outras, a começar |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; **1.4 decidida em 2026-10-22** (o passo a passo em esquema), no ar com o PR `ui/1.4-passo-a-passo`; as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.8 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 reaberta pelo PO e decidida em 2026-10-22** (o cartão da saída; o calendário da 1.3 cobriu o dia), **no ar com o PR `ui/2.1-cartao-da-saida`**; **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87); **2.8 no ar** (#92; a verificação contra robô como passo da conferência), **aceita pelo PO no celular em 2026-10-21** |
 | **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
@@ -432,6 +432,29 @@ caixa alta ("F/B MARIA IVANIR") aparece capitulado. A foto é a da vitrine, em m
 embarcação **pelo nome**, porque o catálogo tem outro `id`. No celular, o rótulo do cais fica em cima do lugar: em
 duas colunas estreitas, o nome do porto quebrava em quatro linhas. **O quiosque recebe o mesmo cartão, com o dia da
 saída**, porque a lista dele mistura os dias da semana e não tem o título "Saídas de …"; ele não mostra as fotos.
+
+### 1.4 — Envie sua encomenda
+
+**Situação:** decidida pelo PO em 2026-10-22 e implementada no PR `ui/1.4-passo-a-passo`, à espera do aceite no
+celular. O pedido do PO: "melhor do que uma lista de frases, uma esquematização básica do passo a passo pra encomenda
+e aí o botão no canto inferior direito da seção logo após o passo a passo". **Wireframe** (privado do PO): [o passo
+a passo](https://claude.ai/artifact/MpugXBiyRnipqy6TYP1dAH), com as capturas de antes ao lado.
+
+**Levantamento** (2026-10-22): o título, o subtítulo, uma lista numerada de quatro frases e o botão "Mandar uma
+encomenda" logo abaixo, à esquerda. No celular, a seção tinha 606px; no computador, 483px, com a lista numa coluna
+de 680px e o resto da largura vazio.
+
+**Decisões do PO (2026-10-22), todas pela recomendação** ("Perfeito, implemente"):
+
+| # | pergunta | decisão |
+|---|---|---|
+| **A** | O esquema | **Cada passo com um ícone do site, um título curto e uma frase.** No celular, um embaixo do outro, ligados por uma linha; no computador, os quatro lado a lado |
+| **B** | Os títulos | **"Reserve aqui", "Confirme pelo WhatsApp", "Entregue no porto" e "Retire no destino".** As frases são as de antes, divididas: nada novo foi prometido |
+| **C** | O botão | **No celular, de largura inteira; no computador, no canto inferior direito**, logo depois do passo a passo |
+
+**Implementação** (`ui/1.4-passo-a-passo`): os passos em `conteudo/encomenda.ts` (ícone, título e frase), com
+cenário; o desenho em `EnvieSuaEncomenda.astro`, sem script. O título de cada passo é um `h3`, e o ícone é decoração.
+No celular, a seção tem 829px, porque cada passo ganhou um título; no computador, 546px, agora com a largura inteira.
 
 ### 2.2 — O que vai embarcar
 

@@ -5,13 +5,32 @@
  * Não tem script: é uma lista e um link. O link leva à âncora dentro da seção da reserva, e a ilha de lá começa pela
  * encomenda (`ANCORA_DA_RESERVA_DE_ENCOMENDA`). Sem JavaScript, ele leva à reserva, que diz como falar com o
  * atendimento.
+ *
+ * O passo a passo é um esquema (UI 1.4, decidida pelo PO em 2026-10-22): no celular, um passo embaixo do outro, ligados
+ * por uma linha; no computador, os quatro lado a lado. O botão vem logo depois, no canto inferior direito — no
+ * celular, de largura inteira.
  */
+import Icone from './Icone.astro'
 import { ENVIE_SUA_ENCOMENDA } from '../conteudo/encomenda'
 ---
 
 <div class="encomenda">
   <ol class="encomenda__passos">
-    {ENVIE_SUA_ENCOMENDA.passos.map((passo) => <li>{passo}</li>)}
+    {
+      ENVIE_SUA_ENCOMENDA.passos.map((passo, i) => (
+        <li class="encomenda__passo">
+          {/* O ícone é decoração (o título diz o passo); o `<span>` é o que o estilo escopado alcança. */}
+          <span class="encomenda__marca">
+            <Icone slug={passo.icone} tamanho={26} />
+          </span>
+          <div class="encomenda__texto">
+            <span class="encomenda__numero">Passo {i + 1}</span>
+            <h3 class="encomenda__titulo">{passo.titulo}</h3>
+            <p>{passo.texto}</p>
+          </div>
+        </li>
+      ))
+    }
   </ol>
   <a class="acao" href={ENVIE_SUA_ENCOMENDA.acao.href}>{ENVIE_SUA_ENCOMENDA.acao.rotulo}</a>
 </div>
@@ -19,20 +38,115 @@ import { ENVIE_SUA_ENCOMENDA } from '../conteudo/encomenda'
 <style>
   .encomenda {
     display: grid;
-    gap: var(--espaco-4);
-    max-width: var(--largura-texto);
+    gap: var(--espaco-5);
   }
 
   .encomenda__passos {
     display: grid;
-    gap: var(--espaco-2);
     margin: 0;
-    padding-inline-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* No celular: o círculo à esquerda, o texto à direita, e uma linha que desce até o passo seguinte. */
+  .encomenda__passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    align-content: start;
+    column-gap: var(--espaco-3);
+    padding-block-end: var(--espaco-4);
+  }
+
+  .encomenda__passo:last-child {
+    padding-block-end: 0;
+  }
+
+  .encomenda__passo:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-block: 3.25rem 0;
+    inset-inline-start: calc(1.625rem - 1px);
+    width: 2px;
+    background: var(--border);
+  }
+
+  .encomenda__marca {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 2px solid var(--text);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    box-sizing: border-box;
+  }
+
+  .encomenda__texto {
+    display: grid;
+    gap: var(--espaco-1);
+    padding-block-start: var(--espaco-1);
+  }
+
+  .encomenda__numero {
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .encomenda__titulo {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 1.1875rem;
+  }
+
+  .encomenda__texto p {
+    margin: 0;
     color: var(--text-body);
     font-size: 1.0625rem;
   }
 
+  /* O botão logo depois do passo a passo: de largura inteira no celular. */
   .encomenda .acao {
-    justify-self: start;
+    justify-self: stretch;
+    text-align: center;
+  }
+
+  /* No computador: os quatro lado a lado, a linha correndo entre os círculos, e o botão no canto inferior direito. */
+  @media (min-width: 64rem) {
+    .encomenda__passos {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .encomenda__passo {
+      grid-template-columns: none;
+      row-gap: var(--espaco-3);
+      padding-block-end: 0;
+      padding-inline-end: var(--espaco-4);
+    }
+
+    .encomenda__passo:not(:last-child)::before {
+      inset-block: calc(1.875rem - 1px) auto;
+      inset-inline: 3.75rem 0;
+      width: auto;
+      height: 2px;
+    }
+
+    .encomenda__marca {
+      width: 3.75rem;
+      height: 3.75rem;
+    }
+
+    .encomenda__texto {
+      padding-block-start: 0;
+    }
+
+    .encomenda .acao {
+      justify-self: end;
+    }
   }
 </style>
