@@ -22,33 +22,10 @@ que o PO estranhar no caminho vira pedido.
 
 ## Pendentes (já no ar)
 
-Os roteiros 1 a 5 foram aceitos pelo PO em 2026-10-20, a 2.8 em 2026-10-21, e os 6 e 7 (o cartão da saída e o passo a
-passo da encomenda) em 2026-10-22; as fichas guardam as datas. Os de
-agora estão também na página "Rumo ao MVP" (`#aceite`), onde o PO marca Ok ou Falhou em cada passo.
-
-### 8 · Uma reserva até o painel, depois das promoções de 2026-10-22
-
-A conferência da API ([RUNBOOK](RUNBOOK.md), §5), depois da última promoção do dia (o cadastro e o e-mail, naveg-api-vercel#46
-e #47; entrar e sair, #48 e #49). A homologação está no `0e100cc` desde 2026-10-22, com as quatro: o roteiro já pode ser
-feito.
-
-| # | quem | faça | espere |
-|---|---|---|---|
-| 1 | Celular | Faça uma reserva de passagem até o fim, com "Teste PO" e o seu celular | A conclusão com o código NVG-… e o botão "Enviar ao atendimento" |
-| 2 | Celular | Toque em "Enviar ao atendimento" | O WhatsApp abre com a reserva escrita e o código |
-| 3 | Agente NAVEG | Abra as reservas no painel do KMP | A reserva está lá, com o mesmo código |
-
-### 9 · A foto em faixa no cartão da saída (#103) e o espaço das perguntas do totem (#104)
-
-O PO reviu a C da 2.1 ao ver o cartão no ar, em 2026-10-22, e pediu espaço em volta do título das perguntas do totem.
-Os dois entraram depois dos roteiros 6 e 7.
-
-| # | quem | faça | espere |
-|---|---|---|---|
-| 1 | Celular | Toque em "Reservar agora" e vá até o calendário, num dia com o Maria Ivanir ou o Regional | Cada cartão começa com a foto em faixa, de ponta a ponta, com o nome da embarcação sobre ela; as horas vêm embaixo, e o cais, em letra menor, antes do botão |
-| 2 | Celular | Troque de dia até achar o Maria Eduarda | Uma faixa baixa com o desenho de um barco e o nome, no lugar da foto |
-| 3 | Celular | Olhe a chegada no cartão | "Chegada prevista" pode quebrar em duas linhas; a hora aparece inteira, sem corte |
-| 4 | Celular | Volte às perguntas do totem ("Quantos volumes?", "Escolha o dia") | O título da pergunta com espaço em cima e embaixo, sem encostar no quadro do que já foi respondido, e nada fora do lugar |
+Nenhum. Os roteiros 1 a 5 foram aceitos pelo PO em 2026-10-20, a 2.8 em 2026-10-21, e os 6 a 9 em 2026-10-22: o cartão
+da saída, com a foto em faixa, o passo a passo da encomenda, e uma reserva até o painel depois das promoções da API. As
+fichas guardam as datas. O próximo entra aqui e na página "Rumo ao MVP" (`#aceite`), onde o PO marca Ok ou Falhou em
+cada passo.
 
 ## As que virão
 
