@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { CatalogoDoFluviapp, DataCalendario } from '@navegsistemas/domain'
 import { catalogoFixo, envioLocal, ReservaEmMemoria, type EnvioDaReserva, type FonteDoCatalogo } from '@navegsistemas/dados'
+import { chaveDaEmbarcacao, type FotoDoCartao } from '@navegsistemas/ui'
 
 import { CATALOGO_DE_DEMONSTRACAO } from '../src/conteudo/catalogo-de-demonstracao'
 import { FUSO_DA_OPERACAO } from '../src/conteudo/operacao'
@@ -66,6 +67,11 @@ function saidasListadas(): HTMLElement[] {
   return lista === null ? [] : within(lista).queryAllByRole('listitem')
 }
 
+/** A cidade de onde sai cada saída listada: a da ponta "Saída" do cartão (2.1). */
+function origensListadas(): (string | null | undefined)[] {
+  return saidasListadas().map((li) => li.querySelector('.totem-travessia__ponta .totem-travessia__cidade')?.textContent)
+}
+
 /** Escolhe a primeira saída cuja embarcação tem este nome — depois que as saídas carregaram. */
 async function escolherSaida(embarcacao: string) {
   await screen.findAllByRole('button', { name: 'Reservar esta saída' })
@@ -108,7 +114,9 @@ describe('a lista de saídas', () => {
     const itens = saidasListadas()
     /* Hoje às 08:00: a lancha das 07:00 já partiu; a primeira é o ferry das 18:00. */
     expect(itens[0]?.textContent).toContain('Ferry de demonstração')
-    expect(itens[0]?.textContent).toContain('Terça-feira, 13/10 · 18:00')
+    /* Sem calendário, o cartão diz o dia (2.1). */
+    expect(itens[0]?.textContent).toContain('terça, 13/10')
+    expect(itens[0]?.textContent).toContain('18:00')
     expect(itens[1]?.textContent).toContain('21:30')
     expect(screen.getByText(/Demonstração\./)).toBeTruthy()
   })
@@ -145,7 +153,9 @@ describe('a lista de saídas', () => {
 describe('o calendário, na página (UI 1.3)', () => {
   const NOVENTA_DIAS = 90
 
-  function montarComCalendario(opcoes: { atendimento?: string | null } = {}) {
+  function montarComCalendario(
+    opcoes: { atendimento?: string | null; fotos?: Readonly<Record<string, FotoDoCartao>> } = {},
+  ) {
     render(
       <Totem
         fonte={catalogoFixo(CATALOGO_DE_DEMONSTRACAO)}
@@ -156,6 +166,7 @@ describe('o calendário, na página (UI 1.3)', () => {
         atendimento={opcoes.atendimento ?? null}
         alcanceDoCalendario={NOVENTA_DIAS}
         relogio={() => TERCA_8H}
+        {...(opcoes.fotos !== undefined ? { fotosDasEmbarcacoes: opcoes.fotos } : {})}
       />,
     )
     /* Na página, o que vai embarcar vem antes do dia (naveg-front#66). */
@@ -167,7 +178,8 @@ describe('o calendário, na página (UI 1.3)', () => {
     expect(await screen.findByRole('heading', { level: 4, name: 'Saídas de terça-feira, 13 de outubro' })).toBeTruthy()
     expect(pergunta()).toBe('Escolha o dia')
     expect(saidasListadas().length).toBeGreaterThan(0)
-    expect(saidasListadas().every((li) => li.textContent?.includes('13/10'))).toBe(true)
+    /* O dia está no título, e o cartão não o repete (2.1, A). */
+    expect(saidasListadas().some((li) => li.textContent?.includes('13/10'))).toBe(false)
     expect(screen.getByRole('button', { name: /^terça-feira, 13 de outubro/ }).getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -181,7 +193,10 @@ describe('o calendário, na página (UI 1.3)', () => {
     const titulo = screen.getByRole('heading', { level: 4 })
     expect(titulo.textContent).toBe('Saídas de quarta-feira, 14 de outubro')
     expect(document.activeElement).toBe(titulo)
-    expect(saidasListadas().every((li) => li.textContent?.includes('14/10'))).toBe(true)
+    /* O cartão não repete o dia (2.1, A): é o quadro da saída escolhida que o confirma. */
+    const primeira = saidasListadas()[0] as HTMLElement
+    fireEvent.click(within(primeira).getByRole('button', { name: 'Reservar esta saída' }))
+    expect(screen.getByText(/^Quarta-feira, 14\/10 · /)).toBeTruthy()
   })
 
   it('o dia diz de onde sai, e um dia com os dois sentidos diz isso (decisão A)', async () => {
@@ -197,11 +212,11 @@ describe('o calendário, na página (UI 1.3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cidade Exemplo A' }))
     expect(screen.getByRole('button', { name: 'Cidade Exemplo A' }).getAttribute('aria-pressed')).toBe('true')
     expect(saidasListadas().length).toBeGreaterThan(0)
-    expect(saidasListadas().every((li) => li.textContent?.includes('Cidade Exemplo A/PA →'))).toBe(true)
+    expect(origensListadas().every((origem) => origem === 'Cidade Exemplo A/PA')).toBe(true)
     expect(screen.getByRole('button', { name: /^quarta-feira, 14 de outubro/ }).textContent).toBe('14CEA')
 
     fireEvent.click(screen.getByRole('button', { name: 'Todas' }))
-    expect(saidasListadas().some((li) => li.textContent?.includes('Cidade Exemplo B/PA →'))).toBe(true)
+    expect(origensListadas()).toContain('Cidade Exemplo B/PA')
   })
 
   it('os 90 dias se escolhem, sem o aviso do atendimento (naveg-front#51, fluviapp-kmp#44)', async () => {
@@ -228,6 +243,21 @@ describe('o calendário, na página (UI 1.3)', () => {
     expect((screen.getByRole('button', { name: 'Próximo mês' }) as HTMLButtonElement).disabled).toBe(true)
     expect(screen.getByRole('button', { name: /^domingo, 10 de janeiro, saídas de/ })).toBeTruthy()
     expect(screen.getByText('segunda-feira, 11 de janeiro')).toBeTruthy()
+  })
+
+  it('o cartão da saída (2.1): as horas e a duração, o cais, e a embarcação com a foto ou o desenho', async () => {
+    montarComCalendario({ fotos: { [chaveDaEmbarcacao('Ferry de demonstração')]: { src: '/ferry.webp', srcset: '/ferry.webp 72w' } } })
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    const ferry = saidasListadas().find((li) => li.textContent?.includes('Ferry de demonstração')) as HTMLElement
+    expect(within(ferry).getByText('18:00')).toBeTruthy()
+    expect(within(ferry).getByText('21:30')).toBeTruthy()
+    expect(ferry.textContent).toContain('cerca de 3 h 30 de viagem')
+    expect(within(ferry).getByText('Porto de demonstração · Cidade Exemplo A/PA')).toBeTruthy()
+    expect(ferry.querySelector('img')?.getAttribute('src')).toBe('/ferry.webp')
+    /* O navio não tem foto: o desenho de um barco, e nunca a foto de outra embarcação (C). */
+    const navio = saidasListadas().find((li) => li.textContent?.includes('Navio de demonstração')) as HTMLElement
+    expect(navio.querySelector('img')).toBeNull()
+    expect(navio.querySelector('.totem-travessia__foto--sem')).not.toBeNull()
   })
 
   it('escolher a saída leva aos dados, e voltar devolve ao mesmo dia', async () => {
@@ -795,6 +825,9 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
 
   it('o quiosque não muda: "Passo n de m", o recomeçar de antes, e o quadro sem "Trocar"', async () => {
     montar({ quiosque: true })
+    await screen.findAllByRole('button', { name: 'Reservar esta saída' })
+    /* Sem calendário, a lista mistura os dias: o cartão diz o dia da saída. */
+    expect(saidasListadas()[0]?.textContent).toMatch(/terça, 13\/10/)
     await escolherSaida('Ferry de demonstração')
     expect(screen.getByText(/^Passo \d+ de \d+$/)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Recomeçar' })).toBeTruthy()
@@ -821,8 +854,10 @@ describe('a saída escolhida e as etapas (UI 2.2)', () => {
     })
     embarcarPassageiros()
     await screen.findAllByRole('button', { name: 'Reservar esta saída' })
-    const quarta = saidasListadas().find((li) => li.textContent?.includes('14/10 · 19:00'))
+    /* O aviso já está no cartão da lista (2.1, D), com a hora do dia. */
+    const quarta = saidasListadas().find((li) => li.textContent?.includes('Embarque alterado nesta data: Cais em obra'))
     if (quarta === undefined) throw new Error('a saída alterada não está na lista')
+    expect(within(quarta).getByText('19:00')).toBeTruthy()
     fireEvent.click(within(quarta).getByRole('button', { name: 'Reservar esta saída' }))
     expect(screen.getByText('Embarque alterado nesta data: Cais em obra')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Maria Souza' } })

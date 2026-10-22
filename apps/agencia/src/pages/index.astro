@@ -23,7 +23,9 @@ import EnvieSuaEncomenda from '../componentes/EnvieSuaEncomenda.astro'
 import { ANCORA_DA_RESERVA_DE_ENCOMENDA, SECOES } from '../conteudo/secoes'
 import { getImage } from 'astro:assets'
 
-import { FOTO_DO_CARTAO_DO_VEICULO, VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
+import { chaveDaEmbarcacao, type FotoDoCartao } from '@navegsistemas/ui'
+
+import { EMBARCACOES, FOTO_DO_CARTAO_DO_VEICULO, VITRINE_VISIVEL, folhaDaVitrine } from '../conteudo/embarcacoes'
 import { hashDoTrecho, politicaDaPagina, somarOTurnstile } from '../conteudo/seguranca'
 
 /* O que esta página soma à política do site (`conteudo/seguranca.ts`): o Turnstile, com que o totem e a
@@ -40,6 +42,15 @@ const imagemDoVeiculo =
     : await getImage({ src: FOTO_DO_CARTAO_DO_VEICULO, widths: [480, 800, 1200], format: 'webp' })
 const fotoDoVeiculo =
   imagemDoVeiculo === null ? null : { src: imagemDoVeiculo.src, srcset: imagemDoVeiculo.srcSet.attribute }
+
+/* As miniaturas do cartão da saída (UI 2.1, decisão C): a foto da vitrine, em 72px e no dobro, pelo nome da
+   embarcação — o catálogo tem outro `id`. A que ainda não tem foto fica de fora, e o cartão desenha um barco. */
+const fotosDasEmbarcacoes: Record<string, FotoDoCartao> = {}
+for (const embarcacao of EMBARCACOES) {
+  if (embarcacao.imagem === null) continue
+  const miniatura = await getImage({ src: embarcacao.imagem, widths: [72, 144, 216], format: 'webp' })
+  fotosDasEmbarcacoes[chaveDaEmbarcacao(embarcacao.nome)] = { src: miniatura.src, srcset: miniatura.srcSet.attribute }
+}
 
 /** O que cada seção ainda espera. A entrada sai daqui quando o passo dela fecha. */
 const PENDENCIAS: Readonly<Record<string, string>> = {}
@@ -60,7 +71,7 @@ const PENDENCIAS: Readonly<Record<string, string>> = {}
           {/* As ilhas da página: o código de cada uma desce quando a seção dela entra na tela. */}
           {/* A âncora da reserva já em "Encomenda" (2.7, B): o botão da seção da encomenda aponta para cá. */}
           {secao.id === 'totem' && <span id={ANCORA_DA_RESERVA_DE_ENCOMENDA}></span>}
-          {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" fotoDoVeiculo={fotoDoVeiculo} />}
+          {secao.id === 'totem' && <TotemDaAgencia client:visible modo="pagina" fotoDoVeiculo={fotoDoVeiculo} fotosDasEmbarcacoes={fotosDasEmbarcacoes} />}
           {secao.id === 'encomendas' && <EnvieSuaEncomenda />}
           {secao.id === 'totem' && <SemJavaScript oQue="o totem de reserva" paraQue="reservar" />}
           {secao.pendenteDoPasso !== null && (

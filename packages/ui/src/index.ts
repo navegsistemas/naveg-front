@@ -6,6 +6,8 @@
  * só consome tokens.
  */
 export { CalendarioDeSaidas } from './CalendarioDeSaidas.js'
+export { chaveDaEmbarcacao, diaCurto, nomeDaEmbarcacao, rotuloDaDuracao, textoDoCartao } from './cartao-da-saida.js'
+export type { TextoDoCartao } from './cartao-da-saida.js'
 export type { PropsDoCalendario } from './CalendarioDeSaidas.js'
 export {
   NOMES_DOS_MESES,

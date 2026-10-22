@@ -7,6 +7,8 @@ import { useState, type ReactNode } from 'react'
 
 import type { PendenciaDaReserva, TravessiaOfertada } from '@navegsistemas/domain'
 
+import { chaveDaEmbarcacao, textoDoCartao } from './cartao-da-saida.js'
+import type { FotoDoCartao } from './OQueVaiEmbarcar.js'
 import type { AlvoDoBloco, BlocoDoResumo, LinhaDoResumo } from './resumo.js'
 import { TEXTO_DA_PENDENCIA } from './textos.js'
 
@@ -17,34 +19,106 @@ export interface PropsDaLista {
   readonly aoEscolher: (travessia: TravessiaOfertada) => void
   /** O botão de cada saída. O padrão é o do totem de passagem. */
   readonly rotuloDaEscolha?: string
+  /** As fotos das embarcações, pela `chaveDaEmbarcacao` do nome (decisão C). Sem a foto, o desenho de um barco. */
+  readonly fotos?: Readonly<Record<string, FotoDoCartao>>
+  /**
+   * O dia em cada cartão. Na página, o título "Saídas de …" já o diz (decisão A); a lista sem calendário, a do
+   * quiosque, mistura os dias e precisa dele.
+   */
+  readonly comODia?: boolean
 }
 
 /**
  * **As saídas disponíveis**, na ordem da partida — a ordem e o recorte vêm de `travessiasOfertadas`, e a lista
  * só desenha. Vazia, ela diz que não há saída nos próximos dias, em vez de sumir.
+ *
+ * Cada cartão (UI 2.1, decidida pelo PO em 2026-10-22): a data alterada no alto (D); a saída e a chegada em números
+ * grandes, com a cidade e a duração (A); o cais de embarque e o de desembarque antes de escolher (B); a miniatura da
+ * embarcação (C); e o botão (E).
  */
-export function ListaDeTravessias({ travessias, aoEscolher, rotuloDaEscolha = 'Reservar esta saída' }: PropsDaLista) {
+export function ListaDeTravessias({
+  travessias,
+  aoEscolher,
+  rotuloDaEscolha = 'Reservar esta saída',
+  fotos = {},
+  comODia = false,
+}: PropsDaLista) {
   if (travessias.length === 0) {
     return <p className="totem-vazio">Não há saídas disponíveis nos próximos sete dias.</p>
   }
   return (
     <ul className="totem-travessias" role="list">
-      {travessias.map((travessia) => (
-        <li key={travessia.id} className="totem-travessia">
-          <p className="totem-travessia__trecho">
-            {travessia.rotulos.origem} <span aria-hidden="true">→</span>
-            <span className="apenas-leitor"> para </span> {travessia.rotulos.destino}
-          </p>
-          <p className="totem-travessia__quando">
-            <span>Saída: {travessia.rotulos.partida}</span>
-            <span>Chegada prevista: {travessia.rotulos.chegada}</span>
-          </p>
-          <p className="totem-travessia__embarcacao">{travessia.rotulos.embarcacao}</p>
-          <button type="button" className="acao" onClick={() => aoEscolher(travessia)}>
-            {rotuloDaEscolha}
-          </button>
-        </li>
-      ))}
+      {travessias.map((travessia) => {
+        const { rotulos } = travessia
+        const texto = textoDoCartao(travessia)
+        const foto = fotos[chaveDaEmbarcacao(travessia.embarcacao.nome)]
+        return (
+          <li key={travessia.id} className="totem-travessia">
+            {rotulos.alteracao !== null && <p className="totem-travessia__alterada">{rotulos.alteracao}</p>}
+            <div className="totem-travessia__horario">
+              <p className="totem-travessia__ponta">
+                <span className="totem-travessia__rotulo">Saída</span>
+                <span className="totem-travessia__hora">{texto.saida}</span>
+                <span className="totem-travessia__cidade">{rotulos.origem}</span>
+                {comODia && <span className="totem-travessia__dia">{texto.diaDaSaida}</span>}
+              </p>
+              <p className="totem-travessia__duracao">
+                <span>
+                  <span aria-hidden="true">≈ </span>
+                  <span className="apenas-leitor">cerca de </span>
+                  {texto.duracao}
+                  <span className="apenas-leitor"> de viagem</span>
+                </span>
+              </p>
+              <p className="totem-travessia__ponta totem-travessia__ponta--chegada">
+                <span className="totem-travessia__rotulo">Chegada prevista</span>
+                <span className="totem-travessia__hora">{texto.chegada}</span>
+                <span className="totem-travessia__cidade">{rotulos.destino}</span>
+                {texto.diaDaChegada !== null && <span className="totem-travessia__dia">{texto.diaDaChegada}</span>}
+              </p>
+            </div>
+            <div className="totem-travessia__rodape">
+              <dl className="totem-travessia__cais">
+                <dt>Embarque</dt>
+                <dd>{rotulos.embarque}</dd>
+                <dt>Desembarque</dt>
+                <dd>{rotulos.desembarque}</dd>
+              </dl>
+              <p className="totem-travessia__embarcacao">
+                {/* Decoração: o nome vem escrito ao lado, e a foto não precisa ser lida a cada saída. */}
+                {foto !== undefined ? (
+                  <img
+                    className="totem-travessia__foto"
+                    src={foto.src}
+                    srcSet={foto.srcset}
+                    sizes="72px"
+                    alt=""
+                    width={72}
+                    height={54}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span className="totem-travessia__foto totem-travessia__foto--sem" aria-hidden="true">
+                    <svg viewBox="0 0 34 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 15h28l-4 6H7z" />
+                      <path d="M8 15V9h16v6" />
+                      <path d="M12 9V5h7v4" />
+                    </svg>
+                  </span>
+                )}
+                <span className="totem-travessia__nome">
+                  <span className="totem-travessia__barco">{texto.embarcacao}</span>
+                  <span className="totem-travessia__tipo">{texto.tipo}</span>
+                </span>
+              </p>
+              <button type="button" className="acao" onClick={() => aoEscolher(travessia)}>
+                {rotuloDaEscolha}
+              </button>
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }
