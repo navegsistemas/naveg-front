@@ -19,7 +19,8 @@ export const TEXTO_DO_PASSO: Readonly<Record<PassoDaReserva, TextoDoPasso>> = {
   CATEGORIA: { pergunta: 'O que vai embarcar?' },
   EMBARQUE: { pergunta: 'O que vai embarcar?' },
   PORTE_DO_VEICULO: { pergunta: 'Leve ou pesado?' },
-  ACOMODACAO: { pergunta: 'Onde você quer viajar?' },
+  /* "Selecione uma acomodação", e não "Onde você quer viajar?" (PO, 2026-10-22, roteiro 8). */
+  ACOMODACAO: { pergunta: 'Selecione uma acomodação' },
   TIPO_TARIFARIO: {
     pergunta: 'Qual o tipo da passagem?',
     ajuda: 'Meia e gratuidade são conferidas no atendimento, com o documento de quem viaja.',
@@ -91,8 +92,9 @@ export const TEXTO_DO_PASSO_NO_SITE: Readonly<Partial<Record<PassoDaReserva, Tex
   },
   QUANTIDADE_PESSOAS: { pergunta: 'Quantos viajam?' },
   CLASSE_VEICULO: { pergunta: 'Qual?' },
+  /* "Vocês" soava errado para quem viaja sozinho (PO, 2026-10-22, roteiro 8). */
   ACOMODACAO: {
-    pergunta: 'Onde vocês querem viajar?',
+    pergunta: 'Selecione uma acomodação',
     ajuda: 'Escolha uma para o grupo. Se não couber todo mundo, o atendimento divide.',
   },
 }
