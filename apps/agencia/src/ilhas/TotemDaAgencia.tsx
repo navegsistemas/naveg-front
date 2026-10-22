@@ -30,6 +30,8 @@ export interface PropsDaIlha {
   readonly modo: 'pagina' | 'quiosque'
   /** A foto do cartão do Veículo, que a página gera no build (decisão M da 2.2). O quiosque não a usa. */
   readonly fotoDoVeiculo?: FotoDoCartao | null
+  /** As miniaturas das embarcações no cartão da saída (UI 2.1, C), que a página gera no build. O quiosque não as usa. */
+  readonly fotosDasEmbarcacoes?: Readonly<Record<string, FotoDoCartao>>
 }
 
 /* Lidas no build: um valor inválido quebra o build aqui, e não no navegador de quem abre a página. */
@@ -39,7 +41,7 @@ const ENVIO = envioConfigurado(FONTE, import.meta.env.PUBLIC_TURNSTILE_SITE_KEY)
 const DEMONSTRACAO: Demonstracao | null =
   FONTE.tipo === 'DEMONSTRACAO' ? 'SAIDAS_E_ENVIO' : ENVIO.tipo === 'MEMORIA' ? 'ENVIO' : null
 
-export default function TotemDaAgencia({ modo, fotoDoVeiculo = null }: PropsDaIlha) {
+export default function TotemDaAgencia({ modo, fotoDoVeiculo = null, fotosDasEmbarcacoes = {} }: PropsDaIlha) {
   const fonte = useMemo(
     () => (FONTE.tipo === 'API' ? catalogoHttp(FONTE.url) : catalogoFixo(CATALOGO_DE_DEMONSTRACAO)),
     [],
@@ -67,6 +69,7 @@ export default function TotemDaAgencia({ modo, fotoDoVeiculo = null }: PropsDaIl
       atendimento={WHATSAPP_DAS_RESERVAS}
       alcanceDoCalendario={quiosque ? null : ALCANCE_DO_CALENDARIO_DIAS}
       fotoDoVeiculo={fotoDoVeiculo}
+      fotosDasEmbarcacoes={fotosDasEmbarcacoes}
       verificacao={
         verificacao === null || estadoDaVerificacao === null
           ? null

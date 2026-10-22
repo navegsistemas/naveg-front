@@ -116,6 +116,8 @@ export interface PropsDoTotem {
   readonly relogio?: () => Date
   /** A foto do cartão do Veículo, gerada no build pela página (decisão M da 2.2). */
   readonly fotoDoVeiculo?: FotoDoCartao | null
+  /** As miniaturas das embarcações no cartão da saída, pela `chaveDaEmbarcacao` do nome (UI 2.1, decisão C). */
+  readonly fotosDasEmbarcacoes?: Readonly<Record<string, FotoDoCartao>>
   /**
    * A verificação contra robô, como passo da conferência (2.8), na página e no quiosque. Quem a faz é a ilha; aqui ela
    * só é posta no lugar. `null` na demonstração, que não envia.
@@ -170,7 +172,7 @@ const RESPOSTAS_DO_SITE: RespostasDaReserva = { canal: 'SITE' }
 
 const relogioDoSistema = () => new Date()
 
-export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null, verificacao = null }: PropsDoTotem) {
+export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demonstracao, quiosque = false, atendimento = null, alcanceDoCalendario = null, relogio = relogioDoSistema, fotoDoVeiculo = null, fotosDasEmbarcacoes = {}, verificacao = null }: PropsDoTotem) {
   /* Com o calendário (a página), a passagem vai até o alcance da reserva — 90 dias, para passageiro e veículo
      (fluviapp-kmp#44). Sem ele (o quiosque), a lista fica na semana: o quiosque não muda (UI 1.3). */
   const { lerAgora, agora, catalogo, catalogoFalhou, oferta, recarregar } = useOferta(
@@ -534,7 +536,7 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
     ) : catalogo === null ? (
       <p className="totem-vazio">Carregando as saídas…</p>
     ) : calendario === null ? (
-      <ListaDeTravessias travessias={ofertaDoEmbarque} aoEscolher={escolher} />
+      <ListaDeTravessias travessias={ofertaDoEmbarque} aoEscolher={escolher} fotos={fotosDasEmbarcacoes} comODia />
     ) : (
       <div className="totem-dia-e-saidas">
         <CalendarioDeSaidas
@@ -565,7 +567,11 @@ export function Totem({ fonte, envio: envioDaReserva, fuso, inatividadeMs, demon
               Saídas de {rotuloDoDia(dia)}
             </h4>
           )}
-          <ListaDeTravessias travessias={dia === null ? [] : saidasDoDia(ofertaDoEmbarque, dia, origem)} aoEscolher={escolher} />
+          <ListaDeTravessias
+            travessias={dia === null ? [] : saidasDoDia(ofertaDoEmbarque, dia, origem)}
+            aoEscolher={escolher}
+            fotos={fotosDasEmbarcacoes}
+          />
         </div>
       </div>
     )

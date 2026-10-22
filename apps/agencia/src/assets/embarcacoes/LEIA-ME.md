@@ -21,8 +21,12 @@ Uma foto só nem sempre serve: a do Maria Ivanir em pé, recortada na vitrine, p
 |---|---|---|
 | `maria-ivanir-capa.jpg` | F/B Maria Ivanir | fundo da capa (escolha do PO, 2026-10-08) |
 | `maria-ivanir-apresentacao.jpg` | F/B Maria Ivanir | a vitrine (2026-10-15) |
-| `regional.jpeg` | F/B Regional | a vitrine e o cartão do Veículo da reserva (2026-10-15) |
-| `maria-eduarda-apresentacao.jpg` | F/B Maria Eduarda | a vitrine, quando chegar |
+| `regional.jpeg` | F/B Regional | a vitrine, a miniatura do cartão da saída (2026-10-22) e o cartão do Veículo da reserva (2026-10-15), até chegar a foto própria dele |
+| `maria-eduarda-apresentacao.jpg` | F/B Maria Eduarda | a vitrine e a miniatura do cartão da saída, quando chegar (até lá, o cartão desenha um barco) |
+| `cartao-do-veiculo.jpg` | nenhuma: um veículo embarcando | o cartão do Veículo em "O que vai embarcar?", quando chegar (PO, 2026-10-22); até lá, a do Regional |
+
+A **miniatura do cartão da saída** (UI 2.1) é a foto da vitrine (`<id>-apresentacao`), em 72px. A página a casa com
+a embarcação do catálogo pelo nome, e não pelo `id`.
 
 **A vitrine só aparece a partir da segunda foto.** Com uma, ela já é o fundo da capa, e a vitrine repetiria a
 mesma imagem logo abaixo.

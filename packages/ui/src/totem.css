@@ -518,36 +518,194 @@
 
 /* ── Travessias ─────────────────────────────────────────────────────────────────────────────── */
 
+/* O cartão da saída (UI 2.1): a hora primeiro, depois onde embarcar, a embarcação e o botão. */
 .totem-travessia {
   display: grid;
-  gap: var(--espaco-2);
-  padding: var(--espaco-4);
+  gap: var(--espaco-3);
+  padding: var(--espaco-4) var(--espaco-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-cartao);
+  background: var(--surface);
+  box-shadow: 0 6px 16px rgba(16, 58, 91, 0.08);
 }
 
 .totem-travessia p {
   margin: 0;
 }
 
-.totem-travessia__trecho {
+/* A data alterada (D), com a mesma cara do quadro da saída escolhida. */
+.totem-travessia__alterada {
+  padding: var(--espaco-2) var(--espaco-3);
+  border-inline-start: 4px solid var(--accent-superficie);
+  background: var(--surface-2);
   color: var(--text);
   font-weight: 600;
 }
 
-.totem-travessia__quando {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-1) var(--espaco-4);
+/* A saída, a duração e a chegada (A): três colunas, e a do meio é a seta. */
+.totem-travessia__horario {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--espaco-2);
 }
 
-.totem-travessia__embarcacao,
+.totem-travessia__ponta {
+  display: grid;
+  gap: 2px;
+}
+
+.totem-travessia__ponta--chegada {
+  justify-items: end;
+  text-align: end;
+}
+
+.totem-travessia__rotulo,
+.totem-travessia__dia,
+.totem-travessia__duracao,
+.totem-travessia__tipo,
+.totem-travessia__cais dt,
 .totem-vazio {
   color: var(--text-secondary);
 }
 
+.totem-travessia__rotulo {
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.totem-travessia__hora {
+  color: var(--text);
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.totem-travessia__cidade,
+.totem-travessia__barco {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.totem-travessia__dia {
+  font-size: 0.875rem;
+}
+
+/* A duração sobre uma linha tracejada que termina em ponta: o caminho entre as duas horas. */
+.totem-travessia__duracao {
+  display: grid;
+  justify-items: center;
+  gap: var(--espaco-1);
+  min-width: 4rem;
+  padding-block-start: 1.75rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.totem-travessia__duracao::after {
+  content: '';
+  justify-self: stretch;
+  border-block-start: 2px dashed var(--border);
+}
+
+/* No celular, o rótulo do cais em cima do lugar: duas colunas estreitas quebravam o nome do porto em quatro linhas. */
+.totem-travessia__cais dt {
+  font-size: 0.875rem;
+}
+
+.totem-travessia__cais dd + dt {
+  margin-block-start: var(--espaco-2);
+}
+
+.totem-travessia__rodape {
+  display: grid;
+  gap: var(--espaco-3);
+  padding-block-start: var(--espaco-3);
+  border-block-start: 1px solid var(--border);
+}
+
+/* O cais (B): o rótulo à esquerda, o lugar à direita. */
+.totem-travessia__cais {
+  display: grid;
+  margin: 0;
+}
+
+.totem-travessia__cais dd {
+  margin: 0;
+}
+
+/* A embarcação (C): a miniatura, ou o desenho de um barco quando a foto ainda não chegou. */
+.totem-travessia__embarcacao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.totem-travessia__foto {
+  flex-shrink: 0;
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.totem-travessia__foto--sem {
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.totem-travessia__foto--sem svg {
+  width: 34px;
+  height: 24px;
+}
+
+.totem-travessia__nome {
+  display: grid;
+}
+
+/* O botão (E): de largura inteira no celular; no computador, à direita, embaixo. */
 .totem-travessia .acao {
-  justify-self: start;
+  justify-self: stretch;
+}
+
+@media (min-width: 64rem) {
+  .totem-travessia {
+    padding: var(--espaco-4);
+  }
+
+  .totem-travessia__rodape {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  /* No computador há largura: o rótulo à esquerda e o lugar à direita. */
+  .totem-travessia__cais {
+    grid-column: 1;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--espaco-1) var(--espaco-3);
+  }
+
+  .totem-travessia__cais dt {
+    font-size: inherit;
+  }
+
+  .totem-travessia__cais dd + dt {
+    margin-block-start: 0;
+  }
+
+  .totem-travessia__embarcacao {
+    grid-column: 1;
+  }
+
+  .totem-travessia .acao {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+    justify-self: end;
+  }
 }
 
 /* ── Conferência e conclusão ────────────────────────────────────────────────────────────────── */
