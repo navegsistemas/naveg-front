@@ -32,9 +32,9 @@ export interface PropsDaLista {
  * **As saídas disponíveis**, na ordem da partida — a ordem e o recorte vêm de `travessiasOfertadas`, e a lista
  * só desenha. Vazia, ela diz que não há saída nos próximos dias, em vez de sumir.
  *
- * Cada cartão (UI 2.1, decidida pelo PO em 2026-10-22): a data alterada no alto (D); a saída e a chegada em números
- * grandes, com a cidade e a duração (A); o cais de embarque e o de desembarque antes de escolher (B); a miniatura da
- * embarcação (C); e o botão (E).
+ * Cada cartão (UI 2.1, decidida pelo PO em 2026-10-22): a foto da embarcação em faixa, no alto, com o nome sobre ela
+ * (C, na alternativa que o PO preferiu ao ver no ar); a data alterada (D); a saída e a chegada em números grandes,
+ * com a cidade e a duração (A); o cais de embarque e o de desembarque, menores, antes de escolher (B); e o botão (E).
  */
 export function ListaDeTravessias({
   travessias,
@@ -54,67 +54,66 @@ export function ListaDeTravessias({
         const foto = fotos[chaveDaEmbarcacao(travessia.embarcacao.nome)]
         return (
           <li key={travessia.id} className="totem-travessia">
-            {rotulos.alteracao !== null && <p className="totem-travessia__alterada">{rotulos.alteracao}</p>}
-            <div className="totem-travessia__horario">
-              <p className="totem-travessia__ponta">
-                <span className="totem-travessia__rotulo">Saída</span>
-                <span className="totem-travessia__hora">{texto.saida}</span>
-                <span className="totem-travessia__cidade">{rotulos.origem}</span>
-                {comODia && <span className="totem-travessia__dia">{texto.diaDaSaida}</span>}
-              </p>
-              <p className="totem-travessia__duracao">
-                <span>
-                  <span aria-hidden="true">≈ </span>
-                  <span className="apenas-leitor">cerca de </span>
-                  {texto.duracao}
-                  <span className="apenas-leitor"> de viagem</span>
-                </span>
-              </p>
-              <p className="totem-travessia__ponta totem-travessia__ponta--chegada">
-                <span className="totem-travessia__rotulo">Chegada prevista</span>
-                <span className="totem-travessia__hora">{texto.chegada}</span>
-                <span className="totem-travessia__cidade">{rotulos.destino}</span>
-                {texto.diaDaChegada !== null && <span className="totem-travessia__dia">{texto.diaDaChegada}</span>}
+            {/* A foto em faixa, no alto, com o nome sobre ela (C, revista pelo PO em 2026-10-22). É decoração: o nome
+                vem escrito. Sem foto, uma faixa baixa com o desenho de um barco — nunca a foto de outra embarcação. */}
+            <div className={foto !== undefined ? 'totem-travessia__capa' : 'totem-travessia__capa totem-travessia__capa--sem'}>
+              {foto !== undefined ? (
+                <img
+                  className="totem-travessia__foto"
+                  src={foto.src}
+                  srcSet={foto.srcset}
+                  sizes="(min-width: 64rem) 36rem, 100vw"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <svg aria-hidden="true" viewBox="0 0 34 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 15h28l-4 6H7z" />
+                  <path d="M8 15V9h16v6" />
+                  <path d="M12 9V5h7v4" />
+                </svg>
+              )}
+              <p className="totem-travessia__embarcacao">
+                <span className="totem-travessia__barco">{texto.embarcacao}</span>
+                <span className="totem-travessia__tipo"> · {texto.tipo}</span>
               </p>
             </div>
-            <div className="totem-travessia__rodape">
-              <dl className="totem-travessia__cais">
-                <dt>Embarque</dt>
-                <dd>{rotulos.embarque}</dd>
-                <dt>Desembarque</dt>
-                <dd>{rotulos.desembarque}</dd>
-              </dl>
-              <p className="totem-travessia__embarcacao">
-                {/* Decoração: o nome vem escrito ao lado, e a foto não precisa ser lida a cada saída. */}
-                {foto !== undefined ? (
-                  <img
-                    className="totem-travessia__foto"
-                    src={foto.src}
-                    srcSet={foto.srcset}
-                    sizes="72px"
-                    alt=""
-                    width={72}
-                    height={54}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <span className="totem-travessia__foto totem-travessia__foto--sem" aria-hidden="true">
-                    <svg viewBox="0 0 34 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 15h28l-4 6H7z" />
-                      <path d="M8 15V9h16v6" />
-                      <path d="M12 9V5h7v4" />
-                    </svg>
+            <div className="totem-travessia__corpo">
+              {rotulos.alteracao !== null && <p className="totem-travessia__alterada">{rotulos.alteracao}</p>}
+              <div className="totem-travessia__horario">
+                <p className="totem-travessia__ponta">
+                  <span className="totem-travessia__rotulo">Saída</span>
+                  <span className="totem-travessia__hora">{texto.saida}</span>
+                  <span className="totem-travessia__cidade">{rotulos.origem}</span>
+                  {comODia && <span className="totem-travessia__dia">{texto.diaDaSaida}</span>}
+                </p>
+                <p className="totem-travessia__duracao">
+                  <span>
+                    <span aria-hidden="true">≈ </span>
+                    <span className="apenas-leitor">cerca de </span>
+                    {texto.duracao}
+                    <span className="apenas-leitor"> de viagem</span>
                   </span>
-                )}
-                <span className="totem-travessia__nome">
-                  <span className="totem-travessia__barco">{texto.embarcacao}</span>
-                  <span className="totem-travessia__tipo">{texto.tipo}</span>
-                </span>
-              </p>
-              <button type="button" className="acao" onClick={() => aoEscolher(travessia)}>
-                {rotuloDaEscolha}
-              </button>
+                </p>
+                <p className="totem-travessia__ponta totem-travessia__ponta--chegada">
+                  <span className="totem-travessia__rotulo">Chegada prevista</span>
+                  <span className="totem-travessia__hora">{texto.chegada}</span>
+                  <span className="totem-travessia__cidade">{rotulos.destino}</span>
+                  {texto.diaDaChegada !== null && <span className="totem-travessia__dia">{texto.diaDaChegada}</span>}
+                </p>
+              </div>
+              <div className="totem-travessia__rodape">
+                <dl className="totem-travessia__cais">
+                  <dt>Embarque</dt>
+                  <dd>{rotulos.embarque}</dd>
+                  <dt>Desembarque</dt>
+                  <dd>{rotulos.desembarque}</dd>
+                </dl>
+                <button type="button" className="acao" onClick={() => aoEscolher(travessia)}>
+                  {rotuloDaEscolha}
+                </button>
+              </div>
             </div>
           </li>
         )

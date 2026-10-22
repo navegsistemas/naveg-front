@@ -518,15 +518,77 @@
 
 /* ── Travessias ─────────────────────────────────────────────────────────────────────────────── */
 
-/* O cartão da saída (UI 2.1): a hora primeiro, depois onde embarcar, a embarcação e o botão. */
+/* O cartão da saída (UI 2.1): a foto da embarcação em faixa no alto, a hora embaixo dela, depois onde embarcar, menor,
+   e o botão. */
 .totem-travessia {
   display: grid;
-  gap: var(--espaco-3);
-  padding: var(--espaco-4) var(--espaco-3);
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-cartao);
   background: var(--surface);
   box-shadow: 0 6px 16px rgba(16, 58, 91, 0.08);
+}
+
+/* A faixa (C): a foto de ponta a ponta, com o nome da embarcação sobre ela. */
+.totem-travessia__capa {
+  position: relative;
+  height: 9.5rem;
+  background: var(--surface-2);
+}
+
+.totem-travessia__foto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.totem-travessia .totem-travessia__embarcacao {
+  position: absolute;
+  inset-inline-start: var(--espaco-3);
+  inset-block-end: var(--espaco-2);
+  max-width: calc(100% - 2 * var(--espaco-3));
+  padding: var(--espaco-1) var(--espaco-2);
+  border-radius: var(--radius);
+  /* O navy do topo do site, quase opaco: o nome se lê sobre qualquer foto, no claro e no escuro. */
+  background: color-mix(in srgb, var(--header-bg) 88%, transparent);
+  color: var(--header-texto);
+  font-size: 0.9375rem;
+}
+
+.totem-travessia .totem-travessia__embarcacao .totem-travessia__barco,
+.totem-travessia .totem-travessia__embarcacao .totem-travessia__tipo {
+  color: inherit;
+}
+
+/* Sem foto: uma faixa baixa, com o desenho de um barco e o nome ao lado. */
+.totem-travessia__capa--sem {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  height: auto;
+  padding: var(--espaco-3);
+  color: var(--text-secondary);
+}
+
+.totem-travessia__capa--sem svg {
+  flex-shrink: 0;
+  width: 34px;
+  height: 24px;
+}
+
+.totem-travessia .totem-travessia__capa--sem .totem-travessia__embarcacao {
+  position: static;
+  max-width: none;
+  padding: 0;
+  background: none;
+  color: var(--text);
+}
+
+.totem-travessia__corpo {
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-4);
 }
 
 .totem-travessia p {
@@ -543,9 +605,11 @@
 }
 
 /* A saída, a duração e a chegada (A): três colunas, e a do meio é a seta. */
+/* As pontas têm a largura do que levam, e o meio fica com o resto: num celular estreito, o rótulo da chegada quebra em
+   duas linhas, em vez de a hora ser cortada. */
 .totem-travessia__horario {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--espaco-2);
 }
@@ -571,7 +635,6 @@
 
 .totem-travessia__rotulo {
   font-size: 0.8125rem;
-  white-space: nowrap;
 }
 
 .totem-travessia__hora {
@@ -597,7 +660,7 @@
   display: grid;
   justify-items: center;
   gap: var(--espaco-1);
-  min-width: 4rem;
+  min-width: 3.5rem;
   padding-block-start: 1.75rem;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -609,9 +672,14 @@
   border-block-start: 2px dashed var(--border);
 }
 
-/* No celular, o rótulo do cais em cima do lugar: duas colunas estreitas quebravam o nome do porto em quatro linhas. */
+/* No celular, o rótulo do cais em cima do lugar: duas colunas estreitas quebravam o nome do porto em quatro linhas.
+   O cais é menor que a hora (PO, 2026-10-22): é o segundo assunto do cartão. */
+.totem-travessia__cais {
+  font-size: 0.9375rem;
+}
+
 .totem-travessia__cais dt {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .totem-travessia__cais dd + dt {
@@ -635,44 +703,13 @@
   margin: 0;
 }
 
-/* A embarcação (C): a miniatura, ou o desenho de um barco quando a foto ainda não chegou. */
-.totem-travessia__embarcacao {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-}
-
-.totem-travessia__foto {
-  flex-shrink: 0;
-  width: 72px;
-  height: 54px;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-
-.totem-travessia__foto--sem {
-  display: grid;
-  place-items: center;
-  background: var(--surface-2);
-  color: var(--text-secondary);
-}
-
-.totem-travessia__foto--sem svg {
-  width: 34px;
-  height: 24px;
-}
-
-.totem-travessia__nome {
-  display: grid;
-}
-
 /* O botão (E): de largura inteira no celular; no computador, à direita, embaixo. */
 .totem-travessia .acao {
   justify-self: stretch;
 }
 
 @media (min-width: 64rem) {
-  .totem-travessia {
+  .totem-travessia__corpo {
     padding: var(--espaco-4);
   }
 
@@ -696,13 +733,8 @@
     margin-block-start: 0;
   }
 
-  .totem-travessia__embarcacao {
-    grid-column: 1;
-  }
-
   .totem-travessia .acao {
     grid-column: 2;
-    grid-row: 1 / span 2;
     align-self: end;
     justify-self: end;
   }
