@@ -454,6 +454,12 @@ nenhum — dá um link que abre e não acha ninguém.
   CNPJ do MEI, e dá para transferir do CPF. O e-mail do domínio é do Google Workspace e está pronto
   (2026-10-07): o DNS do Registro.br, em modo avançado, tem MX, SPF, DKIM e DMARC (`p=none`, relatórios para
   administradorsistema@), sem registro A — o site só aponta no lançamento.
+- **O e-mail que a API manda sai da conta do PO** (PO, 2026-10-22): o apelido `naoresponda@gruponaveg.com.br`
+  e a senha de app ficam na conta Workspace dele, e não numa conta só para enviar, para não pagar mais uma
+  licença agora. Dois riscos aceitos: a senha de app abre a caixa inteira dessa conta, e trocar a senha principal
+  dela derruba a de app — o envio para sem aviso. Quando entrar o custo de uma licença, criar uma conta só para
+  enviar (`sistema@`, com o `naoresponda@` como apelido dela), gerar a senha de app lá e trocar a variável da
+  API ([naveg-api-vercel#30](https://github.com/navegsistemas/naveg-api-vercel/issues/30), PR 6).
 - **Domínio de produção** e o SHA-256 do certificado de assinatura do app, para os App Links (passo 11).
 - **Anonimizar as reservas duas semanas depois da viagem** (PO, 2026-10-07) — a tarefa agendada da API,
   [naveg-api-vercel#21](https://github.com/navegsistemas/naveg-api-vercel/issues/21). A política de privacidade de
