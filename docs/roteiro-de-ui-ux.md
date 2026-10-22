@@ -146,8 +146,8 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 
 | etapa | seções | situação |
 |---|---|---|
-| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; **1.4 decidida em 2026-10-22** (o passo a passo em esquema), no ar com o PR `ui/1.4-passo-a-passo`; as outras, a começar |
-| **2 — Melhorias na reserva** | 2.1 a 2.8 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 reaberta pelo PO e decidida em 2026-10-22** (o cartão da saída; o calendário da 1.3 cobriu o dia), **no ar com o PR `ui/2.1-cartao-da-saida`**; **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87); **2.8 no ar** (#92; a verificação contra robô como passo da conferência), **aceita pelo PO no celular em 2026-10-21** |
+| **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; **1.4 no ar** (#101, o passo a passo em esquema), **aceita pelo PO no celular em 2026-10-22**; as outras, a começar |
+| **2 — Melhorias na reserva** | 2.1 a 2.8 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 reaberta pelo PO e decidida em 2026-10-22** (o cartão da saída; o calendário da 1.3 cobriu o dia), **no ar** (#99) e **aceita pelo PO no celular no mesmo dia**; a foto em faixa (#103, a C revista), no ar, à espera do roteiro 9; **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87); **2.8 no ar** (#92; a verificação contra robô como passo da conferência), **aceita pelo PO no celular em 2026-10-21** |
 | **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
@@ -383,8 +383,9 @@ mostrar além do que se reserva. A **lotação (C)** segue esperando a API.
 
 ### 2.1 — A escolha da saída: o cartão da saída
 
-**Situação:** **reaberta pelo PO e decidida em 2026-10-22**, A a E pela recomendação; implementada no PR
-`ui/2.1-cartao-da-saida`, à espera do aceite do PO no celular. Ela tinha ficado "sem mudança",
+**Situação:** **reaberta pelo PO e decidida em 2026-10-22**, A a E pela recomendação; no ar com o #99 e
+**aceita pelo PO no celular em 2026-10-22** (roteiro 6, todos os passos Ok). A C revista no mesmo dia (a foto em faixa,
+#103, abaixo) entrou depois do aceite e tem o seu roteiro, o 9. Ela tinha ficado "sem mudança",
 porque o calendário da 1.3 cobriu a escolha do dia. Na revisão da página "Rumo ao MVP", o PO pediu: "a saída deve
 ter um cartão mais apresentável e com as informações visíveis". O calendário e o "Saindo de" não mudam; esta ficha
 é só o cartão de cada saída do dia. **Wireframe** (privado do PO): [o cartão da
@@ -442,8 +443,8 @@ perfeitinho"). PR `ui/2.1-foto-em-faixa`.
 
 ### 1.4 — Envie sua encomenda
 
-**Situação:** decidida pelo PO em 2026-10-22 e implementada no PR `ui/1.4-passo-a-passo`, à espera do aceite no
-celular. O pedido do PO: "melhor do que uma lista de frases, uma esquematização básica do passo a passo pra encomenda
+**Situação:** decidida pelo PO em 2026-10-22, no ar com o #101 e **aceita pelo PO no celular em 2026-10-22**
+(roteiro 7, todos os passos Ok). O pedido do PO: "melhor do que uma lista de frases, uma esquematização básica do passo a passo pra encomenda
 e aí o botão no canto inferior direito da seção logo após o passo a passo". **Wireframe** (privado do PO): [o passo
 a passo](https://claude.ai/artifact/MpugXBiyRnipqy6TYP1dAH), com as capturas de antes ao lado.
 
