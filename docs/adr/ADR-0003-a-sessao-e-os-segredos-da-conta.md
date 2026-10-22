@@ -36,8 +36,8 @@ rota de eco. O celular do PO, na rede da operadora, abriu a rota pelo site e dir
 `ipDaRequisicao` da API deu o mesmo. **O `ipDaRequisicao` não muda.**
 
 Ficou sem medir: um `X-Forwarded-For` forjado por quem chama não pode passar pelo repasse. As prévias estão atrás do
-login da Vercel, e o navegador não manda esse cabeçalho. **Confere-se no PR 4**, com o repasse de verdade, por um
-cenário de fumaça.
+login da Vercel, e o navegador não manda esse cabeçalho. **Confere-se no PR 5** (naveg-api-vercel#46), com o
+repasse de verdade, pela rota `GET /eco` da API. Era o PR 4; passou para o 5, que traz a rota.
 
 ## A decisão
 
@@ -177,4 +177,8 @@ da seção 1. Nenhuma regra do Firestore depende da sessão do cliente.
   (`docs/rascunho-da-privacidade-da-conta-e-da-compra.md`) já diz isso.
 - **Duas leituras do Firestore por pedido de quem entrou**, feitas em paralelo. É o custo de recusar na hora a
   conta desativada e a geração vencida.
-- **O PR 4 confere o cabeçalho forjado**; o PR 7 (entrar e sair) é o primeiro a pôr o cookie no ar.
+- **O PR 5 confere o cabeçalho forjado**, depois da promoção; o PR 7 (entrar e sair) é o primeiro a pôr o cookie
+  no ar.
+- **O cadastro não entra na conta** (PO, 2026-10-21: "Não revelar"): a resposta é a mesma com e-mail novo ou já
+  usado, e só a conta nova entrar direto revelaria a diferença. O cookie nasce ao entrar com a senha ou pelo link de
+  confirmação.

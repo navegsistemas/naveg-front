@@ -1115,6 +1115,7 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 | os campos, todos obrigatórios | nome completo, data de nascimento, tipo e número do documento, e-mail e celular com WhatsApp, e a senha | C da área do cliente |
 | os documentos | CPF (o padrão), RG, CNH e Passaporte; sem CNPJ | 3.1, E |
 | uma conta por documento | sim; a frase não revela se já existe: "Se já houver uma conta com estes dados, entre por ela ou use 'Esqueci a senha'." | E da área do cliente |
+| uma conta por e-mail | sim, e **o cadastro não revela se o e-mail já tem conta**: a resposta é sempre "Confira seu e-mail". O e-mail novo recebe o link de confirmação; o dono do e-mail já usado, "Alguém tentou criar uma conta com este e-mail. Se foi você, entre ou use 'Esqueci a senha'." (PO, 2026-10-21: "Não revelar") | naveg-api-vercel#46 |
 | a idade mínima | 18 anos | 3.1, D |
 | a senha | pelo menos 8 caracteres, sem regra de símbolo, com "Mostrar" e sem "repita a senha"; senha muito comum ou vazada é recusada, com o motivo | 3.1, C |
 | os termos | uma frase acima do botão, com os links dos Termos e da Política, sem caixa de marcar e sem autorização para propaganda | 3.1, F |
@@ -1139,10 +1140,10 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 
 | caso | o que o site faz | de onde |
 |---|---|---|
-| criou a conta | "Confira seu e-mail"; a pessoa já está dentro | 3.2, D |
+| criou a conta | "Confira seu e-mail". A pessoa **não** fica dentro: entra pelo link (3.2, C) ou com a senha (3.2, D). Era "já está dentro"; mudou porque só a conta nova entraria direto, e isso diria a quem testa um e-mail que ele já é cliente (PO, 2026-10-21) | 3.2, D; naveg-api-vercel#46 |
 | entrou sem confirmar | entra; o aviso "Confirme seu e-mail para comprar" em Minha conta e na hora de pagar | 3.2, D |
 | confirmou pelo link | fica dentro da conta no aparelho em que abriu o link, e volta para onde ia | 3.2, C |
-| errou o e-mail | "Corrigir o e-mail", enquanto não confirmou | 3.2, E |
+| errou o e-mail | "Corrigir o e-mail", enquanto não confirmou. Como o cadastro não entra na conta, a pessoa entra com a senha antes de corrigir: sem isso, qualquer um trocaria o e-mail de qualquer conta | 3.2, E |
 | e-mail ou senha errados | "E-mail ou senha não conferem", a mesma frase nos dois casos | 3.3, B |
 | conta desativada | "Esta conta está desativada", com o WhatsApp, **só depois da senha certa** | 3.3, F |
 | entrou | volta para onde ia: a compra, a opinião, ou Minha conta | 3.3, E |
