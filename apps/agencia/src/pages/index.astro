@@ -43,12 +43,13 @@ const imagemDoVeiculo =
 const fotoDoVeiculo =
   imagemDoVeiculo === null ? null : { src: imagemDoVeiculo.src, srcset: imagemDoVeiculo.srcSet.attribute }
 
-/* As miniaturas do cartão da saída (UI 2.1, decisão C): a foto da vitrine, em 72px e no dobro, pelo nome da
-   embarcação — o catálogo tem outro `id`. A que ainda não tem foto fica de fora, e o cartão desenha um barco. */
+/* A foto em faixa do cartão da saída (UI 2.1, decisão C, na alternativa que o PO preferiu): a foto da vitrine, na
+   largura do cartão, pelo nome da embarcação — o catálogo tem outro `id`. A que ainda não tem foto fica de fora, e
+   o cartão desenha um barco. */
 const fotosDasEmbarcacoes: Record<string, FotoDoCartao> = {}
 for (const embarcacao of EMBARCACOES) {
   if (embarcacao.imagem === null) continue
-  const miniatura = await getImage({ src: embarcacao.imagem, widths: [72, 144, 216], format: 'webp' })
+  const miniatura = await getImage({ src: embarcacao.imagem, widths: [400, 640, 960], format: 'webp' })
   fotosDasEmbarcacoes[chaveDaEmbarcacao(embarcacao.nome)] = { src: miniatura.src, srcset: miniatura.srcSet.attribute }
 }
 

@@ -257,7 +257,9 @@ describe('o calendário, na página (UI 1.3)', () => {
     /* O navio não tem foto: o desenho de um barco, e nunca a foto de outra embarcação (C). */
     const navio = saidasListadas().find((li) => li.textContent?.includes('Navio de demonstração')) as HTMLElement
     expect(navio.querySelector('img')).toBeNull()
-    expect(navio.querySelector('.totem-travessia__foto--sem')).not.toBeNull()
+    expect(navio.querySelector('.totem-travessia__capa--sem')).not.toBeNull()
+    /* A foto vem em faixa, no alto do cartão, antes das horas (C, revista pelo PO em 2026-10-22). */
+    expect(ferry.firstElementChild?.classList.contains('totem-travessia__capa')).toBe(true)
   })
 
   it('escolher a saída leva aos dados, e voltar devolve ao mesmo dia', async () => {

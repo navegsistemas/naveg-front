@@ -433,6 +433,13 @@ embarcação **pelo nome**, porque o catálogo tem outro `id`. No celular, o ró
 duas colunas estreitas, o nome do porto quebrava em quatro linhas. **O quiosque recebe o mesmo cartão, com o dia da
 saída**, porque a lista dele mistura os dias da semana e não tem o título "Saídas de …"; ele não mostra as fotos.
 
+**A C revista pelo PO, ao ver no ar (2026-10-22):** "eu tinha aceitado a recomendação, mas tinha gostado mais da
+alternativa C que dava destaque pra imagem acima e as horas embaixo e o cais mais abaixo menor". O cartão passa a ter
+**a foto em faixa no alto**, de ponta a ponta, com o nome da embarcação sobre ela; as horas embaixo; e o cais, menor,
+antes do botão. Sem foto, uma faixa baixa com o desenho de um barco e o nome. O resto da reserva e a encomenda
+foram aceitos no mesmo dia, nos roteiros 6 e 7 ("a reserva funcionou e a parte de enviar encomenda também,
+perfeitinho"). PR `ui/2.1-foto-em-faixa`.
+
 ### 1.4 — Envie sua encomenda
 
 **Situação:** decidida pelo PO em 2026-10-22 e implementada no PR `ui/1.4-passo-a-passo`, à espera do aceite no
