@@ -88,8 +88,11 @@
   font-size: 0.95rem;
 }
 
+/* O título da pergunta respira (PO, 2026-10-22: "estão muito colados ao resto"): o cabeçalho junta as etapas, os quadros
+   do que já foi respondido e a pergunta com 4px entre eles, e o título encostava no quadro de cima. A margem é só
+   dele; a grade em volta não muda. */
 .totem-pergunta {
-  margin: 0;
+  margin: var(--espaco-3) 0 var(--espaco-2);
   color: var(--text);
   font-family: var(--font-display);
   font-size: 1.6rem;
