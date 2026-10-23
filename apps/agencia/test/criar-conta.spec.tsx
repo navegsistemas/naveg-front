@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { ContaDoSite, ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
 import { DataCalendario, type CadastroDaConta } from '@navegsistemas/domain'
 
-import CriarConta, { dataIso, ERRO_DO_CAMPO, FALHA_DO_CADASTRO, mascaraDaData } from '../src/ilhas/CriarConta'
+import CriarConta, { ERRO_DO_CAMPO, FALHA_DO_CADASTRO } from '../src/ilhas/CriarConta'
 
 const hoje = () => DataCalendario.de('2026-10-23') as DataCalendario
 
@@ -48,7 +48,8 @@ function preencher(campos: Partial<Record<'nome' | 'nascimento' | 'email' | 'tel
 
 const COMPLETO = {
   nome: 'Maria Souza',
-  nascimento: '20051990',
+  /* O calendário do aparelho entrega a data como o domínio lê. */
+  nascimento: '1990-05-20',
   email: 'Maria@Exemplo.com.br',
   telefone: '91988887777',
   senha: 'rio e maré cheia',
@@ -56,18 +57,22 @@ const COMPLETO = {
 
 afterEach(cleanup)
 
-describe('as máscaras', () => {
-  it('a data se escreve dd/mm/aaaa enquanto se digita, e vira ISO para o domínio', () => {
-    expect(mascaraDaData('2')).toBe('2')
-    expect(mascaraDaData('2005')).toBe('20/05')
-    expect(mascaraDaData('20051990')).toBe('20/05/1990')
-    expect(mascaraDaData('20/05/19901')).toBe('20/05/1990')
-    expect(dataIso('20/05/1990')).toBe('1990-05-20')
-    expect(dataIso('20/05')).toBe('20/05')
-  })
-})
-
 describe('CriarConta', () => {
+  it('cada campo na coluna inteira: o campo direto no grid, e o e-mail e o celular um embaixo do outro (PO, 2026-10-23)', () => {
+    render(<CriarConta conta={contaQueResponde({ caso: 'CONFIRA_O_EMAIL' }).conta} hoje={hoje} />)
+    for (const rotulo of ['Nome completo', 'Data de nascimento', 'E-mail', 'Celular com WhatsApp']) {
+      expect(screen.getByLabelText(rotulo).parentElement?.className).toBe('totem-campo')
+    }
+    expect(document.querySelector('.conta-par')).toBeNull()
+  })
+
+  it('a data de nascimento é o calendário do aparelho, até hoje', () => {
+    render(<CriarConta conta={contaQueResponde({ caso: 'CONFIRA_O_EMAIL' }).conta} hoje={hoje} />)
+    const nascimento = screen.getByLabelText('Data de nascimento') as HTMLInputElement
+    expect(nascimento.type).toBe('date')
+    expect(nascimento.max).toBe('2026-10-23')
+  })
+
   it('preenchido: manda o cadastro, e mostra "Confira seu e-mail" com o endereço', async () => {
     const { conta, cadastros } = contaQueResponde({ caso: 'CONFIRA_O_EMAIL' })
     render(<CriarConta conta={conta} hoje={hoje} />)
@@ -103,7 +108,7 @@ describe('CriarConta', () => {
   it('o erro só aparece depois de sair do campo', () => {
     render(<CriarConta conta={contaQueResponde({ caso: 'CONFIRA_O_EMAIL' }).conta} hoje={hoje} />)
     const nascimento = screen.getByLabelText('Data de nascimento')
-    fireEvent.change(nascimento, { target: { value: '14032012' } })
+    fireEvent.change(nascimento, { target: { value: '2012-03-14' } })
     expect(screen.queryByText(ERRO_DO_CAMPO.MENOR_DE_IDADE)).toBeNull()
     fireEvent.blur(nascimento)
     expect(screen.getByText(ERRO_DO_CAMPO.MENOR_DE_IDADE)).toBeTruthy()

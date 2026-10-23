@@ -39,7 +39,7 @@ import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraR
 /** O que dizer embaixo de cada campo. */
 export const ERRO_DO_CAMPO: Readonly<Record<PendenciaDoCadastro | 'SENHA_COMUM' | 'SENHA_VAZADA', string>> = {
   NOME: 'Informe o seu nome completo.',
-  NASCIMENTO: 'Informe a data de nascimento, como 20/05/1990.',
+  NASCIMENTO: 'Informe a data de nascimento.',
   MENOR_DE_IDADE: 'A conta é para maiores de 18 anos. Menores viajam com a passagem comprada por um responsável.',
   EMAIL: 'Informe um e-mail, como voce@exemplo.com.',
   TELEFONE: 'Informe um celular com DDD, como (91) 98888-7777.',
@@ -55,20 +55,6 @@ export const FALHA_DO_CADASTRO = {
   LIMITE: 'Muitas tentativas deste aparelho em pouco tempo. Tente de novo daqui a alguns minutos.',
   DESAFIO: 'A verificação contra robô não passou. Tente de novo.',
 } as const
-
-/** "20051990" ou "20/05/1990" → "20/05/1990" enquanto se digita. */
-export function mascaraDaData(digitado: string): string {
-  const d = digitado.replace(/\D/g, '').slice(0, 8)
-  if (d.length <= 2) return d
-  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`
-  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`
-}
-
-/** "20/05/1990" → "1990-05-20", a forma que o domínio lê; qualquer outra coisa vira texto que ele recusa. */
-export function dataIso(mascarada: string): string {
-  const [dia, mes, ano] = mascarada.split('/')
-  return dia?.length === 2 && mes?.length === 2 && ano?.length === 4 ? `${ano}-${mes}-${dia}` : mascarada
-}
 
 type Campo = 'nome' | 'nascimento' | 'email' | 'telefone' | 'senha'
 
@@ -116,7 +102,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
 
   const cadastro = {
     nome: valores.nome,
-    dataNascimento: dataIso(valores.nascimento),
+    dataNascimento: valores.nascimento,
     email: valores.email,
     telefone: valores.telefone,
     senha: valores.senha,
@@ -184,25 +170,34 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
     depois?: ReactNode,
   ) => {
     const erro = erroVisivel(nome)
+    const entradaDoCampo = (
+      <input
+        {...entrada}
+        ref={(el) => {
+          campos.current[nome] = el
+        }}
+        id={`${id}-${nome}`}
+        name={nome}
+        value={valores[nome]}
+        onChange={(e) => mudar(nome, mascara(e.target.value))}
+        onBlur={() => tocar(nome)}
+        aria-invalid={erro !== undefined}
+        aria-describedby={erro === undefined ? undefined : `${id}-${nome}-erro`}
+      />
+    )
     return (
       <div className="totem-campo">
         <label htmlFor={`${id}-${nome}`}>{rotulo}</label>
-        <div className={depois === undefined ? undefined : 'conta-com-botao'}>
-          <input
-            {...entrada}
-            ref={(el) => {
-              campos.current[nome] = el
-            }}
-            id={`${id}-${nome}`}
-            name={nome}
-            value={valores[nome]}
-            onChange={(e) => mudar(nome, mascara(e.target.value))}
-            onBlur={() => tocar(nome)}
-            aria-invalid={erro !== undefined}
-            aria-describedby={erro === undefined ? undefined : `${id}-${nome}-erro`}
-          />
-          {depois}
-        </div>
+        {/* O campo direto no grid do `totem-campo`, que o estica na coluna inteira. Dentro de uma caixa sem estilo, ele
+            voltava à largura padrão do navegador, uns 20 caracteres (PO, 2026-10-23: "aumentar o campo de nome"). */}
+        {depois === undefined ? (
+          entradaDoCampo
+        ) : (
+          <div className="conta-com-botao">
+            {entradaDoCampo}
+            {depois}
+          </div>
+        )}
         {erro !== undefined && (
           <p id={`${id}-${nome}-erro`} className="totem-erro">
             {erro}
@@ -228,32 +223,29 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
           maxLength: LIMITE_DO_NOME_DA_CONTA,
           placeholder: 'Como está no documento',
         })}
-        {campo(
-          'nascimento',
-          'Data de nascimento',
-          { autoComplete: 'bday', inputMode: 'numeric', placeholder: 'dd/mm/aaaa', maxLength: 10 },
-          mascaraDaData,
-        )}
+        {/* O calendário do aparelho (PO, 2026-10-23: "disponibilizar calendário pra data de nascimento"): o valor já
+            vem como o domínio lê (AAAA-MM-DD), e não se escolhe um dia depois de hoje. */}
+        {campo('nascimento', 'Data de nascimento', { type: 'date', autoComplete: 'bday', min: '1900-01-01', max: hoje() })}
       </fieldset>
 
       <fieldset className="conta-grupo">
         <legend>Contato e acesso</legend>
         <p className="conta-ajuda">O e-mail confirma a conta. Por ele e pelo celular, falamos com você sobre seus pedidos.</p>
-        <div className="conta-par">
-          {campo('email', 'E-mail', {
-            type: 'email',
-            inputMode: 'email',
-            autoComplete: 'email',
-            maxLength: LIMITE_DO_EMAIL_DA_CONTA,
-            placeholder: 'voce@exemplo.com',
-          })}
-          {campo(
-            'telefone',
-            'Celular com WhatsApp',
-            { type: 'tel', inputMode: 'tel', autoComplete: 'tel', placeholder: '(91) 98888-7777' },
-            mascaraDoCelular,
-          )}
-        </div>
+        {/* Um embaixo do outro, cada um na coluna inteira (PO, 2026-10-23: "campo de email maior e em coluna com o
+            número"). */}
+        {campo('email', 'E-mail', {
+          type: 'email',
+          inputMode: 'email',
+          autoComplete: 'email',
+          maxLength: LIMITE_DO_EMAIL_DA_CONTA,
+          placeholder: 'voce@exemplo.com',
+        })}
+        {campo(
+          'telefone',
+          'Celular com WhatsApp',
+          { type: 'tel', inputMode: 'tel', autoComplete: 'tel', placeholder: '(91) 98888-7777' },
+          mascaraDoCelular,
+        )}
         {campo(
           'senha',
           'Senha',

@@ -14,8 +14,9 @@ const PRAZO_DO_ENVIO = { timeout: 20_000 }
 
 async function preencher(page: Page) {
   await page.getByLabel('Nome completo').fill('Maria Souza')
-  await page.getByLabel('Data de nascimento').pressSequentially('20051990')
-  await expect(page.getByLabel('Data de nascimento')).toHaveValue('20/05/1990')
+  /* O calendário do aparelho (PO, 2026-10-23): o Playwright preenche o campo de data pelo valor. */
+  await page.getByLabel('Data de nascimento').fill('1990-05-20')
+  await expect(page.getByLabel('Data de nascimento')).toHaveValue('1990-05-20')
   await page.getByLabel('E-mail').fill('maria@exemplo.com.br')
   await page.getByLabel('Celular com WhatsApp').pressSequentially('91988887777')
   await expect(page.getByLabel('Celular com WhatsApp')).toHaveValue('(91) 98888-7777')
@@ -139,7 +140,8 @@ test('a senha nova pelo link: trocada, e a pessoa já está dentro', async ({ pa
   await servirApiFalsa(page)
   await page.goto(`/conta/nova-senha/#conta-1.${CODIGO_QUE_CONFIRMA}`)
   await expect(page.getByRole('heading', { level: 1, name: 'Crie uma senha nova' })).toBeVisible(PRAZO_DO_ENVIO)
-  expect(new URL(page.url()).hash).toBe('')
+  /* O título vem no HTML, antes de a ilha acordar: espera-se o endereço limpo, e não se confere de uma vez. */
+  await expect(page).toHaveURL(/\/conta\/nova-senha\/$/, PRAZO_DO_ENVIO)
   await page.getByLabel('Senha nova').fill('a balsa sai às sete')
   await page.getByRole('button', { name: 'Salvar a senha nova' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Senha trocada' })).toBeVisible(PRAZO_DO_ENVIO)
