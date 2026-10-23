@@ -7,7 +7,7 @@
  *   API conferiria, e nada sai do navegador.
  *
  * Esta versão tem **o cadastro** (3.1), **o "Reenviar" e o link de confirmação** (3.2), e **entrar, sair e quem está
- * dentro** (3.3). As seções seguintes acrescentam a senha esquecida (3.4) e Meus dados (4.2).
+ * dentro** (3.3), e **a senha esquecida** (3.4). Meus dados (4.2) vem a seguir.
  *
  * O `POST /conta/confirmacao/reenvio` responde sempre `202` (não revela se o e-mail tem conta); o `POST
  * /conta/confirmacao` responde `200 EMAIL_CONFIRMADO` ou `JA_CONFIRMADO`, ou `410 LINK_VENCIDO` ou `LINK_INVALIDO`.
@@ -79,7 +79,17 @@ export interface ContaDoSite {
   sessao(): Promise<ResultadoDaSessao>
   /** Sai deste aparelho: a API apaga o cookie. `false`: não deu (a rede). */
   sair(): Promise<boolean>
+  /** Pede o link de troca de senha (3.4, B): a API responde sempre igual, com conta ou sem. */
+  esqueci(email: string): Promise<ResultadoDoReenvio>
+  /** A senha nova, com o link aberto (3.4, C). Trocada, a pessoa fica dentro (o cookie vem na resposta). */
+  novaSenha(contaId: string, codigo: string, senha: string): Promise<ResultadoDaSenhaNova>
 }
+
+/** A senha nova pelo link (3.4). */
+export type ResultadoDaSenhaNova =
+  | { readonly caso: 'DENTRO' | 'LINK_INVALIDO' | 'LINK_VENCIDO' | 'CONTA_DESATIVADA' }
+  | { readonly caso: 'SENHA_FRACA'; readonly motivo: 'SENHA_CURTA' | MotivoDaSenhaFraca }
+  | { readonly caso: 'FALHA'; readonly porque: Exclude<MotivoDaFalha, 'DESAFIO'> }
 
 /** Um `POST` com JSON: a resposta, ou `null` quando a rede caiu. */
 async function postar(buscar: Buscar, endereco: string, corpo: unknown): Promise<Response | null> {
@@ -230,6 +240,35 @@ export function contaHttp(urlDaApi: string, obterDesafio: ObterDesafio | null, b
       const resposta = await postar(buscar, `${raiz}/sair`, {})
       return resposta !== null && resposta.status === 204
     },
+
+    async esqueci(email) {
+      const resposta = await postar(buscar, `${raiz}/senha/esqueci`, { email })
+      if (resposta?.status === 202) return { caso: 'CONFIRA_O_EMAIL' }
+      return { caso: 'FALHA', porque: resposta?.status === 429 ? 'LIMITE' : 'CONEXAO' }
+    },
+
+    async novaSenha(contaId, codigo, senha) {
+      const resposta = await postar(buscar, `${raiz}/senha/nova`, { contaId, codigo, senha })
+      if (resposta === null) return { caso: 'FALHA', porque: 'CONEXAO' }
+      const dado = (await lerJson(resposta)) as { situacao?: unknown; erro?: unknown } | null
+      if (resposta.status === 200 && dado?.situacao === 'DENTRO') return { caso: 'DENTRO' }
+      switch (dado?.erro) {
+        case 'LINK_INVALIDO':
+        case 'LINK_VENCIDO':
+        case 'CONTA_DESATIVADA':
+          return { caso: dado.erro }
+        case 'SENHA_FRACA': {
+          const lista = listaDoCorpo(dado)
+          const motivo = lista.includes('SENHA_VAZADA') ? 'SENHA_VAZADA' : lista.includes('SENHA_COMUM') ? 'SENHA_COMUM' : 'SENHA_CURTA'
+          return { caso: 'SENHA_FRACA', motivo }
+        }
+        /* O corpo que não é um link (o endereço cortado): para a pessoa, um link que não vale. */
+        case 'CORPO_INVALIDO':
+          return { caso: 'LINK_INVALIDO' }
+        default:
+          return { caso: 'FALHA', porque: resposta.status === 429 ? 'LIMITE' : 'CONEXAO' }
+      }
+    },
   }
 }
 
@@ -279,5 +318,16 @@ export class ContaEmMemoria implements ContaDoSite {
   async sair(): Promise<boolean> {
     this.dentro = false
     return true
+  }
+
+  /** Como a API: sempre "Confira seu e-mail", e nenhum e-mail sai. */
+  async esqueci(email: string): Promise<ResultadoDoReenvio> {
+    this.reenvios.push(email)
+    return { caso: 'CONFIRA_O_EMAIL' }
+  }
+
+  /** Na demonstração não há link: qualquer um aberto é um que não vale. */
+  async novaSenha(): Promise<ResultadoDaSenhaNova> {
+    return { caso: 'LINK_INVALIDO' }
   }
 }

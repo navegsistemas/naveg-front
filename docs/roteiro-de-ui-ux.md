@@ -1220,6 +1220,18 @@ demais (3.3, C). O formato do e-mail é o da 3.2.
 
 **A ordem:** como a 3.1 a 3.3. O link, o aviso e o freio são da API (naveg-api-vercel#30).
 
+**Implementada em 2026-10-23:** o "Esqueci a senha" ao lado do rótulo da senha, no entrar (o e-mail digitado vai junto,
+pela aba, e não pelo endereço); `/conta/esqueci`, com a resposta que não revela nada e o "Mandar de novo" de 60
+segundos; e `/conta/nova-senha`, o link do e-mail: a senha nova com "Mostrar", "Senha trocada" (já dentro, fora dos
+outros aparelhos), "Este link não vale mais" (um texto para vencido, usado e trocado) e a conta desativada. O que mudou
+desde o wireframe:
+
+- **sem a verificação contra robô no pedido do link:** a API não a pede (naveg-api-vercel#51). O freio é o limite por
+  endereço de rede e, por e-mail, um pedido por minuto e 5 por hora; e a resposta é sempre a mesma;
+- **sem o "Para a conta maria@…" na senha nova:** a API só diz de quem é a conta depois da troca, e o link não leva o
+  e-mail;
+- **o link é `/conta/nova-senha#…`**, e não `/conta/senha?c=…`, como o da confirmação (ADR-0003, seção 3).
+
 ### As regras da conta (3.1 a 4.2, decididas em 2026-10-16)
 
 **Para que serve:** a especificação, num lugar só, do que o PO decidiu para a conta do cliente, para a API

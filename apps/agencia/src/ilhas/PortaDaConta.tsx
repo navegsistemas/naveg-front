@@ -13,7 +13,7 @@
  * - **Sair**: "Você saiu da sua conta neste aparelho", e a tela de entrar — num aparelho emprestado, é aqui que a pessoa
  *   confere.
  *
- * Ficam para as seções delas: o "Esqueci a senha" (3.4) e a volta à compra (U3, com a 7.6).
+ * O "Esqueci a senha" (3.4) fica ao lado do rótulo da senha. A volta à compra (U3) espera a 7.6.
  */
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react'
 
@@ -21,7 +21,7 @@ import type { ContaDoSite } from '@navegsistemas/dados/conta'
 import { LIMITE_DO_EMAIL_DA_CONTA, normalizarEmail } from '@navegsistemas/domain'
 import '@navegsistemas/ui/totem.css'
 
-import { contaConfigurada, ENVIO_DA_CONTA, WHATSAPP_DA_CONTA } from './conta-do-site'
+import { contaConfigurada, ENVIO_DA_CONTA, lembrarEmailDoEntrar, WHATSAPP_DA_CONTA } from './conta-do-site'
 import { verificacaoTurnstile } from './turnstile'
 import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraRobo'
 
@@ -168,7 +168,13 @@ function Entrar({
       </div>
 
       <div className="totem-campo">
-        <label htmlFor={`${id}-senha`}>Senha</label>
+        <div className="conta-rotulo-com-link">
+          <label htmlFor={`${id}-senha`}>Senha</label>
+          {/* O e-mail digitado vai junto, pela aba (e não pelo endereço), para o pedido do link vir preenchido. */}
+          <a href="/conta/esqueci/" onClick={() => lembrarEmailDoEntrar(email.trim())}>
+            Esqueci a senha
+          </a>
+        </div>
         <div className="conta-com-botao">
           <input
             id={`${id}-senha`}

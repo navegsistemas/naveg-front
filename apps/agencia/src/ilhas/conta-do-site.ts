@@ -30,3 +30,33 @@ export const hojeEmBelem = (): DataCalendario => InstanteLocal.data(InstanteLoca
 export function contaConfigurada(obterDesafio: ObterDesafio | null, hoje: () => DataCalendario = hojeEmBelem): ContaDoSite {
   return ENVIO_DA_CONTA.tipo === 'API' ? contaHttp(ENVIO_DA_CONTA.url, obterDesafio) : new ContaEmMemoria(hoje)
 }
+
+/**
+ * O que os links do e-mail (a confirmação, 3.2; a senha nova, 3.4) levam depois do `#`: o id da conta e o código, como
+ * a API os confere.
+ */
+const LINK = /^#?([A-Za-z0-9_-]{1,40})\.([A-Za-z0-9_-]{43})$/
+
+export function linkDoEndereco(hash: string): { readonly contaId: string; readonly codigo: string } | null {
+  const [, contaId, codigo] = LINK.exec(hash) ?? []
+  return contaId === undefined || codigo === undefined ? null : { contaId, codigo }
+}
+
+/** Onde o entrar deixa o e-mail digitado, para o "Esqueci a senha" vir preenchido. */
+export const CHAVE_DO_EMAIL_DO_ENTRAR = 'naveg:email-do-entrar'
+
+export function lembrarEmailDoEntrar(email: string): void {
+  try {
+    sessionStorage.setItem(CHAVE_DO_EMAIL_DO_ENTRAR, email)
+  } catch {
+    /* Sem o armazenamento (aba privada, bloqueado): o campo vem vazio, e só. */
+  }
+}
+
+export function emailLembrado(): string {
+  try {
+    return sessionStorage.getItem(CHAVE_DO_EMAIL_DO_ENTRAR) ?? ''
+  } catch {
+    return ''
+  }
+}

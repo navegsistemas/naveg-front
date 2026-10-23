@@ -21,4 +21,6 @@ export const ROTAS: readonly Rota[] = [
   { caminho: '/conta/', ilhas: 1 },
   { caminho: '/conta/criar/', ilhas: 1 },
   { caminho: '/conta/confirmar/', ilhas: 1 },
+  { caminho: '/conta/esqueci/', ilhas: 1 },
+  { caminho: '/conta/nova-senha/', ilhas: 1 },
 ]

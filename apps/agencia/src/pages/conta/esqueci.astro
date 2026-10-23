@@ -1,0 +1,25 @@
+---
+/**
+ * **Esqueci a senha: pedir o link** — a 3.4, estado 1. Sem Turnstile: a API não pede o desafio aqui (o freio é o
+ * limite por endereço e por e-mail, e a resposta é sempre a mesma).
+ *
+ * `noindex`, como as outras páginas da conta.
+ */
+import Pagina from '../../layouts/Pagina.astro'
+import Topo from '../../componentes/Topo.astro'
+import Rodape from '../../componentes/Rodape.astro'
+import SemJavaScript from '../../componentes/SemJavaScript.astro'
+import EsqueciASenha from '../../ilhas/EsqueciASenha'
+
+import { SITE } from '../../conteudo/site'
+import '../../estilos/conta.css'
+---
+
+<Pagina titulo={`Esqueci a senha — ${SITE.nome}`} indexar={false}>
+  <Topo />
+  <main id="conteudo-principal" class="conteudo conta">
+    <EsqueciASenha client:load />
+    <SemJavaScript oQue="a conta" paraQue="reservar" />
+  </main>
+  <Rodape />
+</Pagina>
