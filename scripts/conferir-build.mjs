@@ -183,6 +183,7 @@ const COBERTURA_DA_POLITICA = {
   '/totem/': 'hoje',
   '/privacidade/': 'hoje',
   '/termos/': 'hoje',
+  '/conta/': 'conta',
   '/conta/criar/': 'conta',
   '/conta/confirmar/': 'conta',
 }

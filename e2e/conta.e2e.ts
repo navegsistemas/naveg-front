@@ -7,7 +7,7 @@
  */
 import type { Page } from '@playwright/test'
 
-import { CODIGO_QUE_CONFIRMA, CODIGO_VENCIDO, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
+import { CODIGO_QUE_CONFIRMA, CODIGO_VENCIDO, SENHA_QUE_ENTRA, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
 import { expect, test } from './politica'
 
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
@@ -92,4 +92,29 @@ test('o link vencido: pedir um link novo pelo e-mail, e "Confira seu e-mail"', a
   await expect(page.getByRole('heading', { level: 1, name: 'Confira seu e-mail' })).toBeVisible(PRAZO_DO_ENVIO)
   await expect(page.getByRole('button', { name: /^Reenviar em \d+ s$/ })).toBeDisabled()
   expect(api.reenvios).toEqual(['maria@exemplo.com.br'])
+})
+
+/* A 3.3: entrar e sair, na página da conta. */
+
+test('entrar: a senha errada dá a frase que não revela nada; a certa abre a conta; sair volta ao entrar', async ({ page }) => {
+  await servirApiFalsa(page)
+  await page.goto('/conta/')
+  await expect(page.getByRole('heading', { level: 1, name: 'Entrar na sua conta' })).toBeVisible(PRAZO_DO_ENVIO)
+
+  await page.getByLabel('E-mail').fill('maria@exemplo.com.br')
+  await page.getByLabel('Senha', { exact: true }).fill('errada')
+  await criar(page, 'Entrar')
+  await expect(page.getByRole('alert')).toHaveText('E-mail ou senha não conferem. Confira e tente de novo.', PRAZO_DO_ENVIO)
+
+  await page.getByLabel('Senha', { exact: true }).fill(SENHA_QUE_ENTRA)
+  await criar(page, 'Entrar')
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha conta' })).toBeVisible(PRAZO_DO_ENVIO)
+
+  /* De volta à página: o cookie (aqui, a API de mentira) mantém a pessoa dentro. */
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha conta' })).toBeVisible(PRAZO_DO_ENVIO)
+
+  await page.getByRole('button', { name: 'Sair' }).click()
+  await expect(page.getByRole('status')).toHaveText('Você saiu da sua conta neste aparelho.')
+  await expect(page.getByRole('heading', { level: 1, name: 'Entrar na sua conta' })).toBeVisible()
 })

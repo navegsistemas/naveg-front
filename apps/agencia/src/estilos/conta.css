@@ -3,6 +3,9 @@
 .conta {
   max-width: 36rem;
   padding-block: var(--espaco-6) calc(var(--espaco-6) * 2);
+  /* O rodapé abaixo da dobra: a ilha cresce depois de carregar (o resultado do link, a conta de quem já entrou), e
+     empurrar um rodapé à vista é deslocamento de tela (o Lighthouse da 3.3 mediu 0,226 em /conta/confirmar). */
+  min-height: 100svh;
 }
 
 .conta-formulario,
@@ -86,4 +89,21 @@
   background: var(--surface-2);
   color: var(--text-body);
   font-weight: 600;
+}
+
+/* "ainda não tem conta?" entre o Entrar e o Criar conta (3.3): um fio de cada lado. */
+.conta-separa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.conta-separa::before,
+.conta-separa::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
 }
