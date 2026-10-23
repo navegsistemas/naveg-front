@@ -66,3 +66,5 @@ export {
   TEXTO_DO_PASSO_NO_SITE,
 } from './textos.js'
 export type { TextoDoPasso } from './textos.js'
+/* A máscara do celular também serve à conta (3.1), fora do totem. */
+export { mascaraDoCelular } from './mascara.js'

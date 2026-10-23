@@ -84,7 +84,11 @@ interface Espera {
   readonly rejeitar: (erro: Error) => void
 }
 
-export function verificacaoTurnstile(chave: string): VerificacaoContraRobo {
+/**
+ * @param acao a ação que a API confere no token: `reserva` no totem, `cadastro` na conta (3.1). O token de uma não
+ *   serve à outra.
+ */
+export function verificacaoTurnstile(chave: string, acao: 'reserva' | 'cadastro' | 'entrar' = 'reserva'): VerificacaoContraRobo {
   let estado: EstadoDaVerificacao = 'VERIFICANDO'
   let token: string | null = null
   let alvo: HTMLElement | null = null
@@ -114,7 +118,7 @@ export function verificacaoTurnstile(chave: string): VerificacaoContraRobo {
         if (alvo !== destino) return
         const id = turnstile.render(destino, {
           sitekey: chave,
-          action: 'reserva',
+          action: acao,
           appearance: 'always',
           size: 'flexible',
           language: 'pt-br',

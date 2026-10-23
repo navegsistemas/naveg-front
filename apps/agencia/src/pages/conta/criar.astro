@@ -1,0 +1,107 @@
+---
+/**
+ * **Criar a conta** — a 3.1 (A: uma página própria, com o topo do site; PO, 2026-10-16).
+ *
+ * A ilha é `client:load`: o formulário **é** a página, não há o que esperar rolar. `noindex`, como as outras páginas
+ * da conta (`meta.ts`): o que se busca é a agência, não o formulário. A política de privacidade cobre a página pela
+ * parte `conta` (`scripts/conferir-build.mjs`).
+ *
+ * A página soma o Turnstile à política de segurança: o cadastro leva o desafio, com a ação `cadastro`.
+ */
+import Pagina from '../../layouts/Pagina.astro'
+import Topo from '../../componentes/Topo.astro'
+import Rodape from '../../componentes/Rodape.astro'
+import SemJavaScript from '../../componentes/SemJavaScript.astro'
+import CriarConta from '../../ilhas/CriarConta'
+
+import { SITE } from '../../conteudo/site'
+import { politicaDaPagina, somarOTurnstile } from '../../conteudo/seguranca'
+
+somarOTurnstile(politicaDaPagina(Astro.csp))
+---
+
+<Pagina titulo={`Criar sua conta — ${SITE.nome}`} indexar={false}>
+  <Topo />
+  <main id="conteudo-principal" class="conteudo conta">
+    <CriarConta client:load />
+    {/* O atendimento não cria conta: sem script, a saída é reservar com ele. */}
+    <SemJavaScript oQue="a conta" paraQue="reservar" />
+  </main>
+  <Rodape />
+</Pagina>
+
+<style is:global>
+  /* As telas da conta (3.1 em diante): uma coluna estreita, os grupos com um fio em cima, e os campos curtos aos
+     pares no computador. Os campos, os erros e os avisos são os do totem (`@navegsistemas/ui/totem.css`). */
+  .conta {
+    max-width: 36rem;
+    padding-block: var(--espaco-6) calc(var(--espaco-6) * 2);
+  }
+
+  .conta-formulario,
+  .conta-cartao {
+    display: grid;
+    gap: var(--espaco-4);
+  }
+
+  .conta-formulario h1,
+  .conta-cartao h1 {
+    margin: 0;
+  }
+
+  .conta-ajuda {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .conta-grupo {
+    display: grid;
+    gap: var(--espaco-3);
+    margin: 0;
+    padding: var(--espaco-4) 0 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .conta-grupo legend {
+    padding: 0;
+    float: left;
+    width: 100%;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .conta-par {
+    display: grid;
+    gap: var(--espaco-3);
+  }
+
+  @media (min-width: 40rem) {
+    .conta-par {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .conta-com-botao {
+    display: flex;
+    gap: var(--espaco-2);
+  }
+
+  .conta-com-botao input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .conta-termos {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .conta-enviar {
+    width: 100%;
+  }
+</style>

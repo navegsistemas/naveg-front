@@ -73,9 +73,13 @@ for (const rota of ROTAS) {
       await page.goto(rota.caminho)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
 
-      /* A ilha pré-desenhada some: sem script, "Carregando as saídas…" ficaria ali para sempre. */
-      await expect(page.locator('.totem')).toHaveCount(rota.ilhas)
+      /* A ilha pré-desenhada some: sem script, "Carregando as saídas…" ficaria ali para sempre. Da conta, fica o
+         título, e os campos somem: sem script eles não enviam nada. */
+      await expect(page.locator('.totem, .conta-formulario')).toHaveCount(rota.ilhas)
       for (const ilha of await page.locator('.totem').all()) await expect(ilha).toBeHidden()
+      for (const ilha of await page.locator('.conta-formulario').all()) {
+        await expect(ilha.locator('input:visible')).toHaveCount(0)
+      }
 
       const avisos = page.locator('.sem-javascript')
       await expect(avisos).toHaveCount(rota.ilhas)

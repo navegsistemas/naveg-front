@@ -1007,6 +1007,18 @@ passaporte).
 **A ordem:** a tela só vai ao ar depois do KMP (fluviapp-kmp#70), do domain e da API (naveg-api-vercel#30). A decisão
 pode vir antes; a implementação espera.
 
+**Implementada em 2026-10-23** (`/conta/criar`), depois da API (naveg-api-vercel#46 a #56, no ar) e da política 1.3 (a
+seção da conta, #109). Duas mudanças desde o wireframe, das decisões que vieram depois dele:
+
+- **sem o documento:** ele saiu do cadastro e entra na primeira compra (PO, 2026-10-19; fluviapp-kmp, ADR-0022 D6). Os
+  "Seus dados" ficam com o nome e o nascimento; a linha de apoio do grupo continua, porque fala da compra para outra
+  pessoa;
+- **sem o quadro "Se já houver uma conta com estes dados…":** desde 2026-10-21 o cadastro responde sempre "Confira seu
+  e-mail", com conta nova ou não, e a diferença vai pelo e-mail (naveg-api-vercel#46).
+
+O "Já tem conta? Entrar" entra com a 3.3, quando a página de entrar existir. Depois de criar, a tela mostra "Confira seu
+e-mail" com o endereço; o resto dessa tela (o reenviar, o corrigir) é a 3.2.
+
 **O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
 
 - **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para

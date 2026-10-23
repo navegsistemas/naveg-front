@@ -43,6 +43,8 @@ export type Comportamento = 'NORMAL' | 'PARTIU' | 'FORA_DO_AR'
 export interface ApiFalsa {
   /** Os corpos do `POST /reservas`, na ordem em que chegaram. */
   readonly pedidos: PedidoDeReservaJson[]
+  /** Os corpos do `POST /conta` (3.1), na ordem em que chegaram. */
+  readonly cadastros: Record<string, unknown>[]
 }
 
 const CORS = {
@@ -59,7 +61,7 @@ export async function servirApiFalsa(
   page: Page,
   opcoes: { readonly catalogo?: 'NORMAL' | 'FORA_DO_AR'; readonly envio?: Comportamento } = {},
 ): Promise<ApiFalsa> {
-  const api: ApiFalsa = { pedidos: [] }
+  const api: ApiFalsa = { pedidos: [], cadastros: [] }
 
   await page.route(`${URL_DA_API_FALSA}/**`, async (route) => {
     const pedido = route.request()
@@ -97,6 +99,14 @@ export async function servirApiFalsa(
 
       const criada: ReservaCriadaJson = { codigo: CODIGO_DO_SERVIDOR, reserva: paraDocumento(montagem.reserva) }
       return json(route, 201, criada)
+    }
+
+    /* O cadastro (3.1): a API confere os campos com o domínio e responde sempre "Confira seu e-mail" (não revela se o
+       e-mail já tem conta). A conferência dos campos é dos cenários de lá; aqui, o caminho do navegador. */
+    if (caminho === '/conta' && pedido.method() === 'POST') {
+      api.cadastros.push(pedido.postDataJSON() as Record<string, unknown>)
+      if (opcoes.envio === 'FORA_DO_AR') return json(route, 503, { erro: 'CADASTRO_INDISPONIVEL' })
+      return json(route, 202, { situacao: 'CONFIRA_O_EMAIL' })
     }
 
     return json(route, 404, { erro: 'rota-desconhecida' })
