@@ -1076,6 +1076,18 @@ o próprio e-mail, o link confirmado e o link que não vale mais.
 **A ordem:** como a 3.1, a implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). O
 PO cria o apelido `naoresponda@` e a senha de app quando a API for mandar o primeiro e-mail.
 
+**Implementada em 2026-10-23:** "Confira seu e-mail" depois de criar a conta, com o "Reenviar" a cada 60 segundos (a
+contagem no botão, o aviso "Enviamos de novo"), e a página do link, `/conta/confirmar`: confirmado, já confirmado,
+vencido e "não vale mais" (os dois pedem um link novo pelo e-mail da conta), e a falha de conexão. O código sai do
+endereço assim que a página o lê. O que mudou desde o wireframe:
+
+- **o "Corrigir o e-mail" (E) espera a 3.3.** Desde 2026-10-21 o cadastro não entra na conta, e corrigir pede entrar com
+  a senha antes ("errou o e-mail", nas regras da conta). A API já tem a troca (naveg-api-vercel#55); a tela entra quando
+  o entrar existir;
+- **depois de confirmar, o destino é Minha conta (4.1)**; até ela existir, a tela confirma e oferece "Reservar agora";
+- **o link é `/conta/confirmar#…`**, e não `?c=…`: o que vem depois do `#` não chega ao servidor nem aos logs
+  (ADR-0003, seção 3).
+
 ### 3.3 — Entrar e sair
 
 **Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("as recomendações foram aceitas"). A implementação

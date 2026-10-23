@@ -19,4 +19,5 @@ export const ROTAS: readonly Rota[] = [
   { caminho: '/privacidade/', ilhas: 0 },
   { caminho: '/termos/', ilhas: 0 },
   { caminho: '/conta/criar/', ilhas: 1 },
+  { caminho: '/conta/confirmar/', ilhas: 1 },
 ]
