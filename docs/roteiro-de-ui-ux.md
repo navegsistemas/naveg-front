@@ -1367,6 +1367,12 @@ na hora de pagar, com a escolha guardada. O PO trocou o resgate da reserva por *
 **A ordem:** o item do topo e a página da conta entram com a conta (depois do KMP, do domain e da API). Os convites D
 e E entram com a compra (7.6).
 
+**O item do topo no ar em 2026-10-23**, a pedido do PO ("insira logo o entrar/minha conta na barra"), antes da 4.1:
+"Minha conta" é o último item do menu, com o desenho de uma pessoa, e leva a `/conta` (A, que já mostra o entrar ou a
+conta); no menu recolhido, separado das seções por um fio (B). O rótulo é fixo (F; 1.1, D). **O achado 2 se
+confirmou**: com cinco itens, o tablet em pé (768px) não cabe numa linha (o topo ia a 83px), e **o menu passa a recolher
+até 50rem** (C).
+
 ### 4.1 — Minha conta
 
 **Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas"). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes
