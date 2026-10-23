@@ -3,6 +3,9 @@
 .conta {
   max-width: 36rem;
   padding-block: var(--espaco-6) calc(var(--espaco-6) * 2);
+  /* O rodapé abaixo da dobra: a ilha cresce depois de carregar (o resultado do link, a conta de quem já entrou), e
+     empurrar um rodapé à vista é deslocamento de tela (o Lighthouse da 3.3 mediu 0,226 em /conta/confirmar). */
+  min-height: 100svh;
 }
 
 .conta-formulario,

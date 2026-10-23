@@ -35,8 +35,12 @@ export const ERRO_DO_ENTRAR = {
   DESAFIO: 'A verificação contra robô não passou. Tente de novo.',
 } as const
 
+/*
+ * A página **nasce com o entrar**, e não com um "conferindo…": é o que quase todos que chegam aqui precisam, e ele vem
+ * no HTML, sem esperar a API. Quem já está dentro vê a conta tomar o lugar dele quando a sessão responde. Esperar a
+ * API para desenhar a página custou o Lighthouse (87, abaixo da régua de 90, no PR da 3.3).
+ */
 type Estado =
-  | { readonly caso: 'CONFERINDO' }
   | { readonly caso: 'FORA'; readonly saiu: boolean }
   | { readonly caso: 'DENTRO'; readonly confirmada: boolean }
   | { readonly caso: 'DESATIVADA' }
@@ -47,14 +51,13 @@ export default function PortaDaConta({ conta: contaDada }: { readonly conta?: Co
     [contaDada],
   )
   const conta = useMemo(() => contaDada ?? contaConfigurada(verificacao?.obterDesafio ?? null), [contaDada, verificacao])
-  const [estado, setEstado] = useState<Estado>({ caso: 'CONFERINDO' })
+  const [estado, setEstado] = useState<Estado>({ caso: 'FORA', saiu: false })
 
   useEffect(() => {
     let vivo = true
     void conta.sessao().then((sessao) => {
-      if (!vivo) return
-      /* Sem saber (a rede), o entrar: quem já está dentro entra de novo, e o cookie se refaz. */
-      setEstado(sessao.caso === 'DENTRO' ? { caso: 'DENTRO', confirmada: sessao.confirmada } : { caso: 'FORA', saiu: false })
+      /* Sem saber (a rede), o entrar continua: quem já está dentro entra de novo, e o cookie se refaz. */
+      if (vivo && sessao.caso === 'DENTRO') setEstado({ caso: 'DENTRO', confirmada: sessao.confirmada })
     })
     return () => {
       vivo = false
@@ -62,13 +65,6 @@ export default function PortaDaConta({ conta: contaDada }: { readonly conta?: Co
   }, [conta])
 
   switch (estado.caso) {
-    case 'CONFERINDO':
-      return (
-        <section className="conta-cartao conta-ilha" aria-busy="true">
-          <h1>Minha conta</h1>
-          <p>Conferindo se você já entrou neste aparelho…</p>
-        </section>
-      )
     case 'FORA':
       return (
         <Entrar
