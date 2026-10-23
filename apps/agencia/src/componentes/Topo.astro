@@ -5,12 +5,16 @@
  *
  * - **"Reservar agora" é o destaque**, e o menu leva às encomendas, aos atendentes, ao social (as avaliações e
  *   as redes) e ao contato. A reserva não aparece como item — seria o mesmo destino do botão, lado a lado;
- * - **abaixo de 44rem, o menu recolhe** atrás de um botão. Com quatro itens, de 44rem para cima tudo cabe numa
- *   linha só, inclusive no tablet em pé, onde antes o botão caía sozinho para uma segunda linha;
+ * - **abaixo de 50rem, o menu recolhe** atrás de um botão. Era 44rem com quatro itens; com "Minha conta", o quinto,
+ *   o tablet em pé (768px) não cabe numa linha (o topo ia a 83px), e a 3.5 C já previa: "se não couber no tablet em
+ *   pé, o menu recolhe até 50rem";
  * - **o cabeçalho fica preso ao rolar em toda largura**: no celular ele tem uma linha só (logo, botão e menu),
  *   e quem rolou não perde o caminho de volta nem o botão de reservar;
- * - **"Minha conta" entra aqui, como item fixo do menu, com a 7.4.** Fixo de propósito: um item que trocasse
- *   entre "Entrar" e "Minha conta" pediria JavaScript em toda página.
+ * - **"Minha conta" é o último item do menu** (3.5, B e C, decididas em 2026-10-16; no ar a pedido do PO em
+ *   2026-10-23: "insira logo o entrar/minha conta na barra"). Com o desenho de uma pessoa; no menu recolhido, separado
+ *   dos outros por um fio. **Fixo** (1.1, D; 3.5, F): leva a `/conta`, que mostra o entrar ou a conta; um item que
+ *   trocasse entre "Entrar" e "Minha conta" pediria JavaScript em toda página. Não vem de `menuDaPagina()`, que é das
+ *   seções da página.
  *
  * ### O menu recolhido é o `<details>` nativo
  *
@@ -35,6 +39,7 @@ import Icone from './Icone.astro'
 
 const menu = menuDaPagina()
 const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
+const naConta = Astro.url.pathname.startsWith('/conta')
 ---
 
 <header class="topo">
@@ -51,6 +56,12 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
             <a href={ancora(item.href)}>{item.rotulo}</a>
           </li>
         ))}
+        <li class="topo__conta">
+          <a href="/conta/" aria-current={naConta ? 'page' : undefined}>
+            <span class="topo__icone"><Icone slug="pessoa" tamanho={20} /></span>
+            Minha conta
+          </a>
+        </li>
       </ul>
     </nav>
 
@@ -70,6 +81,12 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
               <a href={ancora(item.href)}>{item.rotulo}</a>
             </li>
           ))}
+          <li class="topo__conta">
+            <a href="/conta/" aria-current={naConta ? 'page' : undefined}>
+              <span class="topo__icone"><Icone slug="pessoa" tamanho={20} /></span>
+              Minha conta
+            </a>
+          </li>
         </ul>
       </nav>
     </details>
@@ -137,6 +154,17 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
     color: var(--header-texto-dim);
     text-decoration: none;
     font-weight: 500;
+  }
+
+  /* "Minha conta" (3.5): o desenho da pessoa antes do rótulo. */
+  .topo__conta a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2);
+  }
+
+  .topo__nav a[aria-current='page'] {
+    color: var(--header-texto);
   }
 
   .topo__nav a:hover,
@@ -217,7 +245,14 @@ const ancora = (href: string) => ancoraVistaDe(Astro.url.pathname, href)
     font-size: 1.125rem;
   }
 
-  @media (max-width: 44rem) {
+  /* No menu recolhido, "Minha conta" separado das seções por um fio (3.5, B). */
+  .topo__nav--recolhida .topo__conta {
+    margin-top: var(--espaco-2);
+    padding-top: var(--espaco-2);
+    border-top: 1px solid var(--header-texto-dim);
+  }
+
+  @media (max-width: 50rem) {
     .topo__nav--larga {
       display: none;
     }
