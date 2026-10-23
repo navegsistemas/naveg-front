@@ -23,7 +23,8 @@ que o PO estranhar no caminho vira pedido.
 ## Pendentes (já no ar)
 
 O roteiro 13, o último da área do cliente (PO, 2026-10-23: "é melhor terminar os PRs da tela e montar os roteiros de
-aceite destas"). Está também na página "Rumo ao MVP" (`#aceite`), onde o PO marca Ok ou Falhou em cada passo.
+aceite destas"), e o 14, o quadro do cadastro. Estão também na página "Rumo ao MVP" (`#aceite`), onde o PO marca Ok ou
+Falhou em cada passo.
 
 Os roteiros 1 a 9 foram aceitos até 2026-10-22, e os 10 a 12 (o topo, criar a conta, entrar e sair) em 2026-10-23,
 com observações que viraram pedidos nas fichas 3.1 e 3.5. As fichas guardam as datas.
@@ -43,6 +44,16 @@ e-mail sai.
 | 5 | Celular | Abra o seu e-mail de novo. | "Sua senha foi trocada", com a hora e o WhatsApp. |
 | 6 | Celular | O link do passo 3 de novo. | "Este link não vale mais", com "Pedir um link novo". |
 | 7 | Celular | Saia e entre com a senha nova. | "Minha conta". |
+
+### 14 · O quadro quando a conta não é criada (3.1; #119)
+
+O pedido do PO no aceite do roteiro 11, com o quadro que ele escolheu (2026-10-23). Rápido: nenhuma conta é criada.
+
+| # | quem | faça | espere |
+|---|---|---|---|
+| 1 | Celular | Saia da conta. Em "Minha conta", "Criar conta", e toque em "Criar conta" com tudo vazio. | Os erros embaixo dos campos e, acima do botão, o quadro: "A conta ainda não foi criada. Confira os campos marcados acima." |
+| 2 | Celular | Preencha os campos, menos a senha. | O quadro continua. |
+| 3 | Celular | Digite uma senha de 8 ou mais caracteres. | O quadro some. Não toque em "Criar conta". |
 
 ## As que virão
 

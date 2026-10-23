@@ -1042,6 +1042,17 @@ confirmando. Três observações, que viram pedido:
   não conferem" do entrar, ficam como estão (roteiro 12: "o texto em um componente diferente informando está bem
   feito").
 
+**As decisões do PO no mesmo dia:**
+
+- **o aviso é um quadro que fica**, e não um snackbar que some ("aceito a recomendação do quadro"): acima do botão, "A
+  conta ainda não foi criada. Confira os campos marcados acima.", até o último campo ficar certo. Quem lê devagar, ou
+  olhava outro campo, não o perde, e é o mesmo quadro dos outros avisos do site. Uma frase só, sem contar os campos: a
+  página do cadastro chegou ao teto do build (34,5 kB);
+- **o vermelho fica de fora** ("melhor não mexer nesse ponto"): mudar só o cadastro deixaria duas cores para o mesmo
+  erro, e mudar o site inteiro reabriria a reserva já aceita. A validação continua no marrom da marca;
+- **o nascimento no futuro** continua com a frase dos menores de idade, que já recusa; a frase própria fica para quando
+  o cadastro voltar a mudar.
+
 **O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
 
 - **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para
@@ -1394,7 +1405,8 @@ fim da linha, **encostado no "Reservar agora"** ("o Minha Conta com ícone deve 
 recado, para o entrar (3.3): **o "Mostrar" vira um olho no fim do campo da senha** (também no criar a conta e na senha
 nova), e **o "Esqueci a senha" desce para logo abaixo do campo**. No ar com o #117, e **o item do topo aceito pelo PO
 no celular em 2026-10-23** (roteiro de aceite 10, "tudo funcionou"). A margem torta que o PO viu no celular ("margem na
-parte esquerda e colados na parte direita") não se reproduziu em 360, 412, 844 e 1280 px; espera um print.
+parte esquerda e colados na parte direita") não se reproduziu em 360, 412, 844 e 1280 px; **o PO confirmou no celular,
+no mesmo dia, que ela sumiu** depois do #117.
 
 ### 4.1 — Minha conta
 

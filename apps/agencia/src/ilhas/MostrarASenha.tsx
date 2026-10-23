@@ -18,7 +18,6 @@ export default function MostrarASenha({ mostrando, aoTrocar }: { readonly mostra
       type="button"
       className="conta-olho"
       aria-label="Mostrar a senha"
-      title={mostrando ? 'Esconder a senha' : 'Mostrar a senha'}
       aria-pressed={mostrando}
       onClick={aoTrocar}
     >
