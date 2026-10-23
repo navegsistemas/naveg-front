@@ -22,15 +22,10 @@ import { LIMITE_DO_EMAIL_DA_CONTA, normalizarEmail } from '@navegsistemas/domain
 import '@navegsistemas/ui/totem.css'
 
 import { ConfiraSeuEmail, FALHA_DO_REENVIO } from './ConfiraSeuEmail'
-import { contaConfigurada, WHATSAPP_DA_CONTA } from './conta-do-site'
+import { contaConfigurada, linkDoEndereco, WHATSAPP_DA_CONTA } from './conta-do-site'
 
-/** O que o link leva depois do `#`: o id da conta e o código, como a API os confere. */
-const LINK = /^#?([A-Za-z0-9_-]{1,40})\.([A-Za-z0-9_-]{43})$/
+export { linkDoEndereco }
 
-export function linkDoEndereco(hash: string): { readonly contaId: string; readonly codigo: string } | null {
-  const [, contaId, codigo] = LINK.exec(hash) ?? []
-  return contaId === undefined || codigo === undefined ? null : { contaId, codigo }
-}
 
 type Estado =
   | { readonly caso: 'CONFERINDO' }

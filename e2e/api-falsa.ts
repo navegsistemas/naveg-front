@@ -146,6 +146,17 @@ export async function servirApiFalsa(
       api.dentro = true
       return json(route, 200, { situacao: 'DENTRO', confirmada: true })
     }
+    /* Esqueci a senha (3.4): o pedido é sempre 202; a senha nova vale com o código que confirma. */
+    if (caminho === '/conta/senha/esqueci' && pedido.method() === 'POST') {
+      api.reenvios.push((pedido.postDataJSON() as { email: string }).email)
+      return json(route, 202, { situacao: 'CONFIRA_O_EMAIL' })
+    }
+    if (caminho === '/conta/senha/nova' && pedido.method() === 'POST') {
+      const { codigo } = pedido.postDataJSON() as { codigo: string }
+      if (codigo !== CODIGO_QUE_CONFIRMA) return json(route, 410, { erro: 'LINK_INVALIDO', mensagem: 'Este link não vale' })
+      api.dentro = true
+      return json(route, 200, { situacao: 'DENTRO', confirmada: true })
+    }
     if (caminho === '/conta/sair' && pedido.method() === 'POST') {
       api.dentro = false
       return route.fulfill({ status: 204, headers: CORS })

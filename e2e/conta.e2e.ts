@@ -118,3 +118,32 @@ test('entrar: a senha errada dá a frase que não revela nada; a certa abre a co
   await expect(page.getByRole('status')).toHaveText('Você saiu da sua conta neste aparelho.')
   await expect(page.getByRole('heading', { level: 1, name: 'Entrar na sua conta' })).toBeVisible()
 })
+
+/* A 3.4: esqueci a senha. */
+
+test('esqueci a senha: o e-mail do entrar vem junto, e a resposta não diz se há conta', async ({ page }) => {
+  const api = await servirApiFalsa(page)
+  await page.goto('/conta/')
+  await page.getByLabel('E-mail').fill('maria@exemplo.com.br')
+  await page.getByRole('link', { name: 'Esqueci a senha' }).click()
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Esqueci a senha' })).toBeVisible(PRAZO_DO_ENVIO)
+  await expect(page.getByLabel('E-mail')).toHaveValue('maria@exemplo.com.br')
+  await page.getByRole('button', { name: 'Mandar o link' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Confira seu e-mail' })).toBeVisible(PRAZO_DO_ENVIO)
+  await expect(page.getByText(/Se houver uma conta com maria@exemplo\.com\.br/)).toBeVisible()
+  expect(api.reenvios).toEqual(['maria@exemplo.com.br'])
+})
+
+test('a senha nova pelo link: trocada, e a pessoa já está dentro', async ({ page }) => {
+  await servirApiFalsa(page)
+  await page.goto(`/conta/nova-senha/#conta-1.${CODIGO_QUE_CONFIRMA}`)
+  await expect(page.getByRole('heading', { level: 1, name: 'Crie uma senha nova' })).toBeVisible(PRAZO_DO_ENVIO)
+  expect(new URL(page.url()).hash).toBe('')
+  await page.getByLabel('Senha nova').fill('a balsa sai às sete')
+  await page.getByRole('button', { name: 'Salvar a senha nova' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Senha trocada' })).toBeVisible(PRAZO_DO_ENVIO)
+
+  await page.getByRole('link', { name: 'Ir para Minha conta' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha conta' })).toBeVisible(PRAZO_DO_ENVIO)
+})

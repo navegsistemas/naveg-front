@@ -188,6 +188,43 @@ describe('contaHttp — entrar, quem está dentro e sair (3.3)', () => {
   })
 })
 
+describe('contaHttp — esqueci a senha (3.4)', () => {
+  it('o pedido manda o e-mail para /conta/senha/esqueci, e o 202 é "Confira seu e-mail"', async () => {
+    const { pedidos, buscar } = api(202, { situacao: 'CONFIRA_O_EMAIL' })
+    expect(await contaHttp('/api', null, buscar).esqueci('maria@exemplo.com.br')).toEqual({ caso: 'CONFIRA_O_EMAIL' })
+    expect(pedidos[0]?.url).toBe('/api/conta/senha/esqueci')
+    expect(JSON.parse(pedidos[0]?.init?.body as string)).toEqual({ email: 'maria@exemplo.com.br' })
+  })
+
+  it('a senha nova manda o link e a senha para /conta/senha/nova, e o 200 é DENTRO', async () => {
+    const { pedidos, buscar } = api(200, { situacao: 'DENTRO', confirmada: true })
+    expect(await contaHttp('/api', null, buscar).novaSenha('conta-1', 'c'.repeat(43), 'a balsa sai às sete')).toEqual({
+      caso: 'DENTRO',
+    })
+    expect(pedidos[0]?.url).toBe('/api/conta/senha/nova')
+    expect(JSON.parse(pedidos[0]?.init?.body as string)).toEqual({
+      contaId: 'conta-1',
+      codigo: 'c'.repeat(43),
+      senha: 'a balsa sai às sete',
+    })
+  })
+
+  it.each([
+    [410, { erro: 'LINK_INVALIDO' }, { caso: 'LINK_INVALIDO' }],
+    [410, { erro: 'LINK_VENCIDO' }, { caso: 'LINK_VENCIDO' }],
+    [403, { erro: 'CONTA_DESATIVADA' }, { caso: 'CONTA_DESATIVADA' }],
+    [400, { erro: 'CORPO_INVALIDO' }, { caso: 'LINK_INVALIDO' }],
+    [422, { erro: 'SENHA_FRACA', pendencias: ['SENHA_CURTA'] }, { caso: 'SENHA_FRACA', motivo: 'SENHA_CURTA' }],
+    [422, { erro: 'SENHA_FRACA', pendencias: ['SENHA_COMUM'] }, { caso: 'SENHA_FRACA', motivo: 'SENHA_COMUM' }],
+    [422, { erro: 'SENHA_FRACA', pendencias: ['SENHA_VAZADA'] }, { caso: 'SENHA_FRACA', motivo: 'SENHA_VAZADA' }],
+    [429, { erro: 'LIMITE_EXCEDIDO' }, { caso: 'FALHA', porque: 'LIMITE' }],
+    [503, { erro: 'SENHA_INDISPONIVEL' }, { caso: 'FALHA', porque: 'CONEXAO' }],
+  ])('a senha nova com %i %j', async (status, corpo, resultado) => {
+    const { buscar } = api(status, corpo)
+    expect(await contaHttp('/api', null, buscar).novaSenha('conta-1', 'c'.repeat(43), 'x')).toEqual(resultado)
+  })
+})
+
 describe('ContaEmMemoria — a demonstração', () => {
   const hoje = () => DataCalendario.de('2026-10-23') as DataCalendario
 

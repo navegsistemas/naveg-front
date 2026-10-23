@@ -18,6 +18,8 @@ function contaFalsa(sessao: ResultadoDaSessao, entrar: ResultadoDoEntrar = { cas
     reenviar: async () => ({ caso: 'CONFIRA_O_EMAIL' }),
     confirmar: async () => ({ caso: 'LINK_INVALIDO' }),
     sessao: async () => sessao,
+    esqueci: async () => ({ caso: 'CONFIRA_O_EMAIL' }),
+    novaSenha: async () => ({ caso: 'LINK_INVALIDO' }),
     entrar: async (email, senha) => {
       entradas.push([email, senha])
       return entrar

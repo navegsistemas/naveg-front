@@ -26,6 +26,8 @@ function contaQueResponde(resultado: ResultadoDoCadastroNoSite) {
     confirmar: async () => ({ caso: 'LINK_INVALIDO' }),
     entrar: async () => ({ caso: 'CREDENCIAIS_INVALIDAS' }),
     sessao: async () => ({ caso: 'FORA' }),
+    esqueci: async () => ({ caso: 'CONFIRA_O_EMAIL' }),
+    novaSenha: async () => ({ caso: 'LINK_INVALIDO' }),
     sair: async () => true,
   }
   return { conta, cadastros }

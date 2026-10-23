@@ -107,3 +107,15 @@
   flex: 1;
   border-top: 1px solid var(--border);
 }
+
+/* O rótulo da senha com o "Esqueci a senha" na mesma linha (3.3 e 3.4). */
+.conta-rotulo-com-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--espaco-3);
+}
+
+.conta-rotulo-com-link a {
+  font-size: 0.875rem;
+}

@@ -1,0 +1,26 @@
+---
+/**
+ * **A senha nova, pelo link do e-mail** — a 3.4, estados 3 e 4. O e-mail leva a
+ * `/conta/nova-senha#<contaId>.<codigo>`; a ilha lê o que vem depois do `#` e o manda à API com a senha
+ * (`ilhas/NovaSenha.tsx`).
+ *
+ * `noindex`, como as outras páginas da conta.
+ */
+import Pagina from '../../layouts/Pagina.astro'
+import Topo from '../../componentes/Topo.astro'
+import Rodape from '../../componentes/Rodape.astro'
+import SemJavaScript from '../../componentes/SemJavaScript.astro'
+import NovaSenha from '../../ilhas/NovaSenha'
+
+import { SITE } from '../../conteudo/site'
+import '../../estilos/conta.css'
+---
+
+<Pagina titulo={`Crie uma senha nova — ${SITE.nome}`} indexar={false}>
+  <Topo />
+  <main id="conteudo-principal" class="conteudo conta">
+    <NovaSenha client:load />
+    <SemJavaScript oQue="a conta" paraQue="reservar" />
+  </main>
+  <Rodape />
+</Pagina>

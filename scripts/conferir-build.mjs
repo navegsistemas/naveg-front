@@ -186,6 +186,8 @@ const COBERTURA_DA_POLITICA = {
   '/conta/': 'conta',
   '/conta/criar/': 'conta',
   '/conta/confirmar/': 'conta',
+  '/conta/esqueci/': 'conta',
+  '/conta/nova-senha/': 'conta',
 }
 const politicaDePrivacidade = naRaiz('privacidade/index.html') && readFileSync(naRaiz('privacidade/index.html'), 'utf8')
 if (!politicaDePrivacidade) falhas.push('sem a política de privacidade (privacidade/index.html)')
