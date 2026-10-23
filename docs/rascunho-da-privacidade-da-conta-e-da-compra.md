@@ -12,6 +12,14 @@ isso, as páginas da conta ou da compra não passam no CI.
 
 Os trechos entre colchetes são o que ainda depende de decisão (do PO, do contador ou do jurídico).
 
+**A parte A (a conta) entrou na página na versão 1.3, em 2026-10-23**, antes da revisão jurídica (PO, 2026-10-23:
+"sim"), do mesmo jeito que a versão de hoje: com o aviso de rascunho no topo e a revisão como pendência. O texto no ar
+segue as decisões que vieram depois deste rascunho: **o documento saiu do cadastro** e entra na primeira compra
+(fluviapp-kmp, ADR-0022 D6, 2026-10-19), e por isso foi para a parte B; **as reservas não são listadas na conta**
+antes da compra (4.1, C); os e-mails saem pelo **Google Workspace**; e **a conta nunca confirmada é apagada em 7
+dias** (3.2, F; naveg-api-vercel#43, marcada como pendente na página). A parte A abaixo fica como estava, para a
+revisão jurídica ver o caminho; quem vale é a página.
+
 ---
 
 ## A. Entra com a 7.4 — a conta do cliente

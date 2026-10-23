@@ -18,6 +18,7 @@ import { SITE } from '../conteudo/site'
 import { ENCARREGADO_LGPD, IDENTIFICACAO } from '../conteudo/rodape'
 import {
   DATA_DA_POLITICA,
+  DIAS_DA_CONTA_SEM_CONFIRMACAO,
   DIAS_DE_GUARDA_DA_RESERVA,
   PENDENCIAS_DA_POLITICA,
   VERSAO_DA_POLITICA,
@@ -35,7 +36,7 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
   <Topo />
 
   {/* `data-cobre`: a parte do site que esta versão descreve. O `conferir:build` exige a parte de cada página no
-     ar — a conta e a compra entram aqui com `data-cobre="conta"` e `data-cobre="compra"`, nas suas seções. */}
+     ar — a conta entrou na 1.3 (`data-cobre="conta"`, item 3); a compra entra com `data-cobre="compra"`. */}
   <main id="conteudo-principal" class="conteudo politica" data-cobre="hoje">
     <h1>Política de Privacidade</h1>
     <p class="politica__versao">
@@ -55,7 +56,7 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
 
     <p>
       Esta política explica quais dados pessoais a agência virtual da {SITE.nome} trata quando você reserva uma
-      passagem ou uma encomenda por este site, para quê, com quem eles são compartilhados, por quanto tempo ficam
+      passagem ou uma encomenda por este site, ou cria uma conta nele, para quê, com quem eles são compartilhados, por quanto tempo ficam
       guardados e como você exerce os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº
       13.709/2018, a LGPD).
     </p>
@@ -80,12 +81,13 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
     <h2>2. O que este site faz, e o que ele não faz</h2>
     <p>
       Este site <strong>gera reservas, não vende passagens</strong>. A reserva é um pedido: quem emite a passagem,
-      ou recebe a encomenda, é o atendimento, que confere os dados com você. Por isso o site pede o mínimo para o
+      ou recebe a encomenda, é o atendimento, que confere os dados com você. Por isso a reserva pede o mínimo para o
       atendimento encontrar você — e nenhum documento de identidade.
     </p>
     <p>
-      O site não tem cadastro nem senha, não usa cookies próprios e não usa ferramentas de análise de audiência
-      nem de publicidade.
+      Reservar não exige conta. Se você quiser, pode <strong>criar uma conta</strong> no site, com e-mail e senha
+      (item 3, "Na conta"). A conta usa <strong>um único cookie</strong>, o da sessão, para você continuar dentro
+      dela. O site não usa nenhum outro cookie, nem ferramentas de análise de audiência ou de publicidade.
     </p>
 
     <h2>3. Quais dados, e para quê</h2>
@@ -128,9 +130,45 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
       legal:</strong> os procedimentos preliminares de um contrato, a seu pedido (art. 7º, V).
     </p>
 
+    <section data-cobre="conta" aria-labelledby="politica-conta">
+      <h3 id="politica-conta">Na conta</h3>
+      <ul>
+        <li>
+          <strong>O seu nome completo, a data de nascimento, o e-mail e o celular.</strong> O nome e o celular
+          preenchem as suas reservas; o e-mail confirma a conta e é por onde ela fala com você (o link de
+          confirmação, a troca de senha e os avisos de segurança); a data de nascimento confere que você tem 18
+          anos ou mais, a idade mínima para ter conta.
+        </li>
+        <li>
+          <strong>A senha.</strong> Ela não é guardada como você a digitou: guardamos só um resumo dela, do qual não
+          se volta à senha, e é ele que conferimos quando você entra. Para recusar senhas já vazadas na internet,
+          consultamos a base pública Have I Been Pwned enviando só o começo de um resumo da senha, que não a revela.
+        </li>
+        <li>
+          <strong>O cookie da sessão</strong>, para você continuar dentro da conta no mesmo aparelho por 14 dias,
+          renovados a cada uso. O JavaScript da página não o lê, e "Sair" o apaga. Trocar a senha tira a conta dos
+          outros aparelhos.
+        </li>
+        <li>
+          Para proteger a conta: quantas vezes a senha foi errada em seguida (na quinta, a conta espera 15 minutos),
+          a data do último link mandado por e-mail e, nos pedidos de link, um <strong>resumo irreversível</strong> do
+          e-mail, que conta os pedidos da última hora e some sozinho.
+        </li>
+      </ul>
+      <p>
+        O documento de identidade não é pedido para criar a conta. Ele só será pedido na primeira compra de
+        passagem, quando a compra existir, e esta política muda antes disso.
+      </p>
+      <p>
+        <strong>Para quê:</strong> para você ter a conta, entrar nela e reservar sem digitar tudo de novo; e, quando
+        a compra existir, para comprar. <strong>Base legal:</strong> a execução de contrato, a seu pedido (art. 7º,
+        V); na proteção da conta, o legítimo interesse de manter o serviço seguro (art. 7º, IX).
+      </p>
+    </section>
+
     <h3>Na proteção contra robôs</h3>
     <p>
-      Na conferência da reserva, antes de você confirmar, o site confere se quem envia é uma pessoa, com o Turnstile da Cloudflare, que recebe
+      Na conferência da reserva e ao criar a conta ou entrar nela, o site confere se quem envia é uma pessoa, com o Turnstile da Cloudflare, que recebe
       o <strong>endereço IP</strong> do seu aparelho e informações técnicas do navegador. Além disso, um
       <strong>resumo irreversível do IP</strong> (que não permite voltar ao endereço) conta quantas reservas
       saíram dele, e o contador some sozinho em 10 minutos. <strong>Para quê:</strong> impedir que robôs encham o
@@ -159,9 +197,13 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
         <strong>O atendimento da {SITE.nome} e a empresa de navegação da viagem</strong>, que tratam a reserva no
         sistema de gestão (FluviApp) e emitem a passagem ou recebem a encomenda.
       </li>
-      <li><strong>Google (Firebase)</strong>, onde a reserva fica guardada.</li>
+      <li><strong>Google (Firebase)</strong>, onde a reserva e a conta ficam guardadas.</li>
+      <li>
+        <strong>Google (Workspace)</strong>, por onde saem os e-mails da conta, do endereço
+        naoresponda@gruponaveg.com.br.
+      </li>
       <li><strong>Vercel</strong>, que hospeda o site e o serviço que grava a reserva.</li>
-      <li><strong>Cloudflare</strong> (Turnstile) e <strong>Upstash</strong>, na proteção contra robôs.</li>
+      <li><strong>Cloudflare</strong> (Turnstile) e <strong>Upstash</strong>, na proteção contra robôs e da conta.</li>
       <li><strong>WhatsApp (Meta)</strong>, só quando você decide enviar a reserva por lá.</li>
     </ul>
     <p>
@@ -179,6 +221,13 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
     <p>
       Se a reserva virar passagem ou encomenda, os dados passam a ser os da passagem ou da encomenda, guardados
       pelo prazo que a lei exige para elas.
+    </p>
+    <p>
+      <strong>Os dados da conta</strong> ficam enquanto ela existir. Você pode apagar a conta quando quiser, em "Meus
+      dados", com a senha: ela some na hora, com os seus dados de cadastro, e você recebe um último e-mail avisando.
+      As reservas feitas com a conta seguem o prazo acima. A conta criada e <strong>nunca confirmada</strong> pelo
+      link do e-mail é apagada sozinha em {DIAS_DA_CONTA_SEM_CONFIRMACAO} dias.{' '}
+      <Falta campo="Em implantação" onde={PENDENCIAS_DA_POLITICA.contaSemConfirmacao} />
     </p>
 
     <h2>6. Os seus direitos</h2>
@@ -199,15 +248,20 @@ const semanas = DIAS_DE_GUARDA_DA_RESERVA / 7
 
     <h2>7. Segurança</h2>
     <p>
-      O site só funciona por conexão criptografada (HTTPS). A reserva é gravada por um serviço próprio, e não
-      direto pelo navegador; quem a lê no sistema de gestão é só o atendimento, com login. Nenhum documento de
-      identidade é pedido aqui.
+      O site só funciona por conexão criptografada (HTTPS). A reserva e a conta são gravadas por um serviço
+      próprio, e não direto pelo navegador; quem as lê no sistema de gestão é só o atendimento, com login. Nenhum
+      documento de identidade é pedido aqui.
+    </p>
+    <p>
+      Na conta, as respostas do cadastro e do "Esqueci a senha" não revelam se um e-mail já tem conta, e os
+      registros do sistema não guardam o seu nome, e-mail ou senha. Trocar o e-mail, trocar a senha e apagar a
+      conta pedem a senha atual, e cada um manda um aviso ao seu e-mail.
     </p>
 
     <h2>8. Mudanças nesta política</h2>
     <p>
-      Quando o site passar a fazer algo novo com dados pessoais — como o cadastro e a compra online —, esta
-      política muda antes, com versão e data novas no topo da página.
+      Quando o site passar a fazer algo novo com dados pessoais — como a compra online —, esta política muda
+      antes, com versão e data novas no topo da página.
     </p>
   </main>
 
