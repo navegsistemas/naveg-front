@@ -184,6 +184,7 @@ const COBERTURA_DA_POLITICA = {
   '/privacidade/': 'hoje',
   '/termos/': 'hoje',
   '/conta/criar/': 'conta',
+  '/conta/confirmar/': 'conta',
 }
 const politicaDePrivacidade = naRaiz('privacidade/index.html') && readFileSync(naRaiz('privacidade/index.html'), 'utf8')
 if (!politicaDePrivacidade) falhas.push('sem a política de privacidade (privacidade/index.html)')

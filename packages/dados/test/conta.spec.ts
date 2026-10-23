@@ -93,6 +93,49 @@ describe('contaHttp — o POST /conta', () => {
   })
 })
 
+describe('contaHttp — o "Reenviar" e o link de confirmação (3.2)', () => {
+  it('o reenvio manda o e-mail para /conta/confirmacao/reenvio, e o 202 é "Confira seu e-mail"', async () => {
+    const { pedidos, buscar } = api(202, { situacao: 'CONFIRA_O_EMAIL' })
+    expect(await contaHttp('/api', null, buscar).reenviar('maria@exemplo.com.br')).toEqual({ caso: 'CONFIRA_O_EMAIL' })
+    expect(pedidos[0]?.url).toBe('/api/conta/confirmacao/reenvio')
+    expect(JSON.parse(pedidos[0]?.init?.body as string)).toEqual({ email: 'maria@exemplo.com.br' })
+  })
+
+  it.each([
+    [429, 'LIMITE'],
+    [503, 'CONEXAO'],
+  ])('o reenvio com %i é FALHA por %s', async (status, porque) => {
+    const { buscar } = api(status)
+    expect(await contaHttp('/api', null, buscar).reenviar('maria@exemplo.com.br')).toEqual({ caso: 'FALHA', porque })
+  })
+
+  it('a confirmação manda o id e o código para /conta/confirmacao', async () => {
+    const { pedidos, buscar } = api(200, { situacao: 'EMAIL_CONFIRMADO' })
+    expect(await contaHttp('/api', null, buscar).confirmar('conta-1', 'c'.repeat(43))).toEqual({ caso: 'EMAIL_CONFIRMADO' })
+    expect(pedidos[0]?.url).toBe('/api/conta/confirmacao')
+    expect(JSON.parse(pedidos[0]?.init?.body as string)).toEqual({ contaId: 'conta-1', codigo: 'c'.repeat(43) })
+  })
+
+  it.each([
+    [200, { situacao: 'JA_CONFIRMADO' }, { caso: 'JA_CONFIRMADO' }],
+    [410, { erro: 'LINK_VENCIDO' }, { caso: 'LINK_VENCIDO' }],
+    [410, { erro: 'LINK_INVALIDO' }, { caso: 'LINK_INVALIDO' }],
+    [400, { erro: 'CORPO_INVALIDO' }, { caso: 'LINK_INVALIDO' }],
+    [429, {}, { caso: 'FALHA', porque: 'LIMITE' }],
+    [503, {}, { caso: 'FALHA', porque: 'CONEXAO' }],
+    [200, { situacao: 'OUTRA' }, { caso: 'FALHA', porque: 'CONEXAO' }],
+  ])('a confirmação com %i %j', async (status, corpo, resultado) => {
+    const { buscar } = api(status, corpo)
+    expect(await contaHttp('/api', null, buscar).confirmar('conta-1', 'c'.repeat(43))).toEqual(resultado)
+  })
+
+  it('sem a verificação da página, o cadastro não chega à API', async () => {
+    const { pedidos, buscar } = api(202)
+    expect(await contaHttp('/api', null, buscar).criar(CADASTRO)).toEqual({ caso: 'FALHA', porque: 'DESAFIO' })
+    expect(pedidos).toEqual([])
+  })
+})
+
 describe('ContaEmMemoria — a demonstração', () => {
   const hoje = () => DataCalendario.de('2026-10-23') as DataCalendario
 

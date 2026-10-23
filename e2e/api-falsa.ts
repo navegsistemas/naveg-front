@@ -45,7 +45,13 @@ export interface ApiFalsa {
   readonly pedidos: PedidoDeReservaJson[]
   /** Os corpos do `POST /conta` (3.1), na ordem em que chegaram. */
   readonly cadastros: Record<string, unknown>[]
+  /** Os e-mails do "Reenviar" (3.2). */
+  readonly reenvios: string[]
 }
+
+/** Os códigos dos links de confirmação (3.2): um que confirma, um vencido; os outros não valem. */
+export const CODIGO_QUE_CONFIRMA = 'c'.repeat(43)
+export const CODIGO_VENCIDO = 'v'.repeat(43)
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -61,7 +67,7 @@ export async function servirApiFalsa(
   page: Page,
   opcoes: { readonly catalogo?: 'NORMAL' | 'FORA_DO_AR'; readonly envio?: Comportamento } = {},
 ): Promise<ApiFalsa> {
-  const api: ApiFalsa = { pedidos: [], cadastros: [] }
+  const api: ApiFalsa = { pedidos: [], cadastros: [], reenvios: [] }
 
   await page.route(`${URL_DA_API_FALSA}/**`, async (route) => {
     const pedido = route.request()
@@ -107,6 +113,20 @@ export async function servirApiFalsa(
       api.cadastros.push(pedido.postDataJSON() as Record<string, unknown>)
       if (opcoes.envio === 'FORA_DO_AR') return json(route, 503, { erro: 'CADASTRO_INDISPONIVEL' })
       return json(route, 202, { situacao: 'CONFIRA_O_EMAIL' })
+    }
+
+    /* O "Reenviar" (3.2): sempre 202, como a API. */
+    if (caminho === '/conta/confirmacao/reenvio' && pedido.method() === 'POST') {
+      api.reenvios.push((pedido.postDataJSON() as { email: string }).email)
+      return json(route, 202, { situacao: 'CONFIRA_O_EMAIL' })
+    }
+
+    /* O link de confirmação (3.2): o código que o cenário escolheu confirma; o vencido, vence; o resto não vale. */
+    if (caminho === '/conta/confirmacao' && pedido.method() === 'POST') {
+      const { codigo } = pedido.postDataJSON() as { contaId: string; codigo: string }
+      if (codigo === CODIGO_QUE_CONFIRMA) return json(route, 200, { situacao: 'EMAIL_CONFIRMADO' })
+      if (codigo === CODIGO_VENCIDO) return json(route, 410, { erro: 'LINK_VENCIDO', mensagem: 'Este link venceu' })
+      return json(route, 410, { erro: 'LINK_INVALIDO', mensagem: 'Este link não vale' })
     }
 
     return json(route, 404, { erro: 'rota-desconhecida' })

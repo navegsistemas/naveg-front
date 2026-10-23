@@ -19,13 +19,11 @@
  */
 import { useId, useMemo, useRef, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 
-import { ContaEmMemoria, contaHttp, type ContaDoSite, type ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
+import type { ContaDoSite, ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
 import {
   DataCalendario,
-  InstanteLocal,
   LIMITE_DO_EMAIL_DA_CONTA,
   LIMITE_DO_NOME_DA_CONTA,
-  linkDeWhatsApp,
   pendenciasDoCadastro,
   TAMANHO_MINIMO_DA_SENHA,
   type PendenciaDoCadastro,
@@ -33,23 +31,10 @@ import {
 import { mascaraDoCelular } from '@navegsistemas/ui'
 import '@navegsistemas/ui/totem.css'
 
-import { envioConfigurado, fonteConfigurada } from '../conteudo/api'
-import { ATENDIMENTO, WHATSAPP_DAS_RESERVAS } from '../conteudo/atendimento'
-import { FUSO_DA_OPERACAO } from '../conteudo/operacao'
+import { ConfiraSeuEmail } from './ConfiraSeuEmail'
+import { contaConfigurada, ENVIO_DA_CONTA as ENVIO, hojeEmBelem, WHATSAPP_DA_CONTA as WHATSAPP } from './conta-do-site'
 import { verificacaoTurnstile } from './turnstile'
 import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraRobo'
-
-/* Lidas no build, como no totem: a conta vai à API quando o catálogo vem dela e a chave do Turnstile existe. */
-const ENVIO = envioConfigurado(fonteConfigurada(import.meta.env.PUBLIC_URL_DA_API), import.meta.env.PUBLIC_TURNSTILE_SITE_KEY)
-
-/** O WhatsApp do atendimento, a saída quando a conta não se cria (2.6). */
-const WHATSAPP =
-  WHATSAPP_DAS_RESERVAS === null
-    ? null
-    : { numero: WHATSAPP_DAS_RESERVAS, link: linkDeWhatsApp(WHATSAPP_DAS_RESERVAS, ATENDIMENTO.mensagemInicial) }
-
-/** O dia de hoje em Belém: a idade mínima conta por ele, como na API. */
-const hojeEmBelem = () => InstanteLocal.data(InstanteLocal.emFuso(new Date(), FUSO_DA_OPERACAO))
 
 /** O que dizer embaixo de cada campo. */
 export const ERRO_DO_CAMPO: Readonly<Record<PendenciaDoCadastro | 'SENHA_COMUM' | 'SENHA_VAZADA', string>> = {
@@ -117,7 +102,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
     [contaDada],
   )
   const conta = useMemo<ContaDoSite>(
-    () => contaDada ?? (ENVIO.tipo === 'API' && verificacao !== null ? contaHttp(ENVIO.url, verificacao.obterDesafio) : new ContaEmMemoria(hoje)),
+    () => contaDada ?? contaConfigurada(verificacao?.obterDesafio ?? null, hoje),
     [contaDada, verificacao, hoje],
   )
   const estadoDaVerificacao = useEstadoDaVerificacao(verificacao)
@@ -185,19 +170,8 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
     }
   }
 
-  if (estado.caso === 'CONFIRA_O_EMAIL') {
-    return (
-      <section className="conta-cartao" aria-labelledby={`${id}-confira`}>
-        <h1 id={`${id}-confira`} tabIndex={-1} ref={(h) => h?.focus()}>
-          Confira seu e-mail
-        </h1>
-        <p>
-          Mandamos um link para <strong>{estado.email}</strong>. Toque nele para confirmar a conta. O link vale por 24
-          horas; se não chegar em alguns minutos, procure no spam.
-        </p>
-      </section>
-    )
-  }
+  if (estado.caso === 'CONFIRA_O_EMAIL') return <ConfiraSeuEmail conta={conta} email={estado.email} />
+
 
   const verificada = verificacao === null || estadoDaVerificacao === 'VERIFICADA'
   const enviando = estado.caso === 'ENVIANDO'
@@ -239,7 +213,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
   }
 
   return (
-    <form className="conta-formulario" method="post" onSubmit={enviar} noValidate>
+    <form className="conta-formulario conta-ilha" method="post" onSubmit={enviar} noValidate>
       <h1>Criar sua conta</h1>
       <p className="conta-ajuda">
         Com a conta, você compra passagens para você ou para outra pessoa, e reserva veículos e encomendas com o

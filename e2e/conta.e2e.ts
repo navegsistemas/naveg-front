@@ -7,7 +7,7 @@
  */
 import type { Page } from '@playwright/test'
 
-import { servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
+import { CODIGO_QUE_CONFIRMA, CODIGO_VENCIDO, servirApiFalsa, TOKEN_DE_TESTE_DO_TURNSTILE } from './api-falsa'
 import { expect, test } from './politica'
 
 const PRAZO_DO_ENVIO = { timeout: 20_000 }
@@ -71,4 +71,25 @@ test('a API fora do ar: o quadro com o WhatsApp, o "Tentar de novo", e o preench
   await expect(page.getByRole('alert').getByRole('link', { name: 'WhatsApp' })).toHaveAttribute('href', /wa\.me/)
   await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible()
   await expect(page.getByLabel('Nome completo')).toHaveValue('Maria Souza')
+})
+
+/* A 3.2: o link de confirmação aberto. O código vai depois do `#`, e sai do endereço assim que a página o lê. */
+
+test('o link que confirma: "E-mail confirmado", e o código some do endereço', async ({ page }) => {
+  await servirApiFalsa(page)
+  await page.goto(`/conta/confirmar/#conta-1.${CODIGO_QUE_CONFIRMA}`)
+  await expect(page.getByRole('heading', { level: 1, name: 'E-mail confirmado' })).toBeVisible(PRAZO_DO_ENVIO)
+  expect(new URL(page.url()).hash).toBe('')
+  await expect(page.getByRole('link', { name: 'Reservar agora' }).last()).toHaveAttribute('href', '/#totem')
+})
+
+test('o link vencido: pedir um link novo pelo e-mail, e "Confira seu e-mail"', async ({ page }) => {
+  const api = await servirApiFalsa(page)
+  await page.goto(`/conta/confirmar/#conta-1.${CODIGO_VENCIDO}`)
+  await expect(page.getByRole('heading', { level: 1, name: 'Este link venceu' })).toBeVisible(PRAZO_DO_ENVIO)
+  await page.getByLabel('E-mail da conta').fill('maria@exemplo.com.br')
+  await page.getByRole('button', { name: 'Mandar um link novo' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Confira seu e-mail' })).toBeVisible(PRAZO_DO_ENVIO)
+  await expect(page.getByRole('button', { name: /^Reenviar em \d+ s$/ })).toBeDisabled()
+  expect(api.reenvios).toEqual(['maria@exemplo.com.br'])
 })

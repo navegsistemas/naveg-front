@@ -1,0 +1,26 @@
+---
+/**
+ * **O link de confirmação do e-mail** — a 3.2, estados 3 e 4. O e-mail leva a `/conta/confirmar#<contaId>.<codigo>`;
+ * a ilha lê o que vem depois do `#` e o manda à API (`ilhas/ConfirmarEmail.tsx`).
+ *
+ * `noindex`, como as outras páginas da conta. Sem Turnstile: a confirmação não pede desafio (o código de 32 bytes não
+ * se adivinha, e a API tem o limite por endereço).
+ */
+import Pagina from '../../layouts/Pagina.astro'
+import Topo from '../../componentes/Topo.astro'
+import Rodape from '../../componentes/Rodape.astro'
+import SemJavaScript from '../../componentes/SemJavaScript.astro'
+import ConfirmarEmail from '../../ilhas/ConfirmarEmail'
+
+import { SITE } from '../../conteudo/site'
+import '../../estilos/conta.css'
+---
+
+<Pagina titulo={`Confirmar o e-mail — ${SITE.nome}`} indexar={false}>
+  <Topo />
+  <main id="conteudo-principal" class="conteudo conta">
+    <ConfirmarEmail client:load />
+    <SemJavaScript oQue="a conta" paraQue="reservar" />
+  </main>
+  <Rodape />
+</Pagina>

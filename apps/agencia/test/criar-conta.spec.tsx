@@ -22,6 +22,8 @@ function contaQueResponde(resultado: ResultadoDoCadastroNoSite) {
       cadastros.push(cadastro)
       return resultado
     },
+    reenviar: async () => ({ caso: 'CONFIRA_O_EMAIL' }),
+    confirmar: async () => ({ caso: 'LINK_INVALIDO' }),
   }
   return { conta, cadastros }
 }
