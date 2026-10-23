@@ -8,3 +8,9 @@
 .totem {
   display: none;
 }
+
+/* A conta (3.1 em diante): o título fica, e o formulário some. Sem script ele não envia nada, e o aviso diz o que
+   fazer. O `method="post"` do formulário garante que a senha nunca vá parar no endereço da página. */
+.conta-formulario > :not(h1) {
+  display: none;
+}
