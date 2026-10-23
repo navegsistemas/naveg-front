@@ -12,6 +12,6 @@
     "@navegsistemas/domain": "*"
   },
   "peerDependencies": {
-    "react": "^19"
+    "react": "^19.3.1"
   }
 }
