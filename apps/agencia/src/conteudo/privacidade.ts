@@ -13,9 +13,12 @@
  */
 
 /** Sobe a cada mudança de conteúdo; a data acompanha. A versão antiga não se reescreve, se substitui. */
-export const VERSAO_DA_POLITICA = '1.2'
-/** ISO `yyyy-MM-dd`. */
-export const DATA_DA_POLITICA = '2026-10-16'
+export const VERSAO_DA_POLITICA = '1.3'
+/** ISO `yyyy-MM-dd`. A 1.3 trouxe a conta (7.4; PO, 2026-10-23: "sim", antes da revisão jurídica). */
+export const DATA_DA_POLITICA = '2026-10-23'
+
+/** Em quantos dias a conta nunca confirmada é apagada sozinha (3.2, F; naveg-api-vercel#43). */
+export const DIAS_DA_CONTA_SEM_CONFIRMACAO = 7
 
 /** Por quanto tempo o dado pessoal de uma reserva fica guardado depois da data da viagem (PO, 2026-10-07). */
 export const DIAS_DE_GUARDA_DA_RESERVA = 14
@@ -27,6 +30,8 @@ export const DIAS_DE_GUARDA_DA_RESERVA = 14
 export const PENDENCIAS_DA_POLITICA = {
   /** A tarefa que apaga o dado pessoal depois do prazo — naveg-api-vercel#21. */
   anonimizacao: 'a anonimização automática depois do prazo (naveg-api-vercel#21)',
+  /** A tarefa que apaga a conta nunca confirmada — naveg-api-vercel#43. */
+  contaSemConfirmacao: 'apagar sozinha a conta nunca confirmada (naveg-api-vercel#43)',
   /** A revisão de um advogado, que a U7 junta com a das seções da conta e da compra. */
   revisaoJuridica: 'a revisão jurídica, com as bases legais',
 } as const
