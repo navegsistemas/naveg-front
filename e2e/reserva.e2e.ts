@@ -158,7 +158,7 @@ test.describe('a reserva no quiosque', () => {
 
     const saida = totem(page).getByRole('listitem').filter({ hasText: 'Ferry de demonstração' }).first()
     await escolher(saida.getByRole('button', { name: 'Reservar esta saída' }), 'O que vai embarcar?')
-    await escolher(page.getByRole('button', { name: 'Passageiro' }), 'Onde você quer viajar?')
+    await escolher(page.getByRole('button', { name: 'Passageiro' }), 'Selecione uma acomodação')
     await escolher(page.getByRole('button', { name: /^Rede/ }), 'Qual o tipo da passagem?')
     await escolher(page.getByRole('button', { name: 'Inteira' }), 'Em nome de quem fica a reserva?')
 
