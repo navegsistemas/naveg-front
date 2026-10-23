@@ -36,6 +36,8 @@ export const SLUGS_DE_ICONE = [
   'facebook',
   'menu',
   'fechar',
+  'olho',
+  'olho-fechado',
 ] as const
 
 export type SlugIcone = (typeof SLUGS_DE_ICONE)[number]
@@ -56,6 +58,23 @@ export interface Desenho {
 
 /** O lado do `viewBox`. Quem monta o `<svg>` lê daqui em vez de repetir `0 0 24 24`. */
 export const LADO_DO_ICONE = 24
+
+/**
+ * Os olhos do campo da senha, também soltos: a ilha que os usa importa só os dois, e não o [DESENHOS] inteiro. Pelo
+ * objeto, as marcas da Meta e o resto iam junto para o celular, e a página do cadastro passou do teto do build
+ * (35,6 kB contra 34,5, no PR das ressalvas do roteiro 10).
+ */
+export const OLHO: Desenho = {
+  traco: true,
+  rotulo: 'Mostrar',
+  caminhos: ['M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
+}
+
+export const OLHO_FECHADO: Desenho = {
+  traco: true,
+  rotulo: 'Esconder',
+  caminhos: [...OLHO.caminhos, 'M4 4l16 16'],
+}
 
 /**
  * As marcas do Facebook, do Instagram e do WhatsApp são propriedade da Meta.
@@ -155,6 +174,8 @@ export const DESENHOS: Readonly<Record<SlugIcone, Desenho>> = {
     rotulo: 'Fechar',
     caminhos: ['M6 6l12 12', 'M18 6L6 18'],
   },
+  olho: OLHO,
+  'olho-fechado': OLHO_FECHADO,
 }
 
 /** O desenho deste slug. O tipo já garante que existe — a função existe para o chamador não indexar à mão. */

@@ -7,7 +7,7 @@
  *
  * - **Os erros ficam embaixo do campo**, quando a pessoa sai dele ou toca em "Criar conta", com o foco no primeiro
  *   errado (3.1, achado 4). A conferência é a do domínio (`pendenciasDoCadastro`), a mesma que a API refaz.
- * - **A senha** (C): pelo menos 8 caracteres, com "Mostrar" e sem "repita a senha". A comum ou vazada, quem recusa é
+ * - **A senha** (C): pelo menos 8 caracteres, com o olho de mostrar no fim do campo e sem "repita a senha". A comum ou vazada, quem recusa é
  *   a API, e a frase diz por quê.
  * - **Os termos** (F): uma frase acima do botão, com os dois links, sem caixa de marcar.
  * - **A verificação contra robô** é um passo visível acima do botão, como na conferência da reserva (2.8), com a ação
@@ -33,6 +33,7 @@ import '@navegsistemas/ui/totem.css'
 
 import { ConfiraSeuEmail } from './ConfiraSeuEmail'
 import { contaConfigurada, ENVIO_DA_CONTA as ENVIO, hojeEmBelem, WHATSAPP_DA_CONTA as WHATSAPP } from './conta-do-site'
+import MostrarASenha from './MostrarASenha'
 import { verificacaoTurnstile } from './turnstile'
 import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraRobo'
 
@@ -193,7 +194,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
         {depois === undefined ? (
           entradaDoCampo
         ) : (
-          <div className="conta-com-botao">
+          <div className="conta-senha">
             {entradaDoCampo}
             {depois}
           </div>
@@ -256,14 +257,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
             placeholder: `Pelo menos ${TAMANHO_MINIMO_DA_SENHA} caracteres`,
           },
           undefined,
-          <button
-            type="button"
-            className="acao acao--secundaria conta-mostrar"
-            aria-pressed={mostrarSenha}
-            onClick={() => setMostrarSenha((antes) => !antes)}
-          >
-            {mostrarSenha ? 'Esconder' : 'Mostrar'}
-          </button>,
+          <MostrarASenha mostrando={mostrarSenha} aoTrocar={() => setMostrarSenha((antes) => !antes)} />,
         )}
       </fieldset>
 

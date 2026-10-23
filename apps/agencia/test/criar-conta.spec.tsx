@@ -138,13 +138,16 @@ describe('CriarConta', () => {
     expect((screen.getByLabelText('Nome completo') as HTMLInputElement).value).toBe('Maria Souza')
   })
 
-  it('"Mostrar" troca a senha para texto, e de volta', () => {
+  it('o olho no fim do campo troca a senha para texto, e de volta; o nome fica, e o estado é o "pressionado"', () => {
     render(<CriarConta conta={contaQueResponde({ caso: 'CONFIRA_O_EMAIL' }).conta} hoje={hoje} />)
     const senha = screen.getByLabelText('Senha') as HTMLInputElement
+    const olho = screen.getByRole('button', { name: 'Mostrar a senha' })
     expect(senha.type).toBe('password')
-    fireEvent.click(screen.getByRole('button', { name: 'Mostrar' }))
+    expect(olho.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(olho)
     expect(senha.type).toBe('text')
-    fireEvent.click(screen.getByRole('button', { name: 'Esconder' }))
+    expect(olho.getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(olho)
     expect(senha.type).toBe('password')
   })
 
