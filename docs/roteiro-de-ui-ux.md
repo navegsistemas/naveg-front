@@ -1019,6 +1019,14 @@ seção da conta, #109). Duas mudanças desde o wireframe, das decisões que vie
 O "Já tem conta? Entrar" entra com a 3.3, quando a página de entrar existir. Depois de criar, a tela mostra "Confira seu
 e-mail" com o endereço; o resto dessa tela (o reenviar, o corrigir) é a 3.2.
 
+**Revisada pelo PO em 2026-10-23**, na homologação: "aumentar o campo de nome e disponibilizar calendário pra data de
+nascimento", e "campo de email maior e em coluna com o número, ficou muito curto".
+
+- **os campos na coluna inteira:** eles ficavam na largura padrão do navegador (uns 20 caracteres), por um defeito do
+  formulário (uma caixa sem estilo em volta de cada campo). Agora o nome, o e-mail e o celular ocupam a coluna;
+- **o e-mail e o celular um embaixo do outro**, e não mais aos pares no computador;
+- **a data de nascimento pelo calendário do aparelho** (`type="date"`), até hoje, no lugar do "dd/mm/aaaa" digitado.
+
 **O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
 
 - **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para
