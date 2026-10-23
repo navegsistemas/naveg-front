@@ -5,7 +5,7 @@
  * O link é `/conta/nova-senha#<contaId>.<codigo>`, como o da confirmação (ADR-0003, seção 3): a ilha o lê, **tira do
  * endereço**, e só o manda à API com a senha nova.
  *
- * - **A senha** segue a 3.1 (C): 8 caracteres, com "Mostrar"; a comum ou vazada, a API recusa, com o motivo.
+ * - **A senha** segue a 3.1 (C): 8 caracteres, com o olho de mostrar; a comum ou vazada, a API recusa, com o motivo.
  * - **Trocada** (C e D): a pessoa já fica dentro neste aparelho, e sai dos outros; o e-mail "Sua senha foi trocada" é da
  *   API. A conta sem o e-mail confirmado fica confirmada (E).
  * - **O link que não vale mais**: um texto só para vencido, usado e trocado — a pessoa faz a mesma coisa nos três.
@@ -21,6 +21,7 @@ import { TAMANHO_MINIMO_DA_SENHA } from '@navegsistemas/domain'
 import '@navegsistemas/ui/totem.css'
 
 import { contaConfigurada, linkDoEndereco, WHATSAPP_DA_CONTA } from './conta-do-site'
+import MostrarASenha from './MostrarASenha'
 
 export const ERRO_DA_SENHA_NOVA = {
   SENHA_CURTA: `Use pelo menos ${TAMANHO_MINIMO_DA_SENHA} caracteres.`,
@@ -126,7 +127,7 @@ export default function NovaSenha({ conta: contaDada }: { readonly conta?: Conta
           <h1>Crie uma senha nova</h1>
           <div className="totem-campo">
             <label htmlFor={`${id}-senha`}>Senha nova</label>
-            <div className="conta-com-botao">
+            <div className="conta-senha">
               <input
                 id={`${id}-senha`}
                 name="senha"
@@ -142,14 +143,7 @@ export default function NovaSenha({ conta: contaDada }: { readonly conta?: Conta
                 aria-invalid={erroDoCampo !== null}
                 aria-describedby={erroDoCampo === null ? undefined : `${id}-senha-erro`}
               />
-              <button
-                type="button"
-                className="acao acao--secundaria conta-mostrar"
-                aria-pressed={mostrar}
-                onClick={() => setMostrar((antes) => !antes)}
-              >
-                {mostrar ? 'Esconder' : 'Mostrar'}
-              </button>
+              <MostrarASenha mostrando={mostrar} aoTrocar={() => setMostrar((antes) => !antes)} />
             </div>
             {erroDoCampo !== null && (
               <p id={`${id}-senha-erro`} className="totem-erro">

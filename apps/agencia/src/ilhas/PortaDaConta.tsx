@@ -3,7 +3,7 @@
  * 2026-10-21), no lugar que a 3.5 A decidiu: quem não entrou vê o entrar; quem entrou, a conta.
  *
  * - **Quem está dentro** vem da API (`GET /conta/sessao`): o cookie é `HttpOnly`, e a página não o lê.
- * - **Entrar**: e-mail e senha, com "Mostrar"; a verificação contra robô acima do botão, como no cadastro (ação
+ * - **Entrar**: e-mail e senha, com o olho de mostrar no fim do campo; a verificação contra robô acima do botão, como no cadastro (ação
  *   `entrar`). As respostas:
  *   - **"E-mail ou senha não conferem"** (B), a mesma frase para o e-mail sem conta e a senha errada;
  *   - **5 erros seguidos → 15 minutos** (C), com a frase que não diz se o e-mail tem conta;
@@ -13,7 +13,8 @@
  * - **Sair**: "Você saiu da sua conta neste aparelho", e a tela de entrar — num aparelho emprestado, é aqui que a pessoa
  *   confere.
  *
- * O "Esqueci a senha" (3.4) fica ao lado do rótulo da senha. A volta à compra (U3) espera a 7.6.
+ * O "Esqueci a senha" (3.4) fica logo abaixo do campo da senha (PO, 2026-10-23, no aceite do roteiro 10; antes, ao
+ * lado do rótulo). A volta à compra (U3) espera a 7.6.
  */
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react'
 
@@ -22,6 +23,7 @@ import { LIMITE_DO_EMAIL_DA_CONTA, normalizarEmail } from '@navegsistemas/domain
 import '@navegsistemas/ui/totem.css'
 
 import { contaConfigurada, ENVIO_DA_CONTA, lembrarEmailDoEntrar, WHATSAPP_DA_CONTA } from './conta-do-site'
+import MostrarASenha from './MostrarASenha'
 import { verificacaoTurnstile } from './turnstile'
 import { PassoDaVerificacao, useEstadoDaVerificacao } from './VerificacaoContraRobo'
 
@@ -168,14 +170,8 @@ function Entrar({
       </div>
 
       <div className="totem-campo">
-        <div className="conta-rotulo-com-link">
-          <label htmlFor={`${id}-senha`}>Senha</label>
-          {/* O e-mail digitado vai junto, pela aba (e não pelo endereço), para o pedido do link vir preenchido. */}
-          <a href="/conta/esqueci/" onClick={() => lembrarEmailDoEntrar(email.trim())}>
-            Esqueci a senha
-          </a>
-        </div>
-        <div className="conta-com-botao">
+        <label htmlFor={`${id}-senha`}>Senha</label>
+        <div className="conta-senha">
           <input
             id={`${id}-senha`}
             name="senha"
@@ -188,20 +184,17 @@ function Entrar({
             aria-invalid={tentou && senhaVazia}
             aria-describedby={tentou && senhaVazia ? `${id}-senha-erro` : undefined}
           />
-          <button
-            type="button"
-            className="acao acao--secundaria conta-mostrar"
-            aria-pressed={mostrar}
-            onClick={() => setMostrar((antes) => !antes)}
-          >
-            {mostrar ? 'Esconder' : 'Mostrar'}
-          </button>
+          <MostrarASenha mostrando={mostrar} aoTrocar={() => setMostrar((antes) => !antes)} />
         </div>
         {tentou && senhaVazia && (
           <p id={`${id}-senha-erro`} className="totem-erro">
             Informe a senha.
           </p>
         )}
+        {/* O e-mail digitado vai junto, pela aba (e não pelo endereço), para o pedido do link vir preenchido. */}
+        <a className="conta-esqueci" href="/conta/esqueci/" onClick={() => lembrarEmailDoEntrar(email.trim())}>
+          Esqueci a senha
+        </a>
       </div>
 
       {verificacao !== null && estadoDaVerificacao !== null && (

@@ -44,14 +44,39 @@
   color: var(--text-secondary);
 }
 
-.conta-com-botao {
-  display: flex;
-  gap: var(--espaco-2);
+/* A senha com o olho no fim do campo, por dentro da borda (PO, 2026-10-23, no aceite do roteiro 10). O campo reserva
+   a largura do botão à direita, para o texto não correr por baixo dele. */
+.conta-senha {
+  position: relative;
+  display: grid;
 }
 
-.conta-com-botao input {
-  flex: 1;
-  min-width: 0;
+.conta-senha input {
+  padding-inline-end: calc(var(--alvo-toque) + var(--espaco-1));
+}
+
+.conta-olho {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.conta-olho:hover,
+.conta-olho[aria-pressed='true'] {
+  color: var(--text);
+}
+
+/* O anel de foco por dentro: por fora ele cairia sobre a borda do campo. */
+.conta-olho:focus-visible {
+  outline-offset: -6px;
 }
 
 .conta-termos {
@@ -97,14 +122,11 @@
   border-top: 1px solid var(--border);
 }
 
-/* O rótulo da senha com o "Esqueci a senha" na mesma linha (3.3 e 3.4). */
-.conta-rotulo-com-link {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--espaco-3);
-}
-
-.conta-rotulo-com-link a {
+/* O "Esqueci a senha" logo abaixo do campo da senha, no fim da linha, embaixo do olho (3.4; PO, 2026-10-23). O alvo
+   de toque cresce para cima e para baixo sem mexer no texto. */
+.conta-esqueci {
+  justify-self: end;
+  padding-block: var(--espaco-2);
+  margin-block: calc(var(--espaco-2) * -1);
   font-size: 0.875rem;
 }

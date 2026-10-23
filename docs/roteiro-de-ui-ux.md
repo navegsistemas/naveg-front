@@ -1373,6 +1373,11 @@ conta); no menu recolhido, separado das seções por um fio (B). O rótulo é fi
 confirmou**: com cinco itens, o tablet em pé (768px) não cabe numa linha (o topo ia a 83px), e **o menu passa a recolher
 até 50rem** (C).
 
+**Revisões do aceite do roteiro 10 (PO, 2026-10-23):** na tela larga, "Minha conta" sai do lado das seções e vai para o
+fim da linha, **encostado no "Reservar agora"** ("o Minha Conta com ícone deve ir ao lado do reservar agora"). No mesmo
+recado, para o entrar (3.3): **o "Mostrar" vira um olho no fim do campo da senha** (também no criar a conta e na senha
+nova), e **o "Esqueci a senha" desce para logo abaixo do campo**.
+
 ### 4.1 — Minha conta
 
 **Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("perfeito, recomendações aceitas"). **Wireframe** (privado do PO): [4.1](https://claude.ai/artifact/XLfUjZVFKWRY29w95cqUf2): a conta antes

@@ -37,7 +37,7 @@ de um PR não serve: ela não fala com a API, e nenhum e-mail sai.
 |---|---|---|---|
 | 1 | Celular | Abra o site e toque no menu. | "Minha conta" no fim da lista, com o desenho de uma pessoa, separado das seções por um fio. |
 | 2 | Celular | Toque em "Minha conta". | A página da conta com "Entrar na sua conta" (ou a conta, se já tiver entrado). |
-| 3 | Celular | Abra o site no computador, ou no celular deitado. | "Minha conta" ao lado de "Contato", antes de "Reservar agora", numa linha. |
+| 3 | Celular | Abra o site no computador, ou no celular deitado. | As seções junto do logo; "Minha conta" no fim da linha, encostado no "Reservar agora". |
 
 ### 11 · Criar a conta e confirmar o e-mail (3.1 e 3.2; #110, #111, #114)
 

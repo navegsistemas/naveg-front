@@ -11,8 +11,9 @@
  * - **o cabeçalho fica preso ao rolar em toda largura**: no celular ele tem uma linha só (logo, botão e menu),
  *   e quem rolou não perde o caminho de volta nem o botão de reservar;
  * - **"Minha conta" é o último item do menu** (3.5, B e C, decididas em 2026-10-16; no ar a pedido do PO em
- *   2026-10-23: "insira logo o entrar/minha conta na barra"). Com o desenho de uma pessoa; no menu recolhido, separado
- *   dos outros por um fio. **Fixo** (1.1, D; 3.5, F): leva a `/conta`, que mostra o entrar ou a conta; um item que
+ *   2026-10-23: "insira logo o entrar/minha conta na barra"). Com o desenho de uma pessoa. Na tela larga, encostado no
+ *   "Reservar agora", longe das seções (aceite do roteiro 10, 2026-10-23); no menu recolhido, separado dos outros por
+ *   um fio. **Fixo** (1.1, D; 3.5, F): leva a `/conta`, que mostra o entrar ou a conta; um item que
  *   trocasse entre "Entrar" e "Minha conta" pediria JavaScript em toda página. Não vem de `menuDaPagina()`, que é das
  *   seções da página.
  *
@@ -154,6 +155,16 @@ const naConta = Astro.url.pathname.startsWith('/conta')
     color: var(--header-texto-dim);
     text-decoration: none;
     font-weight: 500;
+  }
+
+  /* Na tela larga, a navegação ocupa o meio da linha, e "Minha conta" vai para o fim dela, ao lado do "Reservar
+     agora" (PO, 2026-10-23, no aceite do roteiro 10). As seções continuam coladas ao logo. */
+  .topo__nav--larga {
+    flex: 1;
+  }
+
+  .topo__nav--larga .topo__conta {
+    margin-inline-start: auto;
   }
 
   /* "Minha conta" (3.5): o desenho da pessoa antes do rótulo. */

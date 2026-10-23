@@ -36,6 +36,8 @@ export const SLUGS_DE_ICONE = [
   'facebook',
   'menu',
   'fechar',
+  'olho',
+  'olho-fechado',
 ] as const
 
 export type SlugIcone = (typeof SLUGS_DE_ICONE)[number]
@@ -154,6 +156,20 @@ export const DESENHOS: Readonly<Record<SlugIcone, Desenho>> = {
     traco: true,
     rotulo: 'Fechar',
     caminhos: ['M6 6l12 12', 'M18 6L6 18'],
+  },
+  olho: {
+    traco: true,
+    rotulo: 'Mostrar',
+    caminhos: ['M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
+  },
+  'olho-fechado': {
+    traco: true,
+    rotulo: 'Esconder',
+    caminhos: [
+      'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z',
+      'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+      'M4 4l16 16',
+    ],
   },
 }
 
