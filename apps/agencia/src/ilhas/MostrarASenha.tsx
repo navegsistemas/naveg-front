@@ -9,10 +9,10 @@
  *
  * O desenho vem do design system, como o `Icone.astro` o monta: aqui é ilha, e o `.astro` não entra no React.
  */
-import { DESENHOS, LADO_DO_ICONE } from '@navegsistemas/design-system'
+import { LADO_DO_ICONE, OLHO, OLHO_FECHADO } from '@navegsistemas/design-system'
 
 export default function MostrarASenha({ mostrando, aoTrocar }: { readonly mostrando: boolean; readonly aoTrocar: () => void }) {
-  const desenho = DESENHOS[mostrando ? 'olho-fechado' : 'olho']
+  const desenho = mostrando ? OLHO_FECHADO : OLHO
   return (
     <button
       type="button"
