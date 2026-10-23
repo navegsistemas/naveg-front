@@ -299,6 +299,10 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
         {enviando ? 'Criando…' : estado.caso === 'FALHA' ? 'Tentar de novo' : 'Criar conta'}
       </button>
 
+      <p className="conta-ajuda">
+        Já tem conta? <a href="/conta/">Entrar</a>
+      </p>
+
       {ENVIO.tipo === 'MEMORIA' && contaDada === undefined && (
         <p className="totem-demonstracao">Demonstração: a conta não é criada de verdade, e nenhum e-mail sai.</p>
       )}

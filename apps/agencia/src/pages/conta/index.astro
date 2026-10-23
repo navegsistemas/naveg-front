@@ -1,0 +1,29 @@
+---
+/**
+ * **A página da conta** — para onde "Minha conta" leva (3.5, A): o entrar para quem não entrou (3.3), e a conta para
+ * quem entrou (a 4.1, quando existir). A ilha pergunta à API quem está dentro (`ilhas/PortaDaConta.tsx`).
+ *
+ * `noindex`, como as outras páginas da conta. A página soma o Turnstile à política: entrar leva o desafio, com a ação
+ * `entrar`.
+ */
+import Pagina from '../../layouts/Pagina.astro'
+import Topo from '../../componentes/Topo.astro'
+import Rodape from '../../componentes/Rodape.astro'
+import SemJavaScript from '../../componentes/SemJavaScript.astro'
+import PortaDaConta from '../../ilhas/PortaDaConta'
+
+import { SITE } from '../../conteudo/site'
+import { politicaDaPagina, somarOTurnstile } from '../../conteudo/seguranca'
+import '../../estilos/conta.css'
+
+somarOTurnstile(politicaDaPagina(Astro.csp))
+---
+
+<Pagina titulo={`Minha conta — ${SITE.nome}`} indexar={false}>
+  <Topo />
+  <main id="conteudo-principal" class="conteudo conta">
+    <PortaDaConta client:load />
+    <SemJavaScript oQue="a conta" paraQue="reservar" />
+  </main>
+  <Rodape />
+</Pagina>

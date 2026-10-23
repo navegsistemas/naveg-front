@@ -26,6 +26,9 @@ function contaFalsa(confirmacao: ResultadoDaConfirmacao, reenvio: ResultadoDoRee
       confirmacoes.push([contaId, codigo])
       return confirmacao
     },
+    entrar: async () => ({ caso: 'CREDENCIAIS_INVALIDAS' }),
+    sessao: async () => ({ caso: 'FORA' }),
+    sair: async () => true,
   }
   return { conta, confirmacoes, reenvios }
 }

@@ -1132,6 +1132,18 @@ teto da sessão do Firebase; ADR-0003).
 **A ordem:** como a 3.1 e a 3.2. O freio por e-mail (C) e a sessão de 14 dias (A) são da API (naveg-api-vercel#30,
 ADR-0003).
 
+**Implementada em 2026-10-23**, na página `/conta` (o lugar da 3.5, A): a página pergunta à API quem está dentro e
+mostra o entrar ou a conta. Entrar com e-mail e senha ("Mostrar"); a frase única da B; a espera da C; a conta desativada
+da F, só com a senha certa; e o "Sair" no fim, com "Você saiu da sua conta neste aparelho". O "Já tem conta? Entrar"
+da 3.1 leva para cá. O que mudou desde o wireframe, ou espera outra seção:
+
+- **a verificação contra robô é visível**, acima do botão, como no cadastro e na reserva desde a 2.8 (2026-10-21); o
+  wireframe, de antes, a dizia invisível;
+- **o "Esqueci a senha" entra com a 3.4**, para não levar a uma página que ainda não existe;
+- **dentro, até a 4.1**, o miolo diz que a pessoa está na conta, com o aviso "Confirme seu e-mail para comprar" (3.2,
+  D) e o "Reservar agora"; a 4.1 põe Minha conta no lugar;
+- **a volta para onde a pessoa ia** (E) espera a compra (U3) e a opinião (1.6).
+
 ### 3.6 — Resgatar a reserva (retirada: vira um convite na 3.5)
 
 **Situação:** **retirada pelo PO no mesmo dia (2026-10-16)**: "esquece, não resgata reserva, só indica que pode emitir e

@@ -6,8 +6,8 @@
  * - **`contaEmMemoria`** — a demonstração (as prévias dos PRs e o site sem API): o domínio confere os campos como a
  *   API conferiria, e nada sai do navegador.
  *
- * Esta versão tem **o cadastro** (3.1), **o "Reenviar" e o link de confirmação** (3.2). As seções seguintes acrescentam
- * entrar e sair (3.3), a senha esquecida (3.4) e Meus dados (4.2).
+ * Esta versão tem **o cadastro** (3.1), **o "Reenviar" e o link de confirmação** (3.2), e **entrar, sair e quem está
+ * dentro** (3.3). As seções seguintes acrescentam a senha esquecida (3.4) e Meus dados (4.2).
  *
  * O `POST /conta/confirmacao/reenvio` responde sempre `202` (não revela se o e-mail tem conta); o `POST
  * /conta/confirmacao` responde `200 EMAIL_CONFIRMADO` ou `JA_CONFIRMADO`, ou `410 LINK_VENCIDO` ou `LINK_INVALIDO`.
@@ -54,6 +54,18 @@ export type ResultadoDaConfirmacao =
   | { readonly caso: 'EMAIL_CONFIRMADO' | 'JA_CONFIRMADO' | 'LINK_VENCIDO' | 'LINK_INVALIDO' }
   | { readonly caso: 'FALHA'; readonly porque: Exclude<MotivoDaFalha, 'DESAFIO'> }
 
+/** Entrar (3.3). As respostas não dizem se o e-mail tem conta: a desativada só aparece com a senha certa (F). */
+export type ResultadoDoEntrar =
+  | { readonly caso: 'DENTRO'; readonly confirmada: boolean }
+  | { readonly caso: 'CREDENCIAIS_INVALIDAS' | 'TENTATIVAS_DEMAIS' | 'CONTA_DESATIVADA' }
+  | { readonly caso: 'FALHA'; readonly porque: MotivoDaFalha }
+
+/** Quem está dentro neste aparelho (3.3): o cookie que vale, ou ninguém. */
+export type ResultadoDaSessao =
+  | { readonly caso: 'DENTRO'; readonly confirmada: boolean }
+  | { readonly caso: 'FORA' }
+  | { readonly caso: 'FALHA' }
+
 export interface ContaDoSite {
   /** Cria a conta. O desafio é pedido aqui, um por envio, como na reserva. */
   criar(cadastro: CadastroDaConta): Promise<ResultadoDoCadastroNoSite>
@@ -61,6 +73,12 @@ export interface ContaDoSite {
   reenviar(email: string): Promise<ResultadoDoReenvio>
   /** Confere o link do e-mail; confirmado, a API já deixa a pessoa dentro (o cookie vem na resposta). */
   confirmar(contaId: string, codigo: string): Promise<ResultadoDaConfirmacao>
+  /** Entra com o e-mail e a senha, e o desafio da página (ação `entrar`). Dentro, o cookie vem na resposta. */
+  entrar(email: string, senha: string): Promise<ResultadoDoEntrar>
+  /** Quem está dentro neste aparelho. */
+  sessao(): Promise<ResultadoDaSessao>
+  /** Sai deste aparelho: a API apaga o cookie. `false`: não deu (a rede). */
+  sair(): Promise<boolean>
 }
 
 /** Um `POST` com JSON: a resposta, ou `null` quando a rede caiu. */
@@ -167,6 +185,51 @@ export function contaHttp(urlDaApi: string, obterDesafio: ObterDesafio | null, b
       if (resposta.status === 400) return { caso: 'LINK_INVALIDO' }
       return { caso: 'FALHA', porque: resposta.status === 429 ? 'LIMITE' : 'CONEXAO' }
     },
+
+    async entrar(email, senha) {
+      if (obterDesafio === null) return falha('DESAFIO')
+      let desafio: string
+      try {
+        desafio = await obterDesafio()
+      } catch (erro) {
+        return falha(erro instanceof DesafioSemConexao ? 'CONEXAO' : 'DESAFIO')
+      }
+      const resposta = await postar(buscar, `${raiz}/entrar`, { email, senha, desafio })
+      if (resposta === null) return falha()
+      const dado = (await lerJson(resposta)) as { erro?: unknown; situacao?: unknown; confirmada?: unknown } | null
+      if (resposta.status === 200 && dado?.situacao === 'DENTRO') return { caso: 'DENTRO', confirmada: dado.confirmada === true }
+      switch (dado?.erro) {
+        case 'CREDENCIAIS_INVALIDAS':
+        case 'TENTATIVAS_DEMAIS':
+        case 'CONTA_DESATIVADA':
+          return { caso: dado.erro }
+        case 'LIMITE_EXCEDIDO':
+          return falha('LIMITE')
+        case 'DESAFIO_INVALIDO':
+          return falha('DESAFIO')
+        default:
+          return falha()
+      }
+    },
+
+    async sessao() {
+      let resposta: Response
+      try {
+        resposta = await buscar(`${raiz}/sessao`, { headers: { Accept: 'application/json' } })
+      } catch {
+        return { caso: 'FALHA' }
+      }
+      if (resposta.status === 401) return { caso: 'FORA' }
+      const dado = (await lerJson(resposta)) as { situacao?: unknown; confirmada?: unknown } | null
+      return resposta.status === 200 && dado?.situacao === 'DENTRO'
+        ? { caso: 'DENTRO', confirmada: dado.confirmada === true }
+        : { caso: 'FALHA' }
+    },
+
+    async sair() {
+      const resposta = await postar(buscar, `${raiz}/sair`, {})
+      return resposta !== null && resposta.status === 204
+    },
   }
 }
 
@@ -197,5 +260,24 @@ export class ContaEmMemoria implements ContaDoSite {
   /** Na demonstração não há e-mail, nem link: qualquer link aberto é um que não vale. */
   async confirmar(): Promise<ResultadoDaConfirmacao> {
     return { caso: 'LINK_INVALIDO' }
+  }
+
+  /** Quem entrou, na memória da aba. A demonstração não guarda senha: entra quem tiver se cadastrado com o e-mail. */
+  dentro = false
+
+  async entrar(email: string): Promise<ResultadoDoEntrar> {
+    const conhecido = this.cadastros.some((c) => c.email.trim().toLowerCase() === email.trim().toLowerCase())
+    if (!conhecido) return { caso: 'CREDENCIAIS_INVALIDAS' }
+    this.dentro = true
+    return { caso: 'DENTRO', confirmada: false }
+  }
+
+  async sessao(): Promise<ResultadoDaSessao> {
+    return this.dentro ? { caso: 'DENTRO', confirmada: false } : { caso: 'FORA' }
+  }
+
+  async sair(): Promise<boolean> {
+    this.dentro = false
+    return true
   }
 }

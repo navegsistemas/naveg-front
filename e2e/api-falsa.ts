@@ -47,7 +47,12 @@ export interface ApiFalsa {
   readonly cadastros: Record<string, unknown>[]
   /** Os e-mails do "Reenviar" (3.2). */
   readonly reenvios: string[]
+  /** Alguém entrou (3.3): o que o `GET /conta/sessao` responde. */
+  dentro: boolean
 }
+
+/** A senha que entra na API de mentira (3.3); qualquer outra "não confere". */
+export const SENHA_QUE_ENTRA = 'rio e maré cheia'
 
 /** Os códigos dos links de confirmação (3.2): um que confirma, um vencido; os outros não valem. */
 export const CODIGO_QUE_CONFIRMA = 'c'.repeat(43)
@@ -67,7 +72,7 @@ export async function servirApiFalsa(
   page: Page,
   opcoes: { readonly catalogo?: 'NORMAL' | 'FORA_DO_AR'; readonly envio?: Comportamento } = {},
 ): Promise<ApiFalsa> {
-  const api: ApiFalsa = { pedidos: [], cadastros: [], reenvios: [] }
+  const api: ApiFalsa = { pedidos: [], cadastros: [], reenvios: [], dentro: false }
 
   await page.route(`${URL_DA_API_FALSA}/**`, async (route) => {
     const pedido = route.request()
@@ -127,6 +132,23 @@ export async function servirApiFalsa(
       if (codigo === CODIGO_QUE_CONFIRMA) return json(route, 200, { situacao: 'EMAIL_CONFIRMADO' })
       if (codigo === CODIGO_VENCIDO) return json(route, 410, { erro: 'LINK_VENCIDO', mensagem: 'Este link venceu' })
       return json(route, 410, { erro: 'LINK_INVALIDO', mensagem: 'Este link não vale' })
+    }
+
+    /* Entrar, a sessão e o sair (3.3). A sessão é do cenário (`api.dentro`): o cookie de verdade é da API. */
+    if (caminho === '/conta/sessao' && pedido.method() === 'GET') {
+      return api.dentro
+        ? json(route, 200, { situacao: 'DENTRO', confirmada: true })
+        : json(route, 401, { erro: 'SEM_SESSAO', mensagem: 'Ninguém entrou neste aparelho' })
+    }
+    if (caminho === '/conta/entrar' && pedido.method() === 'POST') {
+      const { senha } = pedido.postDataJSON() as { senha: string }
+      if (senha !== SENHA_QUE_ENTRA) return json(route, 401, { erro: 'CREDENCIAIS_INVALIDAS', mensagem: 'E-mail ou senha não conferem' })
+      api.dentro = true
+      return json(route, 200, { situacao: 'DENTRO', confirmada: true })
+    }
+    if (caminho === '/conta/sair' && pedido.method() === 'POST') {
+      api.dentro = false
+      return route.fulfill({ status: 204, headers: CORS })
     }
 
     return json(route, 404, { erro: 'rota-desconhecida' })

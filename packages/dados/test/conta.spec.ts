@@ -26,7 +26,8 @@ function api(status: number, corpo: unknown = {}) {
   const pedidos: { url: string; init: RequestInit | undefined }[] = []
   const buscar: Buscar = async (url, init) => {
     pedidos.push({ url, init })
-    return new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } })
+    /* O 204 não tem corpo: o `Response` o recusa. */
+    return new Response(status === 204 ? null : JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } })
   }
   return { pedidos, buscar }
 }
@@ -133,6 +134,57 @@ describe('contaHttp — o "Reenviar" e o link de confirmação (3.2)', () => {
     const { pedidos, buscar } = api(202)
     expect(await contaHttp('/api', null, buscar).criar(CADASTRO)).toEqual({ caso: 'FALHA', porque: 'DESAFIO' })
     expect(pedidos).toEqual([])
+  })
+})
+
+describe('contaHttp — entrar, quem está dentro e sair (3.3)', () => {
+  it('entrar manda o e-mail, a senha e o desafio para /conta/entrar, e o 200 é DENTRO', async () => {
+    const { pedidos, buscar } = api(200, { situacao: 'DENTRO', confirmada: false })
+    expect(await contaHttp('/api', desafio, buscar).entrar('maria@exemplo.com.br', 'segredo')).toEqual({
+      caso: 'DENTRO',
+      confirmada: false,
+    })
+    expect(pedidos[0]?.url).toBe('/api/conta/entrar')
+    expect(JSON.parse(pedidos[0]?.init?.body as string)).toEqual({
+      email: 'maria@exemplo.com.br',
+      senha: 'segredo',
+      desafio: 'token-do-turnstile',
+    })
+  })
+
+  it.each([
+    [401, { erro: 'CREDENCIAIS_INVALIDAS' }, { caso: 'CREDENCIAIS_INVALIDAS' }],
+    [429, { erro: 'TENTATIVAS_DEMAIS' }, { caso: 'TENTATIVAS_DEMAIS' }],
+    [403, { erro: 'CONTA_DESATIVADA' }, { caso: 'CONTA_DESATIVADA' }],
+    [429, { erro: 'LIMITE_EXCEDIDO' }, { caso: 'FALHA', porque: 'LIMITE' }],
+    [403, { erro: 'DESAFIO_INVALIDO' }, { caso: 'FALHA', porque: 'DESAFIO' }],
+    [503, { erro: 'ENTRAR_INDISPONIVEL' }, { caso: 'FALHA', porque: 'CONEXAO' }],
+  ])('entrar com %i %j', async (status, corpo, resultado) => {
+    const { buscar } = api(status, corpo)
+    expect(await contaHttp('/api', desafio, buscar).entrar('maria@exemplo.com.br', 'x')).toEqual(resultado)
+  })
+
+  it('entrar sem a verificação da página não chega à API', async () => {
+    const { pedidos, buscar } = api(200)
+    expect(await contaHttp('/api', null, buscar).entrar('maria@exemplo.com.br', 'x')).toEqual({ caso: 'FALHA', porque: 'DESAFIO' })
+    expect(pedidos).toEqual([])
+  })
+
+  it.each([
+    [200, { situacao: 'DENTRO', confirmada: true }, { caso: 'DENTRO', confirmada: true }],
+    [401, { erro: 'SEM_SESSAO' }, { caso: 'FORA' }],
+    [503, { erro: 'ENTRAR_INDISPONIVEL' }, { caso: 'FALHA' }],
+  ])('a sessão com %i %j', async (status, corpo, resultado) => {
+    const { pedidos, buscar } = api(status, corpo)
+    expect(await contaHttp('/api', null, buscar).sessao()).toEqual(resultado)
+    expect(pedidos[0]?.url).toBe('/api/conta/sessao')
+  })
+
+  it('sair é o POST /conta/sair, e o 204 é true', async () => {
+    const { pedidos, buscar } = api(204)
+    expect(await contaHttp('/api', null, buscar).sair()).toBe(true)
+    expect(pedidos[0]?.url).toBe('/api/conta/sair')
+    expect(await contaHttp('/api', null, async () => Promise.reject(new TypeError('rede'))).sair()).toBe(false)
   })
 })
 
