@@ -148,7 +148,7 @@ Atualizado a cada seção. Situações: **a começar**, **em análise** (passos 
 |---|---|---|
 | **1 — As seções vigentes** | 1.1 a 1.9 | **1.1 no ar** (#43) e **1.2 no ar** (#45), conferidas pelo PO no celular (2026-10-15); **1.3 no ar** (#49, o calendário; as cidades da rota desde o #59), com os 90 dias e a saída suspensa aceitos pelo PO no celular (2026-10-20); o rodapé (#78, #79) aceito no mesmo dia; **1.4 no ar** (#101, o passo a passo em esquema), **aceita pelo PO no celular em 2026-10-22**; as outras, a começar |
 | **2 — Melhorias na reserva** | 2.1 a 2.8 | **2.2 no ar** (#62, #68, #69; aceite do PO em 2026-10-15); **2.7 no ar** (#72, 2026-10-16; a encomenda no mesmo caminho, com a #58); **2.3 no ar** (#75, 2026-10-16; o celular obrigatório na página); **2.1 reaberta pelo PO e decidida em 2026-10-22** (o cartão da saída; o calendário da 1.3 cobriu o dia), **no ar** (#99) e **aceita pelo PO no celular no mesmo dia**; a foto em faixa (#103, a C revista), aceita no mesmo dia (roteiro 9); **2.4 no ar** (#77, 2026-10-16; a conferência), **com a 2.5** (a conclusão) junto, a pedido do PO; **2.6 no ar** (#81; os erros, e o texto do WhatsApp). **A 2.3, a 2.4, a 2.5, a 2.6 e a 2.7 aceitas pelo PO no celular em 2026-10-20** (a 2.6 com o #87); **2.8 no ar** (#92; a verificação contra robô como passo da conferência), **aceita pelo PO no celular em 2026-10-21** |
-| **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43) |
+| **3 — O cadastro** | 3.1 a 3.5 | **decidida** (2026-10-16): 3.1 a 3.5, com as regras juntas em "As regras da conta"; a 3.6 (resgatar a reserva) retirada pelo PO. A implementação espera o KMP (fluviapp-kmp#70, #71), o domain e a API (naveg-api-vercel#30, #43). **No ar em 2026-10-23** (#110 a #117); **3.1, 3.2, 3.3 e o item do topo da 3.5 aceitos pelo PO no celular no mesmo dia** (roteiros 10 a 12); a 3.4 espera o roteiro 13 |
 | **4 — As páginas do cliente** | 4.1 a 4.4 | **4.1 e 4.2 decididas** (2026-10-16), com a implementação junto do cadastro; 4.3 e 4.4 vêm com a compra |
 | **5 — A compra e a emissão online** | 5.1 a 5.8 | a começar |
 
@@ -967,7 +967,8 @@ Uma conta por documento (fluviapp-kmp#70).
 ### 3.1 — Criar a conta
 
 **Situação:** **decidida** (2026-10-16): os campos, o texto da versão 3 e **A a F pela recomendação** ("perfeito,
-recomendações aceitas"). A implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30). **Wireframe** (privado do PO):
+recomendações aceitas"). A implementação espera o KMP (fluviapp-kmp#70), o domain e a API (naveg-api-vercel#30).
+**No ar (#110, #114) e aceita pelo PO no celular em 2026-10-23** (roteiro de aceite 11), com três pedidos (abaixo). **Wireframe** (privado do PO):
 [3.1](https://claude.ai/artifact/WTLLEkH8cCHm6WX8CgA1Es), com o formulário, os erros e a passagem para a 3.2, no
 celular e no computador.
 
@@ -1027,6 +1028,20 @@ nascimento", e "campo de email maior e em coluna com o número, ficou muito curt
 - **o e-mail e o celular um embaixo do outro**, e não mais aos pares no computador;
 - **a data de nascimento pelo calendário do aparelho** (`type="date"`), até hoje, no lugar do "dd/mm/aaaa" digitado.
 
+**Aceita pelo PO no celular em 2026-10-23** (roteiro de aceite 11, com a 3.2): o cadastro, o e-mail de verdade e o link
+confirmando. Três observações, que viram pedido:
+
+- **o calendário deixou escolher um dia depois de hoje** (passo 2, "Calendário funcionou, mas pude escolher data
+  futura"). O `max` do campo não prende o calendário de todo celular. A regra vale mesmo assim: um nascimento no futuro
+  não passa dos 18 anos, e o cadastro recusa. Falta a frase certa para esse caso;
+- **um aviso de que a criação falhou** ("Deve ter um indicativo de erro na criação, um snackbar com mensagens ou algo
+  parecido que fica temporariamente na tela"): hoje o "Criar conta" com campos errados só marca os campos e leva o
+  cursor ao primeiro;
+- **a validação em vermelho** ("o marrom acendendo como erro pode confundir a UX, melhor usar sempre a borda e o texto
+  de suporte vermelhos como é o padrão esperado, apenas para validações"). Os quadros de aviso, como o "E-mail ou senha
+  não conferem" do entrar, ficam como estão (roteiro 12: "o texto em um componente diferente informando está bem
+  feito").
+
 **O PO sobre o wireframe (2026-10-16):** "gostei dos campos, mas não precisa do texto de suporte". E o porquê:
 
 - **os dados da conta são do cadastro de quem tem a conta, e não da passagem.** O cliente compra uma passagem para
@@ -1049,7 +1064,7 @@ embaixo de campo:
 ### 3.2 — Confirmar o e-mail
 
 **Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("recomendações aceitas"). A F virou a
-naveg-api-vercel#43. A implementação espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
+naveg-api-vercel#43. **No ar (#111) e aceita pelo PO no celular em 2026-10-23** (roteiro de aceite 11). A implementação espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
 [3.2](https://claude.ai/artifact/D7H3ptFWbr2dDrGAUDqgGq): a tela "Confira seu e-mail", o reenvio, a correção do e-mail,
 o próprio e-mail, o link confirmado e o link que não vale mais.
 
@@ -1099,7 +1114,8 @@ endereço assim que a página o lê. O que mudou desde o wireframe:
 ### 3.3 — Entrar e sair
 
 **Situação:** **decidida** (2026-10-16): **A a F pela recomendação** ("as recomendações foram aceitas"). A implementação
-espera o KMP, o domain e a API, como a 3.1. **Wireframe** (privado do PO):
+espera o KMP, o domain e a API, como a 3.1. **No ar (#112) e aceita pelo PO no celular em 2026-10-23** (roteiro de
+aceite 12), com o olho da senha e o "Esqueci a senha" abaixo do campo do #117. **Wireframe** (privado do PO):
 [3.3](https://claude.ai/artifact/LNG8wmYhfbS7RTtzRyLesb): entrar, entrar vindo da compra, o erro, as tentativas demais,
 a conta desativada, o menu com "Minha conta" e o sair.
 
@@ -1376,7 +1392,9 @@ até 50rem** (C).
 **Revisões do aceite do roteiro 10 (PO, 2026-10-23):** na tela larga, "Minha conta" sai do lado das seções e vai para o
 fim da linha, **encostado no "Reservar agora"** ("o Minha Conta com ícone deve ir ao lado do reservar agora"). No mesmo
 recado, para o entrar (3.3): **o "Mostrar" vira um olho no fim do campo da senha** (também no criar a conta e na senha
-nova), e **o "Esqueci a senha" desce para logo abaixo do campo**.
+nova), e **o "Esqueci a senha" desce para logo abaixo do campo**. No ar com o #117, e **o item do topo aceito pelo PO
+no celular em 2026-10-23** (roteiro de aceite 10, "tudo funcionou"). A margem torta que o PO viu no celular ("margem na
+parte esquerda e colados na parte direita") não se reproduziu em 360, 412, 844 e 1280 px; espera um print.
 
 ### 4.1 — Minha conta
 
