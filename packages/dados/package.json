@@ -5,7 +5,8 @@
   "type": "module",
   "description": "As portas de dados do totem — gravar a reserva, carregar o catálogo — e os adaptadores: o catálogo pela API da agência (passo 9) e, até o passo 10, a reserva em memória.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./conta": "./src/conta.ts"
   },
   "dependencies": {
     "@navegsistemas/domain": "*"

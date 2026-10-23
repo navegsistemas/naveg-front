@@ -19,7 +19,7 @@
  */
 import { useId, useMemo, useRef, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 
-import { ContaEmMemoria, contaHttp, type ContaDoSite, type ResultadoDoCadastroNoSite } from '@navegsistemas/dados'
+import { ContaEmMemoria, contaHttp, type ContaDoSite, type ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
 import {
   DataCalendario,
   InstanteLocal,

@@ -40,9 +40,15 @@ const DIST = fileURLToPath(new URL('../apps/agencia/dist/', import.meta.url))
  * Em 2026-10-15 a reserva sem o tipo (#65) e o caminho novo da 2.2 (#66) levaram o resto a 29,5: o que vai embarcar
  * antes do dia, com o porte e as classes, o contador do "5 ou mais", os cartões e o quadro do embarque. O teto sobe
  * para 31,5, com a mesma folga de ~2 kB.
+ *
+ * Em 2026-10-23 a conta (3.1) trouxe a segunda ilha de página, e **a medida passou a ser por página** (abaixo). A
+ * página inicial foi de 30,5 a 32,5: o que as duas ilhas usam em comum (o domínio, a verificação contra robô) saiu do
+ * arquivo do totem para um pedaço compartilhado, e a divisão custa ~2 kB de gzip. O código da conta não está nele: ele
+ * tem a entrada própria (`@navegsistemas/dados/conta`), e só `/conta/criar` o baixa (30,6). O teto sobe para 34,5, com
+ * a mesma folga de ~2 kB.
  */
 const TETO_DO_RUNTIME = 70
-const TETO_DO_RESTO = 31.5
+const TETO_DO_RESTO = 34.5
 
 const CARA_DE_CREDENCIAL = [
   ['chave privada', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
@@ -66,17 +72,44 @@ const todos = arquivos(DIST)
 /* kB decimal, como o Vite imprime no build: os números batem com o log dele. */
 const kb = (bytes) => bytes / 1000
 
+/* **Por página**, desde a conta (3.1, 2026-10-23): cada página paga só o que ela baixa — as ilhas dela
+   (`component-url` e `renderer-url`) e os arquivos que elas importam, seguidos pelos `import`. Antes, somava-se o
+   `_astro/` inteiro, e a ilha da conta, que só desce em `/conta/criar`, entrava na conta da página inicial. O teto vale
+   para a página que mais baixa. */
+const gzipDe = new Map()
+for (const arquivo of todos.filter((a) => a.endsWith('.js'))) {
+  const nome = relative(DIST, arquivo).replaceAll('\\', '/')
+  gzipDe.set(nome, kb(gzipSync(readFileSync(arquivo)).length))
+  console.log(`  ${nome.padEnd(40)} ${gzipDe.get(nome).toFixed(1).padStart(6)} kB gzip`)
+}
+const ehRuntime = (nome) => /(^|\/)client\.[^/]+\.js$/.test(nome)
+
+/** Os arquivos `_astro/` que uma página baixa: as ilhas, e o que elas importam, até o fim. */
+function baixadosPor(html) {
+  const pendentes = [...html.matchAll(/(?:component|renderer)-url="\/(_astro\/[^"]+\.js)"/g)].map(([, nome]) => nome)
+  const vistos = new Set()
+  while (pendentes.length > 0) {
+    const nome = pendentes.pop()
+    if (vistos.has(nome) || !gzipDe.has(nome)) continue
+    vistos.add(nome)
+    const codigo = readFileSync(join(DIST, nome), 'utf8')
+    for (const [, importado] of codigo.matchAll(/(?:from\s*|import\s*\(\s*)"\.\/([^"]+\.js)"/g)) pendentes.push(`_astro/${importado}`)
+  }
+  return vistos
+}
+
 let runtime = 0
 let resto = 0
-for (const arquivo of todos.filter((a) => a.endsWith('.js'))) {
-  const gzip = kb(gzipSync(readFileSync(arquivo)).length)
-  const nome = relative(DIST, arquivo)
-  if (/(^|[\\/])client\.[^\\/]+\.js$/.test(nome)) runtime += gzip
-  else resto += gzip
-  console.log(`  ${nome.padEnd(40)} ${gzip.toFixed(1).padStart(6)} kB gzip`)
+for (const arquivo of todos.filter((a) => a.endsWith('.html'))) {
+  const baixados = [...baixadosPor(readFileSync(arquivo, 'utf8'))]
+  if (baixados.length === 0) continue
+  const daPagina = baixados.filter((n) => !ehRuntime(n)).reduce((soma, n) => soma + gzipDe.get(n), 0)
+  runtime = Math.max(runtime, baixados.filter(ehRuntime).reduce((soma, n) => soma + gzipDe.get(n), 0))
+  resto = Math.max(resto, daPagina)
+  console.log(`  ${`/${relative(DIST, arquivo).replaceAll('\\', '/')}`.padEnd(40)} ${daPagina.toFixed(1).padStart(6)} kB de ilha`)
 }
 console.log(`runtime do React: ${runtime.toFixed(1)} kB (teto ${TETO_DO_RUNTIME})`)
-console.log(`ilha e carregador: ${resto.toFixed(1)} kB (teto ${TETO_DO_RESTO})`)
+console.log(`ilha e carregador, na página que mais baixa: ${resto.toFixed(1)} kB (teto ${TETO_DO_RESTO})`)
 if (runtime > TETO_DO_RUNTIME) falhas.push(`o runtime do React passou do teto: ${runtime.toFixed(1)} kB > ${TETO_DO_RUNTIME} kB`)
 if (resto > TETO_DO_RESTO) falhas.push(`a ilha e o carregador passaram do teto: ${resto.toFixed(1)} kB > ${TETO_DO_RESTO} kB`)
 

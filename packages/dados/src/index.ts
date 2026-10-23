@@ -12,5 +12,5 @@ export { catalogoHttp, FalhaAoCarregarOCatalogo } from './http.js'
 export type { Buscar } from './http.js'
 export { DesafioSemConexao, envioHttp, envioHttpDaEncomenda, envioLocal, envioLocalDaEncomenda } from './envio.js'
 export type { EnvioDaEncomenda, EnvioDaReserva, ObterDesafio, PedidoDaEncomenda, PedidoDoTotem } from './envio.js'
-export { contaHttp, ContaEmMemoria } from './conta.js'
-export type { ContaDoSite, MotivoDaSenhaFraca, ResultadoDoCadastroNoSite } from './conta.js'
+/* A conta (3.1 em diante) tem a entrada dela, `@navegsistemas/dados/conta`: fora deste índice, a ilha do totem não a
+   alcança, e a página inicial não baixa o código da conta. */

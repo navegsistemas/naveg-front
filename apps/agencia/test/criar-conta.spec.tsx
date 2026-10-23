@@ -7,7 +7,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import type { ContaDoSite, ResultadoDoCadastroNoSite } from '@navegsistemas/dados'
+import type { ContaDoSite, ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
 import { DataCalendario, type CadastroDaConta } from '@navegsistemas/domain'
 
 import CriarConta, { dataIso, ERRO_DO_CAMPO, FALHA_DO_CADASTRO, mascaraDaData } from '../src/ilhas/CriarConta'
