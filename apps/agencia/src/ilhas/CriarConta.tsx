@@ -57,6 +57,12 @@ export const FALHA_DO_CADASTRO = {
   DESAFIO: 'A verificação contra robô não passou. Tente de novo.',
 } as const
 
+/**
+ * O quadro acima do botão, quando o "Criar conta" encontra campos por acertar. Uma frase só, sem contar os campos: a
+ * página do cadastro está no teto do build (34,5 kB), e o plural custava o que faltava.
+ */
+export const AVISO_DOS_CAMPOS = 'A conta ainda não foi criada. Confira os campos marcados acima.'
+
 type Campo = 'nome' | 'nascimento' | 'email' | 'telefone' | 'senha'
 
 /** A pendência → o campo onde ela aparece. */
@@ -99,6 +105,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
   const [doServidor, setDoServidor] = useState<Partial<Record<Campo, string>>>({})
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [estado, setEstado] = useState<Estado>({ caso: 'PREENCHENDO' })
+  const [tentouCriar, setTentouCriar] = useState(false)
   const campos = useRef<Partial<Record<Campo, HTMLInputElement | null>>>({})
 
   const cadastro = {
@@ -114,7 +121,6 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
     erros[CAMPO_DA_PENDENCIA[pendencia]] ??= ERRO_DO_CAMPO[pendencia]
   }
   const erroVisivel = (campo: Campo) => (tocados.has(campo) ? erros[campo] : undefined)
-
   const mudar = (campo: Campo, valor: string) => {
     setValores((antes) => ({ ...antes, [campo]: valor }))
     setDoServidor(({ [campo]: _, ...resto }) => resto)
@@ -129,6 +135,7 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
   async function enviar(evento: FormEvent) {
     evento.preventDefault()
     setTocados(new Set(ORDEM))
+    setTentouCriar(true)
     if (Object.keys(erros).length > 0) {
       focarOPrimeiro(erros)
       return
@@ -268,6 +275,16 @@ export default function CriarConta({ conta: contaDada, hoje = hojeEmBelem }: Pro
 
       {verificacao !== null && estadoDaVerificacao !== null && (
         <PassoDaVerificacao verificacao={verificacao} estado={estadoDaVerificacao} />
+      )}
+
+      {/* O quadro de que a conta não foi criada, acima do botão: só os campos marcados não bastavam (PO, 2026-10-23, no
+          aceite do roteiro 11: "deve ter um indicativo de erro na criação"). Ele fica até o último campo ficar certo,
+          e não some sozinho como um snackbar: quem lê devagar, ou olhava outro campo, não o perde (a recomendação
+          aceita pelo PO no mesmo dia). */}
+      {tentouCriar && ORDEM.some((campo) => erroVisivel(campo) !== undefined) && (
+        <div className="totem-aviso" role="alert">
+          <p>{AVISO_DOS_CAMPOS}</p>
+        </div>
       )}
 
       {estado.caso === 'FALHA' && (

@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { ContaDoSite, ResultadoDoCadastroNoSite } from '@navegsistemas/dados/conta'
 import { DataCalendario, type CadastroDaConta } from '@navegsistemas/domain'
 
-import CriarConta, { ERRO_DO_CAMPO, FALHA_DO_CADASTRO } from '../src/ilhas/CriarConta'
+import CriarConta, { AVISO_DOS_CAMPOS, ERRO_DO_CAMPO, FALHA_DO_CADASTRO } from '../src/ilhas/CriarConta'
 
 const hoje = () => DataCalendario.de('2026-10-23') as DataCalendario
 
@@ -103,6 +103,18 @@ describe('CriarConta', () => {
     expect(document.activeElement).toBe(screen.getByLabelText('Nome completo'))
     expect(screen.getByLabelText('Nome completo').getAttribute('aria-invalid')).toBe('true')
     expect(cadastros).toEqual([])
+  })
+
+  it('o quadro acima do botão diz que a conta não foi criada, e fica até o último campo ficar certo', () => {
+    render(<CriarConta conta={contaQueResponde({ caso: 'CONFIRA_O_EMAIL' }).conta} hoje={hoje} />)
+    expect(screen.queryByRole('alert')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
+    expect(screen.getByRole('alert').textContent).toBe(AVISO_DOS_CAMPOS)
+
+    preencher({ nome: COMPLETO.nome, nascimento: COMPLETO.nascimento, email: COMPLETO.email, telefone: COMPLETO.telefone })
+    expect(screen.getByRole('alert').textContent).toBe(AVISO_DOS_CAMPOS)
+    preencher({ senha: COMPLETO.senha })
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   it('o erro só aparece depois de sair do campo', () => {
